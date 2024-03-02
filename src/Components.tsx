@@ -185,9 +185,6 @@ export const ButtonContainer = ({ children }: { children: ReactNode }) => (
       alignItems: "center",
       flexDirection: "row",
       justifyContent: "center",
-      "& MuiButtonBase-root": {
-        "&:focus": "none !important"
-      }
     }}
   >
     {children}

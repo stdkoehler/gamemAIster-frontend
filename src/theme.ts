@@ -16,4 +16,15 @@ export const darkTheme = createTheme({
       contrastText: "#000",
     },
   },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: ({theme}) => ({
+          "&:focus": {
+            outline: "none"
+          }
+        })
+      }
+    }
+  }
 });
