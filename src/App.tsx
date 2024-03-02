@@ -48,7 +48,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <ImageContainer>{logo}</ImageContainer>
-      <SplitScreen leftWeight={1} rightWeight={4} color={"primary"}>
+      <SplitScreen leftWeight={1} rightWeight={4} color={"primary"} scrollable={true}>
         <AppGrid container spacing={2}>
           <AppGrid item xs={12}>
           <CharacterCard

@@ -41,26 +41,77 @@ export const StyledDivider = ({ color, ...props }: StyledDividerProps) => {
   );
 };
 
+// export const SplitScreen = ({
+//   children,
+//   leftWeight = 1,
+//   rightWeight = 1,
+//   color,
+// }: {
+//   children: ReactNode[];
+//   leftWeight: number;
+//   rightWeight: number;
+//   color: Colors;
+// }) => {
+//   const [left, right] = children;
+//   return (
+//     <Box sx={{ display: "flex", flexDirection: "row" }}>
+//       <Box sx={{ flex: leftWeight, overflowY: 'auto', height: "100%" }}>{left}</Box>
+//       <StyledDivider flexItem orientation="vertical" color={color} />
+//       <Box sx={{ flex: rightWeight }}>{right}</Box>
+//     </Box>
+//   );
+// };
+
 export const SplitScreen = ({
   children,
   leftWeight = 1,
   rightWeight = 1,
   color,
+  scrollable = false
 }: {
   children: ReactNode[];
   leftWeight: number;
   rightWeight: number;
   color: Colors;
+  scrollable?: boolean;
 }) => {
   const [left, right] = children;
+  const theme = useTheme();
   return (
-    <Box sx={{ display: "flex", flexDirection: "row" }}>
-      <Box sx={{ flex: leftWeight }}>{left}</Box>
-      <StyledDivider flexItem orientation="vertical" color={color} />
-      <Box sx={{ flex: rightWeight }}>{right}</Box>
+    <Box sx={{ display: "flex", flexDirection: "row", }}>
+      <Box
+        sx={{
+          flex: leftWeight,
+          maxHeight: "120vh",
+          overflowY: scrollable?"auto":"visible",
+          padding: "8px",
+          '&::-webkit-scrollbar': {
+            width: '0.4em'
+          },
+          '&::-webkit-scrollbar-track': {
+            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+            webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid',
+            color: theme.palette[color].dark
+          }
+        }}
+      >
+        {left}
+      </Box>
+      <Box
+        sx={{
+          flex: rightWeight,
+        }}
+      >
+        {right}
+      </Box>
     </Box>
   );
 };
+
 
 type AdventureHeadingProps = ComponentProps<typeof Typography>;
 
