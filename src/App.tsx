@@ -9,6 +9,7 @@ import {
   AdventureHeading,
   FieldContainerComponent,
 } from "./Components";
+import {CharacterCard} from "./components/character"
 import { sendPlayerInputToLlm } from "./RestInterface";
 
 import logo from "./assets/sr_00096_.png";
@@ -47,12 +48,53 @@ const App: React.FC = () => {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <ImageContainer>{logo}</ImageContainer>
-      <SplitScreen leftWeight={1} rightWeight={5} color={"primary"}>
+      <SplitScreen leftWeight={1} rightWeight={4} color={"primary"}>
         <AppGrid container spacing={2}>
           <AppGrid item xs={12}>
-            <div>
-              <p>Inventory</p>
-            </div>
+          <CharacterCard
+            name="Character 1"
+            race="Human"
+            role="Warrior"
+            description="This is the
+            first character"
+            attributes={{
+              Agility: 1,
+              Strength: 2,
+              Body: 3,
+              Intuition: 4,
+              Willpower: 5,
+            }}
+            skills={{ Weapon: 6, Gymnastics: 7 }}
+            armor={8}
+            weapon="Sword"
+            cyberware={["banana", "apple"]}
+            damage={{
+              physical: { current: 9, max: 10 },
+              stun: { current: 11, max: 12 },
+            }}
+          />
+          <CharacterCard
+            name="Character 1"
+            race="Human"
+            role="Warrior"
+            description="This is the
+            first character"
+            attributes={{
+              Agility: 1,
+              Strength: 2,
+              Body: 3,
+              Intuition: 4,
+              Willpower: 5,
+            }}
+            skills={{ Weapon: 6, Gymnastics: 7 }}
+            armor={8}
+            weapon="Sword"
+            cyberware={["banana", "apple"]}
+            damage={{
+              physical: { current: 9, max: 10 },
+              stun: { current: 11, max: 12 },
+            }}
+          />
           </AppGrid>
         </AppGrid>
         <AppGrid container spacing={2}>
