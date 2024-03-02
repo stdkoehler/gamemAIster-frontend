@@ -19,10 +19,17 @@ export const darkTheme = createTheme({
   components: {
     MuiButton: {
       styleOverrides: {
-        root: ({theme}) => ({
+        root: () => ({
           "&:focus": {
             outline: "none"
           }
+        })
+      }
+    },
+    MuiTypography: {
+      styleOverrides: {
+        root:({theme}) => ({
+          color:theme.palette.primary.main
         })
       }
     }
