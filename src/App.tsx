@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { ThemeProvider } from "@mui/material";
+import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { darkTheme } from "./theme";
 import {
@@ -47,6 +47,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
+      <Box sx={{height: "100%", overflow: "hidden", display: "flex", flexDirection: "column",}}>
       <ImageContainer>{logo}</ImageContainer>
       <SplitScreen leftWeight={1} rightWeight={4} color={"primary"} scrollable={true}>
         <AppGrid container spacing={2}>
@@ -142,7 +143,9 @@ const App: React.FC = () => {
           </AppGrid>
         </AppGrid>
       </SplitScreen>
+      </Box>
     </ThemeProvider>
+    
   );
 };
 
