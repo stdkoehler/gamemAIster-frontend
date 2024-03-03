@@ -65,8 +65,11 @@ const getDamageColor = (value: number) => {
 };
 
 
-const createDamageStyles = (damagePercentage: number) => {
+const createDamageInputFieldStyles = (damagePercentage: number) => {
+    const theme = useTheme();
     return {
+        padding: "5px 5px 5px 5px",
+        width: "40%",
         "& .MuiInputBase-root": {
             color: getDamageColor(damagePercentage),
         },
@@ -94,7 +97,35 @@ const createDamageStyles = (damagePercentage: number) => {
                 borderColor: getDamageColor(damagePercentage),
             },
         },
-    };
+        '& input[type=number]::-webkit-outer-spin-button': {
+            "-webkit-appearance": "none",
+            background:
+                "#121212 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAcCAYAAADr9QYhAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAI6ADAAQAAAABAAAAHAAAAACbzWzwAAABB0lEQVRIDe2XMQ6DMAxFf6suwAjszLDCTeASHALEyFlg5hLsXIJDtPIQVFkkgrhDVCWLcQzJ84/liEeSJG84MIqiwMMVmCAI8HRAlAPBwxxSsIf/VKZpGozjiCiKWL7X3Z8oQyB1XSPLMnRdZw0khlEgKn8JkAiGg0iBrJse1UZZlmr/U7vvO7ZtO43xSWp61jB8ManvO7BJQVEBmxa2iXkYnWpOKfPSUV6Zb9sWaZpqX12WBeu6auM8IOozBNL3/SnQNE2Y55nvp/XFfYY67DAMIPs97oKob8U1w4FsQQhIdEwqI7J0ZFVVgerEZvi7yaSauGZMi9+NOQMThqEbP3FxHCPPc3wAmdpEetL9b2QAAAAASUVORK5CYII=) no-repeat center center",
+            width: "2em",
+            opacity: 1,
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            overflow: "hidden",
+            borderTopRightRadius: "0.25rem",
+            borderBottomRightRadius: "0.25rem"
+        },
+        '& input[type=number]::-webkit-inner-spin-button': {
+            "-webkit-appearance": "none",
+            background:
+                "#121212 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAcCAYAAADr9QYhAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAI6ADAAQAAAABAAAAHAAAAACbzWzwAAABB0lEQVRIDe2XMQ6DMAxFf6suwAjszLDCTeASHALEyFlg5hLsXIJDtPIQVFkkgrhDVCWLcQzJ84/liEeSJG84MIqiwMMVmCAI8HRAlAPBwxxSsIf/VKZpGozjiCiKWL7X3Z8oQyB1XSPLMnRdZw0khlEgKn8JkAiGg0iBrJse1UZZlmr/U7vvO7ZtO43xSWp61jB8ManvO7BJQVEBmxa2iXkYnWpOKfPSUV6Zb9sWaZpqX12WBeu6auM8IOozBNL3/SnQNE2Y55nvp/XFfYY67DAMIPs97oKob8U1w4FsQQhIdEwqI7J0ZFVVgerEZvi7yaSauGZMi9+NOQMThqEbP3FxHCPPc3wAmdpEetL9b2QAAAAASUVORK5CYII=) no-repeat center center",
+            width: "2em",
+            opacity: 1,
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            overflow: "hidden",
+            borderTopRightRadius: "0.25rem",
+            borderBottomRightRadius: "0.25rem"
+        }
+    }
 };
 
 const DamageComponent: React.FC<{
@@ -118,7 +149,7 @@ const DamageComponent: React.FC<{
             <Typography>{label}:</Typography>
             <Box
                 display="flex"
-                flexDirection="column"
+                flexDirection="row"
                 alignItems="center"
                 justifyContent="center"
             >
@@ -127,7 +158,7 @@ const DamageComponent: React.FC<{
                     value={currentDamage}
                     onChange={handleDamageChange}
                     size="small"
-                    sx={createDamageStyles(currentDamage / damage.max)}
+                    sx={createDamageInputFieldStyles(currentDamage / damage.max)}
                 />
                 <CircularProgress
                     variant="determinate"
@@ -136,6 +167,7 @@ const DamageComponent: React.FC<{
                     thickness={4}
                     sx={{
                         color: getDamageColor(currentDamage / damage.max),
+                        padding: "5px 5px 5px 5px"
                     }}
                 />
                 <Typography
@@ -236,7 +268,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
                     </Box>
                 </Grid>
             </Grid>
-            <Grid container spacing={2} alignItems="center" justifyContent="center">
+            <Grid container spacing={2} flexDirection="row" alignItems="center" justifyContent="center" flexWrap="wrap">
                 <Grid item>
                     <DamageComponent
                         label="Physical Damage"
@@ -246,7 +278,6 @@ export const CharacterCard: React.FC<CharacterProps> = ({
                 <Grid item>
                     <DamageComponent label="Stun Damage" damage={damage.stun} />
                 </Grid>
-
             </Grid>
         </Box>
     );
