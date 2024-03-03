@@ -41,27 +41,6 @@ export const StyledDivider = ({ color, ...props }: StyledDividerProps) => {
   );
 };
 
-// export const SplitScreen = ({
-//   children,
-//   leftWeight = 1,
-//   rightWeight = 1,
-//   color,
-// }: {
-//   children: ReactNode[];
-//   leftWeight: number;
-//   rightWeight: number;
-//   color: Colors;
-// }) => {
-//   const [left, right] = children;
-//   return (
-//     <Box sx={{ display: "flex", flexDirection: "row" }}>
-//       <Box sx={{ flex: leftWeight, overflowY: 'auto', height: "100%" }}>{left}</Box>
-//       <StyledDivider flexItem orientation="vertical" color={color} />
-//       <Box sx={{ flex: rightWeight }}>{right}</Box>
-//     </Box>
-//   );
-// };
-
 export const SplitScreen = ({
   children,
   leftWeight = 1,
@@ -83,7 +62,7 @@ export const SplitScreen = ({
         sx={{
           flex: leftWeight,
           maxHeight: "120vh",
-          overflowY: scrollable?"auto":"visible",
+          overflowY: scrollable ? "auto" : "visible",
           padding: "8px",
           '&::-webkit-scrollbar': {
             width: '0.4em'
