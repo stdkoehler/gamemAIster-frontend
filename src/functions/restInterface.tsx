@@ -2,26 +2,35 @@ interface State {
   llmOutput: string;
 }
 
-/**
- * The sendPlayerInputToLlm() function is an asynchronous function 
- * that is intended to send player input to a LLM (Large Language Model). 
- * 
- * @param {string} playerInputField : The text input by the player.
- * @param {setStateCallback} setStateCallback: Callback function to update the state with the LLM output.
- * 
- * @function
- * @async
- */
-export async function sendPlayerInputToLlm(playerInputField: string, setStateCallback: (state: State) => void) {
+interface PromptPayload {
+  prompt: string;
+  interaction?: {
+    user_input: string
+    llm_output: string
+  }
+}
+
+export async function sendPlayerInputToLlm(playerInputField: string, playerPrevInputField: string, llmOutputField: string, setStateCallback: (state: State) => void) {
   try {
-    const fastapiurl = 'http://127.0.0.1:8000/textgen-webui/user-prompt';
+    const payload: PromptPayload = {
+      prompt: playerInputField
+    }
+    if (llmOutputField != "") {
+      payload.interaction = {
+          user_input: playerPrevInputField,
+          llm_output: llmOutputField
+        }
+      }
+    
+
+    const fastapiurl = 'http://127.0.0.1:8000/textgen-webui/gamemaster-send';
     console.log("sending prompt")
     const response = await fetch(fastapiurl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ prompt: playerInputField })
+      body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
