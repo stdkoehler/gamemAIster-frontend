@@ -21,7 +21,7 @@ const App: React.FC = () => {
   const [playerInput, setPlayerInput] = useState<string>("");
   const [adventure] = useState<string>("Boom");
 
-  const sendPlayerInput = useCallback(() => {
+  const sendPlayerInput = useCallback(async () => {
     let newHistory = history;
     if (llmOutput !== "") {
       if (newHistory !== "") {
@@ -30,14 +30,15 @@ const App: React.FC = () => {
         newHistory = `Player: ${playerInputOld}\nGamemaster: ${llmOutput}`;
       }
     }
-
-    sendPlayerInputToLlm(playerInput, playerInputOld, llmOutput, (newState: { llmOutput: string }) => {
-      setLlmOutput(newState.llmOutput);
-    });
-
     setHistory(newHistory);
     setPlayerInputOld(playerInput);
     setPlayerInput("");
+
+    await sendPlayerInputToLlm(playerInput, playerInputOld, llmOutput, (newState: { llmOutput: string }) => {
+      setLlmOutput(newState.llmOutput);
+    });
+
+    
   }, [history, llmOutput, playerInput, playerInputOld]);
 
   const changeCallbackPlayerInputOld = useCallback((value: string) => {
