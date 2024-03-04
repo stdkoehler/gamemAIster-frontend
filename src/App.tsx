@@ -31,7 +31,7 @@ const App: React.FC = () => {
       }
     }
 
-    sendPlayerInputToLlm(playerInput, (newState: { llmOutput: string }) => {
+    sendPlayerInputToLlm(playerInput, playerInputOld, llmOutput, (newState: { llmOutput: string }) => {
       setLlmOutput(newState.llmOutput);
     });
 
@@ -40,8 +40,14 @@ const App: React.FC = () => {
     setPlayerInput("");
   }, [history, llmOutput, playerInput, playerInputOld]);
 
-  const changeCallback = useCallback((value: string) => {
+  const changeCallbackPlayerInputOld = useCallback((value: string) => {
+    setPlayerInputOld(value);
+  }, []);
+  const changeCallbackPlayerInput = useCallback((value: string) => {
     setPlayerInput(value);
+  }, []);
+  const changeCallbackLlmOutput = useCallback((value: string) => {
+    setLlmOutput(value);
   }, []);
 
   return (
@@ -80,7 +86,7 @@ const App: React.FC = () => {
             <AppGrid item xs={12}>
               <FieldContainerComponent
                 sendCallback={sendPlayerInput}
-                changeCallback={changeCallback}
+                changeCallback={changeCallbackPlayerInputOld}
                 value={playerInputOld}
                 name="Player Prev"
                 colorType="secondary"
@@ -90,7 +96,7 @@ const App: React.FC = () => {
             <AppGrid item xs={12}>
               <FieldContainerComponent
                 sendCallback={sendPlayerInput}
-                changeCallback={changeCallback}
+                changeCallback={changeCallbackLlmOutput}
                 value={llmOutput}
                 name="Gamemaster"
                 colorType="primary"
@@ -101,7 +107,7 @@ const App: React.FC = () => {
             <AppGrid item xs={12}>
               <FieldContainerComponent
                 sendCallback={sendPlayerInput}
-                changeCallback={changeCallback}
+                changeCallback={changeCallbackPlayerInput}
                 value={playerInput}
                 name="Player"
                 colorType="secondary"
