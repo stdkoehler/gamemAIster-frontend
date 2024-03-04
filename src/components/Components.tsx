@@ -222,7 +222,7 @@ export const ButtonContainer = ({ children }: { children: ReactNode }) => (
 );
 
 type FieldContainerComponentProps = {
-  sendCallback?: () => void;
+  sendCallback?: () => Promise<void>;
   changeCallback?: (arg: string) => void;
   value: string;
   name: string;
@@ -243,6 +243,7 @@ export function FieldContainerComponent({
   fixedRows = undefined,
 }: FieldContainerComponentProps) {
   const [editable, setEditable] = useState(initialEditable);
+  const [locked, setLocked] = useState(false);
 
   useEffect(() => {
     // Invoke your callback whenever the value changes
@@ -260,10 +261,21 @@ export function FieldContainerComponent({
     setEditable(!editable);
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     console.log("test_inner");
-    if (sendCallback) {
-      sendCallback();
+    if (sendCallback && !locked) {
+      setLocked(true)
+      setEditable(false)
+      await sendCallback();
+    }
+    setLocked(false)
+    setEditable(true)
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' && event.shiftKey) {
+      event.preventDefault(); // don't register the return key    
+      handleSend()
     }
   };
 
@@ -286,6 +298,7 @@ export function FieldContainerComponent({
           color={colorType}
           disabled={!editable}
           onChange={handleChange}
+          onKeyDown={handleKeyDown}
           multiline
           rows={fixedRows}
           InputProps={{ readOnly: !editable }}
