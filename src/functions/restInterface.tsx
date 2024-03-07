@@ -3,6 +3,7 @@ interface State {
 }
 
 interface PromptPayload {
+  session_id: string;
   prompt: string;
   interaction?: {
     user_input: string
@@ -13,6 +14,7 @@ interface PromptPayload {
 export async function sendPlayerInputToLlm(playerInputField: string, playerPrevInputField: string, llmOutputField: string, setStateCallback: (state: State) => void) {
   try {
     const payload: PromptPayload = {
+      session_id: "AAAA-AAAA-AAAA",
       prompt: playerInputField
     }
     if (llmOutputField != "") {
@@ -55,6 +57,8 @@ export async function sendPlayerInputToLlm(playerInputField: string, playerPrevI
       result += jsonData.text;
       setStateCallback({ llmOutput: result });
     }
+    result = result.trim();
+    setStateCallback({ llmOutput: result });
   } catch (err) {
     console.error('Error sending data', err);
   }
