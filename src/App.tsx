@@ -24,10 +24,12 @@ const App: React.FC = () => {
   const sendPlayerInput = useCallback(async () => {
     let newHistory = history;
     if (llmOutput !== "") {
+      // strip "What do you want to do" and following ?,\s,\n
+      const strippedLlmOutput = llmOutput.replace(/^\s*What\sdo\syou\swant\sto\sdo\s*\??\s*[\r\n]*/gm, '')
       if (newHistory !== "") {
-        newHistory += `\nPlayer: ${playerInputOld}\nGamemaster: ${llmOutput}`;
+        newHistory += `\nPlayer: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
       } else {
-        newHistory = `Player: ${playerInputOld}\nGamemaster: ${llmOutput}`;
+        newHistory = `Player: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
       }
     }
     setHistory(newHistory);
