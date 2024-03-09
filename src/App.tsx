@@ -123,12 +123,10 @@ const App: React.FC = () => {
             </AppGrid>
             <AppGrid item xs={12}>
               <FieldContainerComponent
-                sendCallback={sendPlayerInput}
                 changeCallback={changeCallbackLlmOutput}
                 value={llmOutput}
                 name="Gamemaster"
                 colorType="primary"
-                updateButton="Update"
                 fixedRows={10}
               />
             </AppGrid>
