@@ -21,11 +21,33 @@ const App: React.FC = () => {
   const [playerInput, setPlayerInput] = useState<string>("");
   const [adventure] = useState<string>("Boom");
 
+  function stripOutput(llmOutput: string): string {
+    // strip "What do you want to do" and following ?,\s,\n
+    // strip "What do you want to answer" and following ?,\s,\n
+    let strippedLlmOutput = llmOutput.replace(
+      /^\s*What\sdo\syou\swant\sto\sdo\s*\??\s*[\r\n]*/gm,
+      ""
+    );
+    strippedLlmOutput = strippedLlmOutput.replace(
+      /^\s*What\sdo\syou\swant\sto\sanswer\s*\??\s*[\r\n]*/gm,
+      ""
+    );
+    return strippedLlmOutput;
+  }
+
+  const sendRegenerate = useCallback(async () => {
+    await sendPlayerInputToLlm(
+      playerInputOld,
+      (newState: { llmOutput: string }) => {
+        setLlmOutput(newState.llmOutput);
+      }
+    );
+  }, [llmOutput]);
+
   const sendPlayerInput = useCallback(async () => {
     let newHistory = history;
+    const strippedLlmOutput = stripOutput(llmOutput);
     if (llmOutput !== "") {
-      // strip "What do you want to do" and following ?,\s,\n
-      const strippedLlmOutput = llmOutput.replace(/^\s*What\sdo\syou\swant\sto\sdo\s*\??\s*[\r\n]*/gm, '')
       if (newHistory !== "") {
         newHistory += `\nPlayer: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
       } else {
@@ -36,11 +58,14 @@ const App: React.FC = () => {
     setPlayerInputOld(playerInput);
     setPlayerInput("");
 
-    await sendPlayerInputToLlm(playerInput, playerInputOld, llmOutput, (newState: { llmOutput: string }) => {
-      setLlmOutput(newState.llmOutput);
-    });
-
-    
+    await sendPlayerInputToLlm(
+      playerInput,
+      (newState: { llmOutput: string }) => {
+        setLlmOutput(newState.llmOutput);
+      },
+      playerInputOld,
+      strippedLlmOutput
+    );
   }, [history, llmOutput, playerInput, playerInputOld]);
 
   const changeCallbackPlayerInputOld = useCallback((value: string) => {
@@ -88,7 +113,7 @@ const App: React.FC = () => {
             </AppGrid>
             <AppGrid item xs={12}>
               <FieldContainerComponent
-                sendCallback={sendPlayerInput}
+                sendCallback={sendRegenerate}
                 changeCallback={changeCallbackPlayerInputOld}
                 value={playerInputOld}
                 name="Player Prev"
