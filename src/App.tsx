@@ -36,36 +36,40 @@ const App: React.FC = () => {
   }
 
   const sendRegenerate = useCallback(async () => {
-    await sendPlayerInputToLlm(
-      playerInputOld,
-      (newState: { llmOutput: string }) => {
-        setLlmOutput(newState.llmOutput);
-      }
-    );
+    if (playerInputOld != "") {
+      await sendPlayerInputToLlm(
+        playerInputOld,
+        (newState: { llmOutput: string }) => {
+          setLlmOutput(newState.llmOutput);
+        }
+      );
+    }
   }, [llmOutput]);
 
   const sendPlayerInput = useCallback(async () => {
-    let newHistory = history;
-    const strippedLlmOutput = stripOutput(llmOutput);
-    if (llmOutput !== "") {
-      if (newHistory !== "") {
-        newHistory += `\nPlayer: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
-      } else {
-        newHistory = `Player: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
+    if (playerInput != "") {
+      let newHistory = history;
+      const strippedLlmOutput = stripOutput(llmOutput);
+      if (llmOutput !== "") {
+        if (newHistory !== "") {
+          newHistory += `\nPlayer: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
+        } else {
+          newHistory = `Player: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
+        }
       }
-    }
-    setHistory(newHistory);
-    setPlayerInputOld(playerInput);
-    setPlayerInput("");
+      setHistory(newHistory);
+      setPlayerInputOld(playerInput);
+      setPlayerInput("");
 
-    await sendPlayerInputToLlm(
-      playerInput,
-      (newState: { llmOutput: string }) => {
-        setLlmOutput(newState.llmOutput);
-      },
-      playerInputOld,
-      strippedLlmOutput
-    );
+      await sendPlayerInputToLlm(
+        playerInput,
+        (newState: { llmOutput: string }) => {
+          setLlmOutput(newState.llmOutput);
+        },
+        playerInputOld,
+        strippedLlmOutput
+      );
+    }
   }, [history, llmOutput, playerInput, playerInputOld]);
 
   const changeCallbackPlayerInputOld = useCallback((value: string) => {
