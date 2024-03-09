@@ -5,26 +5,25 @@ interface State {
 interface PromptPayload {
   session_id: string;
   prompt: string;
-  interaction?: {
+  prev_interaction?: {
     user_input: string
     llm_output: string
   }
 }
 
-export async function sendPlayerInputToLlm(playerInputField: string, playerPrevInputField: string, llmOutputField: string, setStateCallback: (state: State) => void) {
+export async function sendPlayerInputToLlm(playerInputField: string, setStateCallback: (state: State) => void, playerPrevInputField?: string, llmOutputField?: string) {
   try {
     const payload: PromptPayload = {
       session_id: "AAAA-AAAA-AAAA",
       prompt: playerInputField
     }
-    if (llmOutputField != "") {
-      payload.interaction = {
+    if (llmOutputField && playerPrevInputField && llmOutputField != "") {
+      payload.prev_interaction = {
           user_input: playerPrevInputField,
           llm_output: llmOutputField
         }
       }
     
-
     const fastapiurl = 'http://127.0.0.1:8000/textgen-webui/gamemaster-send';
     console.log("sending prompt")
     const response = await fetch(fastapiurl, {
@@ -63,4 +62,3 @@ export async function sendPlayerInputToLlm(playerInputField: string, playerPrevI
     console.error('Error sending data', err);
   }
 }
-
