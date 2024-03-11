@@ -14,13 +14,9 @@ import {
   Box,
   alpha,
 } from "@mui/material";
-import { useTheme, Palette, PaletteColor } from "@mui/material";
+import { useTheme } from "@mui/material";
 
-type KeysByType<O, T> = {
-  [K in keyof O]-?: T extends O[K] ? K : never;
-}[keyof O];
-
-type Colors = KeysByType<Palette, PaletteColor>;
+import {Colors, TextfieldStyle} from "../styles/styles.tsx"
 
 type StyledDividerProps = ComponentProps<typeof Divider> & {
   color: Colors;
@@ -147,78 +143,23 @@ export const FieldContainer = ({ children }: { children: ReactNode }) => (
   </Box>
 );
 
+
 type StyledTextFieldProps = ComponentProps<typeof TextField> & {
   innerRef: React.Ref<HTMLDivElement>;
   color: Colors;
 };
+
 
 export const StyledTextField = ({
   innerRef,
   color,
   ...props
 }: StyledTextFieldProps) => {
-  const theme = useTheme();
-  const baseColor = theme.palette[color].main;
-  const editColor = theme.palette[color].light;
-  const darkColor = theme.palette[color].dark;
-
-  const hoverColor = baseColor;
-  const disabledColor = baseColor;
-
   return (
     <TextField
       {...props}
       ref={innerRef}
-      sx={{
-        display: "flex",
-        width: "100%" /* Fields take up full width of their container */,
-        paddingTop: 0,
-        "& .MuiInputBase-root": {
-          color: editColor,
-        },
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderColor: darkColor, // Set default border color based on colorType
-        },
-        "& .MuiInputBase-root.Mui-disabled": {
-          "& > fieldset": {
-            borderColor: "#121212", // Adjust color when disabled
-          },
-        },
-        "& .MuiInputBase-input.Mui-disabled": {
-          WebkitTextFillColor: disabledColor, // Adjust text color when disabled
-        },
-        // set color when inactive
-        "& .MuiOutlinedInput-root": {
-          "&:hover fieldset": {
-            borderColor: hoverColor, // Adjust color on hover
-          },
-        },
-        // set color when active
-        "& .Mui-focused": {
-          "&:hover fieldset": {
-            borderColor: hoverColor, // Adjust color on hover
-          },
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: darkColor, // Set default border color based on colorType
-          },
-        },
-        "& .MuiInputBase-input.MuiOutlinedInput-input": {
-          '&::-webkit-scrollbar': {
-            width: '0.4em',
-            cursor: 'default !important'
-          },
-          '&::-webkit-scrollbar-track': {
-            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
-            webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: 'rgba(0,0,0,.1)',
-            outline: '1px solid',
-            color: theme.palette[color].dark,
-            cursor: "default !important"
-          }
-      }
-      }}
+      sx={TextfieldStyle({color})}
     />
   );
 };

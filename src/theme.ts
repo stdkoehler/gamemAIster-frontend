@@ -1,5 +1,41 @@
 import { createTheme } from "@mui/material";
 
+
+/*
+import colorsys
+
+def calculate_shades(main_color):
+    # Convert hex color to RGB
+    main_color = main_color.lstrip("#")
+    r, g, b = tuple(int(main_color[i:i+2], 16) for i in (0, 2, 4))
+
+    # Convert RGB to HSL
+    h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+
+    # Calculate light and dark shades
+    light_l = min(1, l + 0.2)
+    dark_l = max(0, l - 0.2)
+
+    # Convert HSL back to RGB
+    light_r, light_g, light_b = colorsys.hls_to_rgb(h, light_l, s)
+    dark_r, dark_g, dark_b = colorsys.hls_to_rgb(h, dark_l, s)
+
+    # Convert RGB to hex
+    light_hex = "#{:02x}{:02x}{:02x}".format(int(light_r * 255), int(light_g * 255), int(light_b * 255))
+    dark_hex = "#{:02x}{:02x}{:02x}".format(int(dark_r * 255), int(dark_g * 255), int(dark_b * 255))
+
+    return light_hex, dark_hex
+
+# Example usage
+main_color = "#e53f7e"
+light, dark = calculate_shades(main_color)
+
+print("Secondary color shades:")
+print("  light:", light)
+print("  main:", main_color)
+print("  dark:", dark)
+*/
+
 export const darkTheme = createTheme({
   palette: {
     mode: "dark",
@@ -15,6 +51,12 @@ export const darkTheme = createTheme({
       dark: "#b28900",
       contrastText: "#000",
     },
+    warning: {
+      light: "#f9a5c4",
+      main: "#e53f7e",
+      dark: "#a0204f",
+      contrastText: "#000",
+    }
   },
   components: {
     MuiButton: {
