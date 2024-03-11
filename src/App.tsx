@@ -9,8 +9,11 @@ import {
   AdventureHeading,
   FieldContainerComponent,
 } from "./components/Components";
+
+import { MissionMenu } from "./components/MissionMenu"
 import { CharacterManager } from "./components/CharacterCard";
 import { sendPlayerInputToLlm } from "./functions/restInterface";
+
 
 import logo from "./assets/sr_00096_.png";
 
@@ -101,6 +104,7 @@ const App: React.FC = () => {
           scrollable={true}
         >
           <AppGrid container spacing={2}>
+            <MissionMenu></MissionMenu>
             <CharacterManager></CharacterManager>
           </AppGrid>
           <AppGrid container spacing={2}>
