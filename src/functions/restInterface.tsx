@@ -3,7 +3,7 @@ interface State {
 }
 
 interface PromptPayload {
-  session_id: string;
+  mission_id: number;
   prompt: string;
   prev_interaction?: {
     user_input: string
@@ -14,7 +14,7 @@ interface PromptPayload {
 export async function sendPlayerInputToLlm(playerInputField: string, setStateCallback: (state: State) => void, playerPrevInputField?: string, llmOutputField?: string) {
   try {
     const payload: PromptPayload = {
-      session_id: "AAAA-AAAA-AAAA",
+      mission_id: 1,
       prompt: playerInputField
     }
     if (llmOutputField && playerPrevInputField && llmOutputField != "") {
@@ -24,7 +24,7 @@ export async function sendPlayerInputToLlm(playerInputField: string, setStateCal
         }
       }
     
-    const fastapiurl = 'http://127.0.0.1:8000/textgen-webui/gamemaster-send';
+    const fastapiurl = 'http://127.0.0.1:8000/interaction/gamemaster-send';
     console.log("sending prompt")
     const response = await fetch(fastapiurl, {
       method: 'POST',
