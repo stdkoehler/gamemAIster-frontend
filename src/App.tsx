@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [playerInputOld, setPlayerInputOld] = useState<string>("");
   const [llmOutput, setLlmOutput] = useState<string>("");
   const [playerInput, setPlayerInput] = useState<string>("");
+  const [mission, setMission] = useState<number|null>(null);
   const [adventure] = useState<string>("Boom");
 
   function stripOutput(llmOutput: string): string {
@@ -117,6 +118,7 @@ const App: React.FC = () => {
                 name="History"
                 colorType="primary"
                 fixedRows={15}
+                disabled={mission === null}
               />
             </AppGrid>
             <AppGrid item xs={12}>
@@ -127,6 +129,7 @@ const App: React.FC = () => {
                 name="Player Prev"
                 colorType="secondary"
                 updateButton="Regenerate"
+                disabled={mission === null}
               />
             </AppGrid>
             <AppGrid item xs={12}>
@@ -136,6 +139,7 @@ const App: React.FC = () => {
                 name="Gamemaster"
                 colorType="primary"
                 fixedRows={10}
+                disabled={mission === null}
               />
             </AppGrid>
             <AppGrid item xs={12}>
@@ -146,6 +150,7 @@ const App: React.FC = () => {
                 name="Player"
                 colorType="secondary"
                 initialEditable={true}
+                disabled={mission === null}
               />
             </AppGrid>
           </AppGrid>

@@ -187,6 +187,7 @@ type FieldContainerComponentProps = {
   updateButton?: string;
   fixedRows?: number;
   colorType: Colors;
+  disabled?: boolean;
 };
 
 export function FieldContainerComponent({
@@ -198,6 +199,7 @@ export function FieldContainerComponent({
   initialEditable = false,
   updateButton = "Send",
   fixedRows = undefined,
+  disabled = false,
 }: FieldContainerComponentProps) {
   const [editable, setEditable] = useState(initialEditable);
   const [locked, setLocked] = useState(false);
@@ -266,6 +268,7 @@ export function FieldContainerComponent({
           <Button
             onClick={toggleEditable}
             color={colorType}
+            disabled={disabled}
             sx={{ width: "20%", textAlign: "center" }}
           >
             Toggle Edit
@@ -275,6 +278,7 @@ export function FieldContainerComponent({
           <Button
             onClick={handleSend}
             color={colorType}
+            disabled={disabled}
             sx={{ width: "20%", textAlign: "center" }}
           >
             {updateButton}
