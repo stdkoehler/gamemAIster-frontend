@@ -12,7 +12,7 @@ import {
 
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
-import { sendPlayerInputToLlm } from "./functions/restInterface";
+import { sendPlayerInputToLlm, getNewMission } from "./functions/restInterface";
 
 import logo from "./assets/sr_00096_.png";
 
@@ -22,7 +22,7 @@ const App: React.FC = () => {
   const [llmOutput, setLlmOutput] = useState<string>("");
   const [playerInput, setPlayerInput] = useState<string>("");
   const [mission, setMission] = useState<number | null>(null);
-  const [adventure] = useState<string>("Boom");
+  const [adventure, setAdventure] = useState<string>("--UNNITIALIZED--");
 
   function stripOutput(llmOutput: string): string {
     // strip "What do you want to do" and following ?,\s,\n
@@ -38,15 +38,14 @@ const App: React.FC = () => {
     return strippedLlmOutput;
   }
 
-  const sendNewMissionGenerate = useCallback(() => {
-    console.log(mission);
-    if (mission === null) {
-      setMission(1);
-    } else {
-      console.log("set Mission null");
-      setMission(null);
-    }
-  }, [mission]);
+  const sendNewMissionGenerate = useCallback(async () => {
+      console.log(mission);
+      const response = await getNewMission();
+      if (response !== null) {
+        setMission(response.mission_id);
+        setAdventure(response.name);
+      }
+  }, [mission, adventure]);
 
   const sendRegenerate = useCallback(async () => {
     if (mission !== null) {
