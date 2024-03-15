@@ -7,7 +7,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
 
 import Typography from "@mui/material/Typography";
-import { TextField, Autocomplete } from "@mui/material";
+import { TextField, Autocomplete, CircularProgress } from "@mui/material";
 import { TextfieldStyle, ModalStyle, MenuStyle, AutocompleteStyle, Colors, AutocompletePaper } from "../styles/styles";
 
 enum ModalNames {
@@ -15,6 +15,7 @@ enum ModalNames {
   NEW = "new",
   SAVE = "save",
   LOAD = "load",
+  LOADING = "loading",
 }
 
 type StyledTextFieldProps = ComponentProps<typeof TextField> & {
@@ -31,6 +32,20 @@ type NewMissionModalComponentProps = {
   onClose: () => void;
   onConfirm: () => void;
 };
+
+const LoadingModal = ({open}: { open: boolean }) => (
+  <Modal open={open}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={ModalStyle()}>
+          <Box sx={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <Typography sx={{margin: "0px 0px 20px 0px"}}>Generating new Mission</Typography>
+            <CircularProgress />
+          </Box>
+        </Box>
+  </Modal>
+);
 
 const NewMissionModal = ({ open, onClose, onConfirm }: NewMissionModalComponentProps) => (
   <Modal open={open} onClose={onClose}
@@ -133,7 +148,7 @@ const LoadMissionModal = ({ open, onClose, onConfirm }: LoadMissionModalComponen
 
 
 type MissionMenuComponentProps = {
-  newCallback: () => void;
+  newCallback: () => Promise<void>;
   //saveCallback: (arg: string) => void;
   //loadCallback: () => void;
 };
@@ -181,10 +196,16 @@ export function MissionMenu({newCallback}:MissionMenuComponentProps) {
 
   // New
   
-  const handleNewModalConfirm = () => {
+  const handleNewModalConfirm = React.useCallback(async () => {
     handleModalClose();
-    newCallback();
-  };
+    setActiveModal(ModalNames.LOADING)
+    try {
+      await newCallback(); // Attempt to execute the callback
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+    setActiveModal(ModalNames.CLOSED);
+  }, []);
 
   // Save
   
@@ -233,6 +254,7 @@ export function MissionMenu({newCallback}:MissionMenuComponentProps) {
         <MenuItem onClick={handleLoadMenuItem}>Load Mission</MenuItem>
       </Menu>
 
+      <LoadingModal open={activeModal === ModalNames.LOADING} />
       <NewMissionModal open={activeModal === ModalNames.NEW} onClose={handleModalClose} onConfirm={handleNewModalConfirm} />
       <SaveMissionModal open={activeModal === ModalNames.SAVE} onClose={handleModalClose} onConfirm={handleSaveModalConfirm} value={saveModalValue} onValueChange={handleSaveModalValueChange}/>
       <LoadMissionModal open={activeModal === ModalNames.LOAD} onClose={handleModalClose} onConfirm={handleLoadModalConfirm} />
