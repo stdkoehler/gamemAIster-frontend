@@ -10,10 +10,9 @@ import {
   FieldContainerComponent,
 } from "./components/Components";
 
-import { MissionMenu } from "./components/MissionMenu"
+import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { sendPlayerInputToLlm } from "./functions/restInterface";
-
 
 import logo from "./assets/sr_00096_.png";
 
@@ -22,7 +21,7 @@ const App: React.FC = () => {
   const [playerInputOld, setPlayerInputOld] = useState<string>("");
   const [llmOutput, setLlmOutput] = useState<string>("");
   const [playerInput, setPlayerInput] = useState<string>("");
-  const [mission, setMission] = useState<number|null>(null);
+  const [mission, setMission] = useState<number | null>(null);
   const [adventure] = useState<string>("Boom");
 
   function stripOutput(llmOutput: string): string {
@@ -39,40 +38,56 @@ const App: React.FC = () => {
     return strippedLlmOutput;
   }
 
+  const sendNewMissionGenerate = useCallback(() => {
+    console.log(mission);
+    if (mission === null) {
+      setMission(1);
+    } else {
+      console.log("set Mission null");
+      setMission(null);
+    }
+  }, [mission]);
+
   const sendRegenerate = useCallback(async () => {
-    if (playerInputOld != "") {
-      await sendPlayerInputToLlm(
-        playerInputOld,
-        (newState: { llmOutput: string }) => {
-          setLlmOutput(newState.llmOutput);
-        }
-      );
+    if (mission !== null) {
+      if (playerInputOld != "") {
+        await sendPlayerInputToLlm(
+          mission,
+          playerInputOld,
+          (newState: { llmOutput: string }) => {
+            setLlmOutput(newState.llmOutput);
+          }
+        );
+      }
     }
   }, [llmOutput]);
 
   const sendPlayerInput = useCallback(async () => {
-    if (playerInput != "") {
-      let newHistory = history;
-      const strippedLlmOutput = stripOutput(llmOutput);
-      if (llmOutput !== "") {
-        if (newHistory !== "") {
-          newHistory += `\nPlayer: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
-        } else {
-          newHistory = `Player: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
+    if (mission !== null) {
+      if (playerInput != "") {
+        let newHistory = history;
+        const strippedLlmOutput = stripOutput(llmOutput);
+        if (llmOutput !== "") {
+          if (newHistory !== "") {
+            newHistory += `\nPlayer: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
+          } else {
+            newHistory = `Player: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
+          }
         }
-      }
-      setHistory(newHistory);
-      setPlayerInputOld(playerInput);
-      setPlayerInput("");
+        setHistory(newHistory);
+        setPlayerInputOld(playerInput);
+        setPlayerInput("");
 
-      await sendPlayerInputToLlm(
-        playerInput,
-        (newState: { llmOutput: string }) => {
-          setLlmOutput(newState.llmOutput);
-        },
-        playerInputOld,
-        strippedLlmOutput
-      );
+        await sendPlayerInputToLlm(
+          mission,
+          playerInput,
+          (newState: { llmOutput: string }) => {
+            setLlmOutput(newState.llmOutput);
+          },
+          playerInputOld,
+          strippedLlmOutput
+        );
+      }
     }
   }, [history, llmOutput, playerInput, playerInputOld]);
 
@@ -105,7 +120,7 @@ const App: React.FC = () => {
           scrollable={true}
         >
           <AppGrid container spacing={2}>
-            <MissionMenu></MissionMenu>
+            <MissionMenu newCallback={sendNewMissionGenerate}></MissionMenu>
             <CharacterManager></CharacterManager>
           </AppGrid>
           <AppGrid container spacing={2}>

@@ -11,10 +11,10 @@ interface PromptPayload {
   }
 }
 
-export async function sendPlayerInputToLlm(playerInputField: string, setStateCallback: (state: State) => void, playerPrevInputField?: string, llmOutputField?: string) {
+export async function sendPlayerInputToLlm(missionId: number, playerInputField: string, setStateCallback: (state: State) => void, playerPrevInputField?: string, llmOutputField?: string) {
   try {
     const payload: PromptPayload = {
-      mission_id: 1,
+      mission_id: missionId,
       prompt: playerInputField
     }
     if (llmOutputField && playerPrevInputField && llmOutputField != "") {

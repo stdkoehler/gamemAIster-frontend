@@ -134,11 +134,11 @@ const LoadMissionModal = ({ open, onClose, onConfirm }: LoadMissionModalComponen
 
 type MissionMenuComponentProps = {
   newCallback: () => void;
-  saveCallback: (arg: string) => void;
-  loadCallback: () => void;
+  //saveCallback: (arg: string) => void;
+  //loadCallback: () => void;
 };
 
-export function MissionMenu() {
+export function MissionMenu({newCallback}:MissionMenuComponentProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [activeModal, setActiveModal] = React.useState<ModalNames>(ModalNames.CLOSED);
   const [saveModalValue, setSaveModalValue] = React.useState("");
@@ -183,6 +183,7 @@ export function MissionMenu() {
   
   const handleNewModalConfirm = () => {
     handleModalClose();
+    newCallback();
   };
 
   // Save
