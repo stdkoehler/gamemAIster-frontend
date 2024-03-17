@@ -12,7 +12,11 @@ import {
 
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
-import { sendPlayerInputToLlm, getNewMission } from "./functions/restInterface";
+import {
+  sendPlayerInputToLlm,
+  postNewMission,
+  postSaveMission,
+} from "./functions/restInterface";
 
 import logo from "./assets/sr_00096_.png";
 
@@ -39,13 +43,25 @@ const App: React.FC = () => {
   }
 
   const sendNewMissionGenerate = useCallback(async () => {
-      console.log(mission);
-      const response = await getNewMission();
-      if (response !== null) {
-        setMission(response.mission_id);
-        setAdventure(response.name);
-      }
+    console.log(mission);
+    const response = await postNewMission();
+    if (response !== null) {
+      setMission(response.mission_id);
+      setAdventure(response.name);
+    }
   }, [mission, adventure]);
+
+  const saveMission = useCallback(
+    async (nameCustom: string) => {
+      console.log(mission);
+
+      if (mission !== null) {
+        console.log("save mission do");
+        postSaveMission(mission, nameCustom);
+      }
+    },
+    [mission]
+  );
 
   const sendRegenerate = useCallback(async () => {
     if (mission !== null) {
@@ -62,6 +78,7 @@ const App: React.FC = () => {
   }, [llmOutput]);
 
   const sendPlayerInput = useCallback(async () => {
+    console.log(mission);
     if (mission !== null) {
       if (playerInput != "") {
         let newHistory = history;
@@ -88,7 +105,7 @@ const App: React.FC = () => {
         );
       }
     }
-  }, [history, llmOutput, playerInput, playerInputOld]);
+  }, [mission, history, llmOutput, playerInput, playerInputOld]);
 
   const changeCallbackPlayerInputOld = useCallback((value: string) => {
     setPlayerInputOld(value);
@@ -119,7 +136,10 @@ const App: React.FC = () => {
           scrollable={true}
         >
           <AppGrid container spacing={2}>
-            <MissionMenu newCallback={sendNewMissionGenerate}></MissionMenu>
+            <MissionMenu
+              newCallback={sendNewMissionGenerate}
+              saveCallback={saveMission}
+            ></MissionMenu>
             <CharacterManager></CharacterManager>
           </AppGrid>
           <AppGrid container spacing={2}>

@@ -149,11 +149,11 @@ const LoadMissionModal = ({ open, onClose, onConfirm }: LoadMissionModalComponen
 
 type MissionMenuComponentProps = {
   newCallback: () => Promise<void>;
-  //saveCallback: (arg: string) => void;
+  saveCallback: (nameCustom: string) => Promise<void>;
   //loadCallback: () => void;
 };
 
-export function MissionMenu({newCallback}:MissionMenuComponentProps) {
+export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [activeModal, setActiveModal] = React.useState<ModalNames>(ModalNames.CLOSED);
   const [saveModalValue, setSaveModalValue] = React.useState("");
@@ -200,18 +200,25 @@ export function MissionMenu({newCallback}:MissionMenuComponentProps) {
     handleModalClose();
     setActiveModal(ModalNames.LOADING)
     try {
-      await newCallback(); // Attempt to execute the callback
+      await newCallback();
     } catch (error) {
       console.error("An error occurred:", error);
     }
     setActiveModal(ModalNames.CLOSED);
-  }, []);
+  }, [newCallback]);
 
   // Save
   
-  const handleSaveModalConfirm = () => {
+  const handleSaveModalConfirm = React.useCallback(async () => {
     handleModalClose();
-  };
+    setActiveModal(ModalNames.LOADING)
+    try {
+      await saveCallback(saveModalValue);
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+    setActiveModal(ModalNames.CLOSED);
+  }, [saveCallback]);
 
   const handleSaveModalValueChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
