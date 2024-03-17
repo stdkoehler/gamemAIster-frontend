@@ -1,3 +1,5 @@
+import { unstable_ClassNameGenerator } from "@mui/material";
+
 interface State {
   llmOutput: string;
 }
@@ -75,7 +77,7 @@ export async function sendPlayerInputToLlm(
   }
 }
 
-export async function getNewMission(): Promise<MissionPayload> {
+export async function postNewMission(): Promise<MissionPayload> {
   // For now, consider the data is stored on a static `users.json` file
   try {
     const res = await fetch("http://127.0.0.1:8000/mission/new-mission", {
@@ -95,3 +97,27 @@ export async function getNewMission(): Promise<MissionPayload> {
     throw new Error("Server responded with status");
   }
 }
+
+export async function postSaveMission(missionId: number, nameCustom: string) {
+  // For now, consider the data is stored on a static `users.json` file
+  try {
+    const res = await fetch("http://127.0.0.1:8000/mission/save-mission", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        "mission_id": missionId,
+        "name_custom": nameCustom
+      }),
+    });
+    if (!res.ok) {
+      // Check if the response status is not OK (e.g., 404, 500)
+      throw new Error(`Server responded with status: ${res.status}`);
+    }
+  } catch (error) {
+    console.error("Error getting new mission:", error);
+    throw new Error("Server responded with status");
+  }
+}
+
