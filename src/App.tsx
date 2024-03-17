@@ -20,6 +20,16 @@ import {
 
 import logo from "./assets/sr_00096_.png";
 
+type Interaction = {
+  playerInput: string;
+  llmOutput: string;
+};
+
+interface AppendHistory {
+  history: string;
+  interactions: Interaction[];
+}
+
 const App: React.FC = () => {
   const [history, setHistory] = useState<string>("");
   const [playerInputOld, setPlayerInputOld] = useState<string>("");
@@ -40,6 +50,23 @@ const App: React.FC = () => {
       ""
     );
     return strippedLlmOutput;
+  }
+
+  function appendInteractions({
+    history,
+    interactions,
+  }: AppendHistory): string {
+    let newHistory = history;
+    for (const interaction of interactions) {
+      if (interaction.llmOutput !== "") {
+        if (newHistory !== "") {
+          newHistory += `\nPlayer: ${interaction.playerInput}\n\nGamemaster: ${interaction.llmOutput}`;
+        } else {
+          newHistory = `Player: ${interaction.playerInput}\n\nGamemaster: ${interaction.llmOutput}`;
+        }
+      }
+    }
+    return newHistory;
   }
 
   const sendNewMissionGenerate = useCallback(async () => {
@@ -81,28 +108,29 @@ const App: React.FC = () => {
     console.log(mission);
     if (mission !== null) {
       if (playerInput != "") {
-        let newHistory = history;
         const strippedLlmOutput = stripOutput(llmOutput);
-        if (llmOutput !== "") {
-          if (newHistory !== "") {
-            newHistory += `\nPlayer: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
-          } else {
-            newHistory = `Player: ${playerInputOld}\n\nGamemaster: ${strippedLlmOutput}`;
-          }
-        }
-        setHistory(newHistory);
-        setPlayerInputOld(playerInput);
-        setPlayerInput("");
+        const interactions = [
+          { playerInput: playerInputOld, llmOutput: strippedLlmOutput },
+        ];
+        const newHistory = appendInteractions({ history, interactions });
 
-        await sendPlayerInputToLlm(
-          mission,
-          playerInput,
-          (newState: { llmOutput: string }) => {
-            setLlmOutput(newState.llmOutput);
-          },
-          playerInputOld,
-          strippedLlmOutput
-        );
+        try {
+          await sendPlayerInputToLlm(
+            mission,
+            playerInput,
+            (newState: { llmOutput: string }) => {
+              setLlmOutput(newState.llmOutput);
+            },
+            playerInputOld,
+            strippedLlmOutput
+          );
+
+          setHistory(newHistory);
+          setPlayerInputOld(playerInput);
+          setPlayerInput("");
+        } catch (error) {
+          console.error(error);
+        }
       }
     }
   }, [mission, history, llmOutput, playerInput, playerInputOld]);
