@@ -205,7 +205,7 @@ export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProp
       console.error("An error occurred:", error);
     }
     setActiveModal(ModalNames.CLOSED);
-  }, [newCallback]);
+  }, [newCallback, handleModalClose]);
 
   // Save
   
@@ -218,7 +218,7 @@ export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProp
       console.error("An error occurred:", error);
     }
     setActiveModal(ModalNames.CLOSED);
-  }, [saveCallback]);
+  }, [saveCallback, saveModalValue, handleModalClose]);
 
   const handleSaveModalValueChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>
