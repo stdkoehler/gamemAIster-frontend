@@ -2,13 +2,12 @@ import React, { useState, useCallback } from "react";
 import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { darkTheme } from "./theme";
-import {
-  SplitScreen,
-  ImageContainer,
-  AppGrid,
-  AdventureHeading,
-  FieldContainerComponent,
-} from "./components/Components";
+
+import AdventureHeading from "./components/AdventureHeading";
+import AppGrid from "./components/AppGrid";
+import ImageContainer from "./components/ImageContainer";
+import SplitScreen from "./components/SplitScreen";
+import FieldContainer from "./components/FieldContainer";
 
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
@@ -175,7 +174,7 @@ const App: React.FC = () => {
               <AdventureHeading>{adventure}</AdventureHeading>
             </AppGrid>
             <AppGrid item xs={12}>
-              <FieldContainerComponent
+              <FieldContainer
                 value={history}
                 name="History"
                 colorType="primary"
@@ -184,7 +183,7 @@ const App: React.FC = () => {
               />
             </AppGrid>
             <AppGrid item xs={12}>
-              <FieldContainerComponent
+              <FieldContainer
                 sendCallback={sendRegenerate}
                 changeCallback={changeCallbackPlayerInputOld}
                 value={playerInputOld}
@@ -195,7 +194,7 @@ const App: React.FC = () => {
               />
             </AppGrid>
             <AppGrid item xs={12}>
-              <FieldContainerComponent
+              <FieldContainer
                 changeCallback={changeCallbackLlmOutput}
                 value={llmOutput}
                 name="Gamemaster"
@@ -205,7 +204,7 @@ const App: React.FC = () => {
               />
             </AppGrid>
             <AppGrid item xs={12}>
-              <FieldContainerComponent
+              <FieldContainer
                 sendCallback={sendPlayerInput}
                 changeCallback={changeCallbackPlayerInput}
                 value={playerInput}
