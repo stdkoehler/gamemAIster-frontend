@@ -8,7 +8,16 @@ import Modal from "@mui/material/Modal";
 
 import Typography from "@mui/material/Typography";
 import { TextField, Autocomplete, CircularProgress } from "@mui/material";
-import { TextfieldStyle, ModalStyle, MenuStyle, AutocompleteStyle, Colors, AutocompletePaper } from "../styles/styles";
+import {
+  TextfieldStyle,
+  ModalStyle,
+  MenuStyle,
+  AutocompleteStyle,
+  Colors,
+  AutocompletePaper,
+} from "../styles/styles";
+
+import { MissionPayload } from "../functions/restInterface";
 
 enum ModalNames {
   CLOSED = "closed",
@@ -22,10 +31,13 @@ type StyledTextFieldProps = ComponentProps<typeof TextField> & {
   color: Colors;
 };
 
-export const StyledTextField = React.memo(({ color, ...props }: StyledTextFieldProps) => {
-  return <TextField {...props} color={color} sx={TextfieldStyle({ color })} />;
-});
-
+export const StyledTextField = React.memo(
+  ({ color, ...props }: StyledTextFieldProps) => {
+    return (
+      <TextField {...props} color={color} sx={TextfieldStyle({ color })} />
+    );
+  }
+);
 
 type NewMissionModalComponentProps = {
   open: boolean;
@@ -33,42 +45,52 @@ type NewMissionModalComponentProps = {
   onConfirm: () => void;
 };
 
-const LoadingModal = ({open}: { open: boolean }) => (
-  <Modal open={open}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+const LoadingModal = ({ open }: { open: boolean }) => (
+  <Modal
+    open={open}
+    aria-labelledby="modal-modal-title"
+    aria-describedby="modal-modal-description"
+  >
+    <Box sx={ModalStyle()}>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
       >
-        <Box sx={ModalStyle()}>
-          <Box sx={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <Typography sx={{margin: "0px 0px 20px 0px"}}>Generating new Mission</Typography>
-            <CircularProgress />
-          </Box>
-        </Box>
+        <Typography sx={{ margin: "0px 0px 20px 0px" }}>
+          Generating new Mission
+        </Typography>
+        <CircularProgress />
+      </Box>
+    </Box>
   </Modal>
 );
 
-const NewMissionModal = ({ open, onClose, onConfirm }: NewMissionModalComponentProps) => (
-  <Modal open={open} onClose={onClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={ModalStyle()}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            New Mission
-          </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Are you sure you want to proceed? This will delete your current
-            mission.
-          </Typography>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-            <Button onClick={onClose} color="warning">
-              Cancel
-            </Button>
-            <Button onClick={onConfirm} color="primary">
-              Confirm
-            </Button>
-          </Box>
-        </Box>
+const NewMissionModal = ({
+  open,
+  onClose,
+  onConfirm,
+}: NewMissionModalComponentProps) => (
+  <Modal
+    open={open}
+    onClose={onClose}
+    aria-labelledby="modal-modal-title"
+    aria-describedby="modal-modal-description"
+  >
+    <Box sx={ModalStyle()}>
+      <Typography id="modal-modal-title" variant="h6" component="h2">
+        New Mission
+      </Typography>
+      <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+        Are you sure you want to proceed? This will delete your current mission.
+      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Button onClick={onClose} color="warning">
+          Cancel
+        </Button>
+        <Button onClick={onConfirm} color="primary">
+          Confirm
+        </Button>
+      </Box>
+    </Box>
   </Modal>
 );
 
@@ -80,29 +102,37 @@ type SaveMissionModalComponentProps = {
   onValueChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
 };
 
-const SaveMissionModal = ({ open, onClose, onConfirm, value, onValueChange }: SaveMissionModalComponentProps) => (
-  <Modal open={open} onClose={onClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={ModalStyle()}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Save Mission
-          </Typography>
-          <StyledTextField
-            value={value}
-            color={"primary"}
-            disabled={false}
-            onChange={onValueChange}
-            rows={1}
-          />
-          <Button onClick={onClose} color="warning">
-            Cancel
-          </Button>
-          <Button onClick={onConfirm} color="primary">
-            Confirm
-          </Button>
-        </Box>
+const SaveMissionModal = ({
+  open,
+  onClose,
+  onConfirm,
+  value,
+  onValueChange,
+}: SaveMissionModalComponentProps) => (
+  <Modal
+    open={open}
+    onClose={onClose}
+    aria-labelledby="modal-modal-title"
+    aria-describedby="modal-modal-description"
+  >
+    <Box sx={ModalStyle()}>
+      <Typography id="modal-modal-title" variant="h6" component="h2">
+        Save Mission
+      </Typography>
+      <StyledTextField
+        value={value}
+        color={"primary"}
+        disabled={false}
+        onChange={onValueChange}
+        rows={1}
+      />
+      <Button onClick={onClose} color="warning">
+        Cancel
+      </Button>
+      <Button onClick={onConfirm} color="primary">
+        Confirm
+      </Button>
+    </Box>
   </Modal>
 );
 
@@ -110,54 +140,66 @@ type LoadMissionModalComponentProps = {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  missions: MissionPayload[] | null;
 };
 
-
-const LoadMissionModal = ({ open, onClose, onConfirm }: LoadMissionModalComponentProps) => (
-  <Modal open={open} onClose={onClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={ModalStyle()}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Load Mission
-          </Typography>
-          <Autocomplete
-            disablePortal
-            PaperComponent={AutocompletePaper}
-            options={[{label: "A"}, {label: "B"}]}
-            sx={AutocompleteStyle}
-            renderInput={(params) => <TextField {...params} label="Mission" />}
-          />
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Are you sure you want to proceed? This will delete your current
-            mission.
-          </Typography>
-          <Button onClick={onClose} color="warning">
-            Cancel
-          </Button>
-          <Button onClick={onConfirm} color="primary">
-            Confirm
-          </Button>
-        </Box>
+const LoadMissionModal = ({
+  open,
+  onClose,
+  onConfirm,
+  missions,
+}: LoadMissionModalComponentProps) => (
+  <Modal
+    open={open}
+    onClose={onClose}
+    aria-labelledby="modal-modal-title"
+    aria-describedby="modal-modal-description"
+  >
+    <Box sx={ModalStyle()}>
+      <Typography id="modal-modal-title" variant="h6" component="h2">
+        Load Mission
+      </Typography>
+      <Autocomplete
+        disablePortal
+        PaperComponent={AutocompletePaper}
+        options={missions?.map((mission) => ({ label: mission.name, value: mission.mission_id })) || []}
+        sx={AutocompleteStyle}
+        renderInput={(params) => <TextField {...params} label="Mission" />}
+      />
+      <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+        Are you sure you want to proceed? This will delete your current mission.
+      </Typography>
+      <Button onClick={onClose} color="warning">
+        Cancel
+      </Button>
+      <Button onClick={onConfirm} color="primary">
+        Confirm
+      </Button>
+    </Box>
   </Modal>
 );
-
-
-
-
 
 type MissionMenuComponentProps = {
   newCallback: () => Promise<void>;
   saveCallback: (nameCustom: string) => Promise<void>;
+  listCallback: () => Promise<MissionPayload[]>;
   //loadCallback: () => void;
 };
 
-export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProps) {
+export function MissionMenu({
+  newCallback,
+  saveCallback,
+  listCallback,
+}: MissionMenuComponentProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [activeModal, setActiveModal] = React.useState<ModalNames>(ModalNames.CLOSED);
+  const [activeModal, setActiveModal] = React.useState<ModalNames>(
+    ModalNames.CLOSED
+  );
   const [saveModalValue, setSaveModalValue] = React.useState("");
-  
+  const [missionList, setMissionList] = React.useState<null | MissionPayload[]>(
+    null
+  );
+
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -182,23 +224,33 @@ export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProp
     setAnchorEl(null);
     handleModalOpen(ModalNames.LOAD);
   };
-  
+
   // modals
 
-  const handleModalOpen = React.useCallback((modalName: ModalNames) => {
-    setActiveModal(modalName);
-  }, []);
+  const handleModalOpen = React.useCallback(
+    async (modalName: ModalNames) => {
+      if (modalName === ModalNames.LOAD) {
+        try {
+          const missions = await listCallback();
+          setMissionList(missions);
+        } catch (error) {
+          console.error("An error occurred:", error);
+        }
+      }
+      setActiveModal(modalName);
+    },
+    [listCallback]
+  );
 
   const handleModalClose = React.useCallback(() => {
     setActiveModal(ModalNames.CLOSED);
   }, []);
 
-
   // New
-  
+
   const handleNewModalConfirm = React.useCallback(async () => {
     handleModalClose();
-    setActiveModal(ModalNames.LOADING)
+    setActiveModal(ModalNames.LOADING);
     try {
       await newCallback();
     } catch (error) {
@@ -208,10 +260,10 @@ export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProp
   }, [newCallback, handleModalClose]);
 
   // Save
-  
+
   const handleSaveModalConfirm = React.useCallback(async () => {
     handleModalClose();
-    setActiveModal(ModalNames.LOADING)
+    setActiveModal(ModalNames.LOADING);
     try {
       await saveCallback(saveModalValue);
     } catch (error) {
@@ -229,7 +281,7 @@ export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProp
   };
 
   // Load
-  
+
   const handleLoadModalConfirm = () => {
     handleModalClose();
   };
@@ -262,9 +314,24 @@ export function MissionMenu({newCallback, saveCallback}:MissionMenuComponentProp
       </Menu>
 
       <LoadingModal open={activeModal === ModalNames.LOADING} />
-      <NewMissionModal open={activeModal === ModalNames.NEW} onClose={handleModalClose} onConfirm={handleNewModalConfirm} />
-      <SaveMissionModal open={activeModal === ModalNames.SAVE} onClose={handleModalClose} onConfirm={handleSaveModalConfirm} value={saveModalValue} onValueChange={handleSaveModalValueChange}/>
-      <LoadMissionModal open={activeModal === ModalNames.LOAD} onClose={handleModalClose} onConfirm={handleLoadModalConfirm} />
+      <NewMissionModal
+        open={activeModal === ModalNames.NEW}
+        onClose={handleModalClose}
+        onConfirm={handleNewModalConfirm}
+      />
+      <SaveMissionModal
+        open={activeModal === ModalNames.SAVE}
+        onClose={handleModalClose}
+        onConfirm={handleSaveModalConfirm}
+        value={saveModalValue}
+        onValueChange={handleSaveModalValueChange}
+      />
+      <LoadMissionModal
+        open={activeModal === ModalNames.LOAD}
+        onClose={handleModalClose}
+        onConfirm={handleLoadModalConfirm}
+        missions={missionList}
+      />
     </div>
   );
 }

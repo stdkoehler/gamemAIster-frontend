@@ -1,5 +1,3 @@
-import { unstable_ClassNameGenerator } from "@mui/material";
-
 interface State {
   llmOutput: string;
 }
@@ -13,9 +11,10 @@ interface PromptPayload {
   };
 }
 
-interface MissionPayload {
+export interface MissionPayload {
   mission_id: number;
   name: string;
+  name_custom?: string;
   description: string;
 }
 
@@ -107,8 +106,8 @@ export async function postSaveMission(missionId: number, nameCustom: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        "mission_id": missionId,
-        "name_custom": nameCustom
+        mission_id: missionId,
+        name_custom: nameCustom,
       }),
     });
     if (!res.ok) {
@@ -121,3 +120,19 @@ export async function postSaveMission(missionId: number, nameCustom: string) {
   }
 }
 
+export async function getListMissions(): Promise<MissionPayload[]> {
+  // For now, consider the data is stored on a static `users.json` file
+  try {
+    const res = await fetch("http://127.0.0.1:8000/mission/missions", {
+      method: "GET"
+    });
+    if (!res.ok) {
+      // Check if the response status is not OK (e.g., 404, 500)
+      throw new Error(`Server responded with status: ${res.status}`);
+    }
+    return res.json() as Promise<MissionPayload[]>;
+  } catch (error) {
+    console.error("Error getting new mission:", error);
+    throw new Error("Server responded with status");
+  }
+}
