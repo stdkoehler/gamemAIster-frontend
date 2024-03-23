@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { darkTheme } from "./theme";
@@ -52,6 +52,8 @@ const App: React.FC = () => {
     return localStorage.getItem("adventure") || "-- Create a new mission --";
   });
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     // Function that is called whenever any of the dependency array is called
     // This is used to save the state in local storage so that it persists on page refresh
@@ -75,20 +77,26 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Function to be executed only on browser refresh.
+    // Function to be executed only on browser refresh and on changes of reset, mission.
+    // We use a isFirstRender ref that is initially set to true. Executing on first render,
+    // we set is false. When mission or reset is changing now it will be false and we don't
+    // execute the check.
     // We check if our current mission exists in database, otherwise we reset the state
-    console.log(`Browser refreshed with mission_id ${mission}`);
-    if (mission !== null) {
-      getMission(mission)
-        .then((result) => {
-          if (result === null) {
-            console.log("mission does not exist");
-            reset();
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching mission:", error);
-        });
+    if (isFirstRender.current) {
+      console.log(`Browser refreshed with mission_id ${mission}`);
+      if (mission !== null) {
+        getMission(mission)
+          .then((result) => {
+            if (result === null) {
+              console.log("mission does not exist");
+              reset();
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching mission:", error);
+          });
+      }
+      isFirstRender.current = false;
     }
   }, [reset, mission]);
 
