@@ -162,7 +162,10 @@ const LoadMissionModal = ({
       <Autocomplete
         disablePortal
         PaperComponent={AutocompletePaper}
-        options={missions?.map((mission) => ({ label: mission.name, value: mission.mission_id })) || []}
+        options={missions?.map((mission) => ({ label: mission.name, value: mission.mission_id, name_custom:mission.name_custom })) || []}
+        getOptionLabel={(option) => (
+          option.name_custom || option.label
+        )}
         sx={AutocompleteStyle}
         renderInput={(params) => <TextField {...params} label="Mission" />}
       />
