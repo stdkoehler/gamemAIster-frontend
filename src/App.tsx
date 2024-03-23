@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { darkTheme } from "./theme";
@@ -16,6 +16,7 @@ import {
   postNewMission,
   postSaveMission,
   getListMissions,
+  getMission,
 } from "./functions/restInterface";
 
 import logo from "./assets/sr_00096_.png";
@@ -31,12 +32,65 @@ interface AppendHistory {
 }
 
 const App: React.FC = () => {
-  const [history, setHistory] = useState<string>("");
-  const [playerInputOld, setPlayerInputOld] = useState<string>("");
-  const [llmOutput, setLlmOutput] = useState<string>("");
-  const [playerInput, setPlayerInput] = useState<string>("");
-  const [mission, setMission] = useState<number | null>(null);
-  const [adventure, setAdventure] = useState<string>("--UNNITIALIZED--");
+  const [history, setHistory] = useState<string>(() => {
+    return localStorage.getItem("history") || "";
+  });
+  const [playerInputOld, setPlayerInputOld] = useState<string>(() => {
+    return localStorage.getItem("playerInputOld") || "";
+  });
+  const [llmOutput, setLlmOutput] = useState<string>(() => {
+    return localStorage.getItem("llmOutput") || "";
+  });
+  const [playerInput, setPlayerInput] = useState<string>(() => {
+    return localStorage.getItem("playerInput") || "";
+  });
+  const [mission, setMission] = useState<number | null>(() => {
+    const missionValue = localStorage.getItem("mission");
+    return missionValue ? parseInt(missionValue) : null;
+  });
+  const [adventure, setAdventure] = useState<string>(() => {
+    return localStorage.getItem("adventure") || "-- Create a new mission --";
+  });
+
+  useEffect(() => {
+    // Function that is called whenever any of the dependency array is called
+    // This is used to save the state in local storage so that it persists on page refresh
+    localStorage.setItem("history", history);
+    localStorage.setItem("playerInputOld", playerInputOld);
+    localStorage.setItem("llmOutput", llmOutput);
+    localStorage.setItem("playerInput", playerInput);
+    mission === null
+      ? localStorage.removeItem("mission")
+      : localStorage.setItem("mission", mission.toString());
+    localStorage.setItem("adventure", adventure);
+  }, [history, playerInputOld, llmOutput, playerInput, mission, adventure]);
+
+  const reset = useCallback(async () => {
+    setMission(null);
+    setAdventure("-- Create a new mission --");
+    setHistory("");
+    setPlayerInputOld("");
+    setLlmOutput("");
+    setPlayerInput("");
+  }, []);
+
+  useEffect(() => {
+    // Function to be executed only on browser refresh.
+    // We check if our current mission exists in database, otherwise we reset the state
+    console.log(`Browser refreshed with mission_id ${mission}`);
+    if (mission !== null) {
+      getMission(mission)
+        .then((result) => {
+          if (result === null) {
+            console.log("mission does not exist");
+            reset();
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching mission:", error);
+        });
+    }
+  }, [reset, mission]);
 
   function stripOutput(llmOutput: string): string {
     // strip "What do you want to do" and following ?,\s,\n
@@ -71,12 +125,13 @@ const App: React.FC = () => {
 
   const sendNewMissionGenerate = useCallback(async () => {
     console.log(mission);
+    await reset();
     const response = await postNewMission();
     if (response !== null) {
       setMission(response.mission_id);
       setAdventure(response.name);
     }
-  }, [mission]);
+  }, [reset, mission]);
 
   const saveMission = useCallback(
     async (nameCustom: string) => {
@@ -90,12 +145,9 @@ const App: React.FC = () => {
     [mission]
   );
 
-  const listMissions = useCallback(
-    async () => {
-      return getListMissions();
-      },
-    []
-  );
+  const listMissions = useCallback(async () => {
+    return getListMissions();
+  }, []);
 
   const sendRegenerate = useCallback(async () => {
     if (mission !== null) {
