@@ -96,8 +96,8 @@ const App: React.FC = () => {
   }, [reset, mission]);
 
   function stripOutput(llmOutput: string): string {
-    const regexPattern = /\bWhat\ do\ you\ want\ to\ \S[\S\s]*\?\s*$/;
-    return llmOutput.replace(regexPattern, "")
+    const regexPattern = /\b(?:What\ do\ you\ want\ to\ |What\ would\ you\ like\ to\ )\S[\S\s]*\?\s*$/;
+    return llmOutput.replace(regexPattern, "");
   }
 
   const sendNewMissionGenerate = useCallback(async () => {
