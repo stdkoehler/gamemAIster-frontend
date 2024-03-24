@@ -1,43 +1,62 @@
-import React, {
-    ReactNode,
+import {
     ComponentProps,
     useState,
     useRef,
     useEffect,
   } from "react";
-  import { TextField, Button, Typography, Box, useTheme } from "@mui/material";
+  import { Typography } from "@mui/material";
   
 
 import { Colors } from "../styles/styles.tsx";
 
+export type Interaction = {
+  playerInput: string;
+  llmOutput: string;
+};
+
 type HistoryProps =  ComponentProps<typeof Typography> & {
-    value: string;
+    value: Interaction[];
     name: string;
     colorType: Colors;
   };
+
 export default function History({
     value,
     name,
     colorType,
     ...props
   }: HistoryProps) {
-
+    const [history, setHistory] = useState<string>("")
     const textFieldRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        // Invoke your callback whenever the value changes
-        
         if (textFieldRef.current != null) {
           const textarea = textFieldRef.current;
-          console.log("History effect")
-          console.log(textarea)
           if (textarea != null) {
             textarea.scrollTop = textarea.scrollHeight;
           }
         }
-      }, [value]);
+      }, [history]);
+
+
+      useEffect(() => {
+        setHistory(buildHistory(value))
+      }, [value])
     
-  
+      function buildHistory(interactions: Interaction[]): string {
+        let newHistory = "";
+        for (const interaction of interactions) {
+          if (interaction.llmOutput !== "") {
+            if (newHistory !== "") {
+              newHistory += `\n\n===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
+            } else {
+              newHistory = `===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
+            }
+          }
+        }
+        return newHistory;
+      }
+
   
     return (
       <Typography ref={textFieldRef} {...props}
@@ -50,7 +69,7 @@ export default function History({
             paddingTop: 0,
           }}
         >
-      {value}
+      {history}
       </Typography>
     );
   }

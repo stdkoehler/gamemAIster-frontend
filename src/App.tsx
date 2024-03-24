@@ -20,23 +20,15 @@ import {
   getMission,
 } from "./functions/restInterface";
 
+import { Interaction } from "./components/History";
+
 import logo from "./assets/sr_00096_.png";
 
-const placeholder = "GameMAIster"
-
-type Interaction = {
-  playerInput: string;
-  llmOutput: string;
-};
-
-interface AppendHistory {
-  history: string;
-  interactions: Interaction[];
-}
+const placeholder = "GameMAIster";
 
 const App: React.FC = () => {
-  const [history, setHistory] = useState<string>(() => {
-    return localStorage.getItem("history") || "";
+  const [interactions, setInteractions] = useState<Interaction[]>(() => {
+    return JSON.parse(localStorage.getItem("interactions") || "[]");
   });
   const [playerInputOld, setPlayerInputOld] = useState<string>(() => {
     return localStorage.getItem("playerInputOld") || "";
@@ -60,7 +52,7 @@ const App: React.FC = () => {
   useEffect(() => {
     // Function that is called whenever any of the dependency array is called
     // This is used to save the state in local storage so that it persists on page refresh
-    localStorage.setItem("history", history);
+    localStorage.setItem("interactions", JSON.stringify(interactions));
     localStorage.setItem("playerInputOld", playerInputOld);
     localStorage.setItem("llmOutput", llmOutput);
     localStorage.setItem("playerInput", playerInput);
@@ -73,7 +65,7 @@ const App: React.FC = () => {
   const reset = useCallback(async () => {
     setMission(null);
     setAdventure(placeholder);
-    setHistory("");
+    setInteractions([]);
     setPlayerInputOld("");
     setLlmOutput("");
     setPlayerInput("");
@@ -104,38 +96,8 @@ const App: React.FC = () => {
   }, [reset, mission]);
 
   function stripOutput(llmOutput: string): string {
-    // strip "What do you want to do" and following ?,\s,\n
-    // strip "What do you want to answer" and following ?,\s,\n
-    let strippedLlmOutput = llmOutput.replace(
-      /^\s*What\sdo\syou\swant\sto\sdo\s*\??\s*[\r\n]*/gm,
-      ""
-    );
-    strippedLlmOutput = llmOutput.replace(
-      /^\s*What\sdo\syou\swant\sto\sdo\snext\s*\??\s*[\r\n]*/gm,
-      ""
-    );
-    strippedLlmOutput = strippedLlmOutput.replace(
-      /^\s*What\sdo\syou\swant\sto\sanswer\s*\??\s*[\r\n]*/gm,
-      ""
-    );
-    return strippedLlmOutput;
-  }
-
-  function appendInteractions({
-    history,
-    interactions,
-  }: AppendHistory): string {
-    let newHistory = history;
-    for (const interaction of interactions) {
-      if (interaction.llmOutput !== "") {
-        if (newHistory !== "") {
-          newHistory += `\n\n===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
-        } else {
-          newHistory = `===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
-        }
-      }
-    }
-    return newHistory;
+    const regexPattern = /\bWhat\ do\ you\ want\ to\ \S[\S\s]*\?\s*$/;
+    return llmOutput.replace(regexPattern, "")
   }
 
   const sendNewMissionGenerate = useCallback(async () => {
@@ -183,31 +145,35 @@ const App: React.FC = () => {
     if (mission !== null) {
       if (playerInput != "") {
         const strippedLlmOutput = stripOutput(llmOutput);
-        const interactions = [
+        const stepPlayerInput = playerInput;
+        const stepPlayerInputOld = playerInputOld;
+
+        setInteractions([
+          ...interactions,
           { playerInput: playerInputOld, llmOutput: strippedLlmOutput },
-        ];
-        const newHistory = appendInteractions({ history, interactions });
+        ]);
+
+        setPlayerInputOld(stepPlayerInput);
+        setPlayerInput("");
 
         try {
           await sendPlayerInputToLlm(
             mission,
-            playerInput,
+            stepPlayerInput,
             (newState: { llmOutput: string }) => {
               setLlmOutput(newState.llmOutput);
             },
-            playerInputOld,
+            stepPlayerInputOld,
             strippedLlmOutput
           );
-
-          setHistory(newHistory);
-          setPlayerInputOld(playerInput);
-          setPlayerInput("");
         } catch (error) {
           console.error(error);
+          setPlayerInputOld(stepPlayerInputOld);
+          setPlayerInput(stepPlayerInput);
         }
       }
     }
-  }, [mission, history, llmOutput, playerInput, playerInputOld]);
+  }, [mission, interactions, llmOutput, playerInput, playerInputOld]);
 
   const changeCallbackPlayerInputOld = useCallback((value: string) => {
     setPlayerInputOld(value);
@@ -251,7 +217,7 @@ const App: React.FC = () => {
             </AppGrid>
             <AppGrid item xs={12}>
               <History
-                value={history}
+                value={interactions}
                 name="History"
                 colorType="primary"
               />
