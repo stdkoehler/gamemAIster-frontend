@@ -21,6 +21,8 @@ import {
 
 import logo from "./assets/sr_00096_.png";
 
+const placeholder = "GameMAIster"
+
 type Interaction = {
   playerInput: string;
   llmOutput: string;
@@ -49,7 +51,7 @@ const App: React.FC = () => {
     return missionValue ? parseInt(missionValue) : null;
   });
   const [adventure, setAdventure] = useState<string>(() => {
-    return localStorage.getItem("adventure") || "-- Create a new mission --";
+    return localStorage.getItem("adventure") || placeholder;
   });
 
   const isFirstRender = useRef(true);
@@ -69,7 +71,7 @@ const App: React.FC = () => {
 
   const reset = useCallback(async () => {
     setMission(null);
-    setAdventure("-- Create a new mission --");
+    setAdventure(placeholder);
     setHistory("");
     setPlayerInputOld("");
     setLlmOutput("");
