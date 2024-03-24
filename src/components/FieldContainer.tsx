@@ -38,7 +38,7 @@ const StyledTextField = ({
   color,
   ...props
 }: StyledTextFieldProps) => {
-  return <TextField {...props} ref={innerRef} sx={TextfieldStyle({ color })} />;
+  return <TextField {...props} color={color} ref={innerRef} sx={TextfieldStyle({ color })} />;
 };
 
 const ButtonContainer = ({ children }: { children: ReactNode }) => (

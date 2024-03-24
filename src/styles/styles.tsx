@@ -184,15 +184,15 @@ export function TextfieldStyle({ color }: { color: Colors }) {
         borderColor: hoverColor, // Adjust color on hover
       },
     },
-    // set color when active
-    "& .Mui-focused": {
-      "&:hover fieldset": {
-        borderColor: hoverColor, // Adjust color on hover
-      },
-      "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: darkColor, // Set default border color based on colorType
-      },
-    },
+    // "& .Mui-focused": {
+    //   "&:hover fieldset": {
+    //     borderColor: "#00ff00", // Adjust color on hover
+    //   },
+    //   // doesn't seem to work reliably
+    //   "& .MuiOutlinedInput-notchedOutline": {
+    //     borderColor: "#ff0000", // Set default border color based on colorType
+    //   },
+    // },
     "& .MuiInputBase-input.MuiOutlinedInput-input": {
       "&::-webkit-scrollbar": {
         width: "0.4em",
