@@ -5,7 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import { TextField, Button, Typography, Box } from "@mui/material";
+import { TextField, Button, Typography, Box, useTheme } from "@mui/material";
 
 import SplitScreen from "./SplitScreen.tsx";
 
@@ -91,6 +91,8 @@ export default function FieldContainer({
     }
   }, [value]);
 
+  const theme = useTheme();
+
   const textFieldRef = useRef<HTMLDivElement>(null);
 
   const toggleEditable = () => {
@@ -125,7 +127,7 @@ export default function FieldContainer({
   return (
     <StyledContainer>
       <SplitScreen leftWeight={1} rightWeight={11} color={colorType}>
-        <Typography color={colorType}>{name}</Typography>
+        <Typography color={disabled ? theme.palette.grey.A700 : colorType}>{name}</Typography>
         <StyledTextField
           innerRef={textFieldRef}
           type={name}

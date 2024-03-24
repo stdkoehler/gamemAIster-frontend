@@ -8,6 +8,7 @@ import AppGrid from "./components/AppGrid";
 import ImageContainer from "./components/ImageContainer";
 import SplitScreen from "./components/SplitScreen";
 import FieldContainer from "./components/FieldContainer";
+import History from "./components/History";
 
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
@@ -109,6 +110,10 @@ const App: React.FC = () => {
       /^\s*What\sdo\syou\swant\sto\sdo\s*\??\s*[\r\n]*/gm,
       ""
     );
+    strippedLlmOutput = llmOutput.replace(
+      /^\s*What\sdo\syou\swant\sto\sdo\snext\s*\??\s*[\r\n]*/gm,
+      ""
+    );
     strippedLlmOutput = strippedLlmOutput.replace(
       /^\s*What\sdo\syou\swant\sto\sanswer\s*\??\s*[\r\n]*/gm,
       ""
@@ -124,9 +129,9 @@ const App: React.FC = () => {
     for (const interaction of interactions) {
       if (interaction.llmOutput !== "") {
         if (newHistory !== "") {
-          newHistory += `\nPlayer: ${interaction.playerInput}\n\nGamemaster: ${interaction.llmOutput}`;
+          newHistory += `\n===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
         } else {
-          newHistory = `Player: ${interaction.playerInput}\n\nGamemaster: ${interaction.llmOutput}`;
+          newHistory = `===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
         }
       }
     }
@@ -245,12 +250,10 @@ const App: React.FC = () => {
               <AdventureHeading>{adventure}</AdventureHeading>
             </AppGrid>
             <AppGrid item xs={12}>
-              <FieldContainer
+              <History
                 value={history}
                 name="History"
                 colorType="primary"
-                fixedRows={15}
-                disabled={mission === null}
               />
             </AppGrid>
             <AppGrid item xs={12}>
