@@ -6,13 +6,8 @@ import {
   } from "react";
   import { Typography } from "@mui/material";
   
-
 import { Colors } from "../styles/styles.tsx";
-
-export type Interaction = {
-  playerInput: string;
-  llmOutput: string;
-};
+import { Interaction } from "../functions/restInterface.tsx";
 
 type HistoryProps =  ComponentProps<typeof Typography> & {
     value: Interaction[];

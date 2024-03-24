@@ -13,14 +13,13 @@ import History from "./components/History";
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import {
+  Interaction,
   sendPlayerInputToLlm,
   postNewMission,
   postSaveMission,
   getListMissions,
   getMission,
 } from "./functions/restInterface";
-
-import { Interaction } from "./components/History";
 
 import logo from "./assets/sr_00096_.png";
 
@@ -145,13 +144,17 @@ const App: React.FC = () => {
     if (mission !== null) {
       if (playerInput != "") {
         const strippedLlmOutput = stripOutput(llmOutput);
+        const prevInteraction =
+          playerInputOld != "" && strippedLlmOutput != ""
+            ? { playerInput: playerInputOld, llmOutput: strippedLlmOutput }
+            : undefined;
+
         const stepPlayerInput = playerInput;
         const stepPlayerInputOld = playerInputOld;
 
-        setInteractions([
-          ...interactions,
-          { playerInput: playerInputOld, llmOutput: strippedLlmOutput },
-        ]);
+        if (prevInteraction) {
+          setInteractions([...interactions, prevInteraction]);
+        }
 
         setPlayerInputOld(stepPlayerInput);
         setPlayerInput("");
@@ -163,8 +166,7 @@ const App: React.FC = () => {
             (newState: { llmOutput: string }) => {
               setLlmOutput(newState.llmOutput);
             },
-            stepPlayerInputOld,
-            strippedLlmOutput
+            prevInteraction
           );
         } catch (error) {
           console.error(error);

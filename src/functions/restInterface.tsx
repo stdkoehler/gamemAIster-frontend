@@ -1,3 +1,8 @@
+export type Interaction = {
+  playerInput: string;
+  llmOutput: string;
+};
+
 interface State {
   llmOutput: string;
 }
@@ -18,22 +23,33 @@ export interface MissionPayload {
   description: string;
 }
 
+/**
+ * Sends the player's input to the Language Model (LLM) server for processing.
+ * 
+ * 
+ * @param missionId - The ID of the mission.
+ * @param playerInputField - The player's input.
+ * @param setStateCallback - A callback function to update the state with the LLM output for live stream update.
+ * @param prevInteraction - (Optional) Previous interaction. This will be send with the new input and only then is persisted in the database of the backend
+ *  This is to allow for changes by the user in the Player Prev and Gamemaster field. It will not be send at first input or when using "regenerate"
+ * @returns {Promise<void>} - A Promise that resolves when the request is completed.
+ * @throws {Error} - If the network response is not ok or if the reader is undefined.
+ */
 export async function sendPlayerInputToLlm(
   missionId: number,
   playerInputField: string,
   setStateCallback: (state: State) => void,
-  playerPrevInputField?: string,
-  llmOutputField?: string
+  prevInteraction?: Interaction
 ) {
   try {
     const payload: PromptPayload = {
       mission_id: missionId,
       prompt: playerInputField,
     };
-    if (llmOutputField && playerPrevInputField && llmOutputField != "") {
+    if (prevInteraction) {
       payload.prev_interaction = {
-        user_input: playerPrevInputField,
-        llm_output: llmOutputField,
+        user_input: prevInteraction.playerInput,
+        llm_output: prevInteraction.llmOutput,
       };
     }
 
