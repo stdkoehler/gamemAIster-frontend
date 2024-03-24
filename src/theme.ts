@@ -88,7 +88,30 @@ export const darkTheme = createTheme({
           },
         })
       }
-    }
-    
+    },
+    MuiContainer: {
+      styleOverrides: {
+        root:({theme}) => ({
+          color:theme.palette.primary.main,
+          [theme.breakpoints.up('lg')]: {
+            maxWidth: '1700px', // Set the maximum width to 1600px from lg breakpoint onwards
+          },
+          "&::-webkit-scrollbar": {
+            width: "0.4em",
+            cursor: "default !important",
+          },
+          "&::-webkit-scrollbar-track": {
+            boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
+            webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "rgba(0,0,0,.1)",
+            outline: "1px solid",
+            color: theme.palette.primary.dark,
+            cursor: "default !important",
+          },
+        })
+      }
+    },
   }
 });

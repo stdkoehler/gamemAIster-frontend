@@ -5,7 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import { TextField, Button, Typography, Box, useTheme } from "@mui/material";
+import { TextField, Button, Typography, Box, Container, useTheme } from "@mui/material";
 
 import SplitScreen from "./SplitScreen.tsx";
 
@@ -19,7 +19,7 @@ function StyledContainer({ children }: { children: ReactNode }) {
         display: "flex",
         flexDirection: "column",
         flexGrow: 1,
-        width: "90%",
+        width: "100%",
         alignItems: "left",
       }}
     >
@@ -126,8 +126,8 @@ export default function FieldContainer({
 
   return (
     <StyledContainer>
-      <SplitScreen leftWeight={1} rightWeight={11} color={colorType}>
-        <Typography color={disabled ? theme.palette.grey.A700 : colorType}>{name}</Typography>
+      <Container>
+        <Typography  variant="subtitle2" fontStyle="italic" color={disabled ? theme.palette.grey.A700 : colorType}>{name}</Typography>
         <StyledTextField
           innerRef={textFieldRef}
           type={name}
@@ -141,7 +141,7 @@ export default function FieldContainer({
           rows={fixedRows}
           InputProps={{ readOnly: !editable }}
         />
-      </SplitScreen>
+      </Container>
       <ButtonContainer>
         {!initialEditable && changeCallback && (
           <Button

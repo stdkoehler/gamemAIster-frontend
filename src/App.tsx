@@ -229,7 +229,7 @@ const App: React.FC = () => {
                 sendCallback={sendRegenerate}
                 changeCallback={changeCallbackPlayerInputOld}
                 value={playerInputOld}
-                name="Player Prev"
+                name="Player"
                 colorType="secondary"
                 updateButton="Regenerate"
                 disabled={mission === null}

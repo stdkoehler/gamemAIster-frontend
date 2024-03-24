@@ -1,71 +1,70 @@
-import {
-    ComponentProps,
-    useState,
-    useRef,
-    useEffect,
-  } from "react";
-  import { Typography } from "@mui/material";
-  
+import { ComponentProps, useRef, useEffect } from "react";
+import { Typography, Container } from "@mui/material";
+
 import { Colors } from "../styles/styles.tsx";
 import { Interaction } from "../functions/restInterface.tsx";
 
-type HistoryProps =  ComponentProps<typeof Typography> & {
-    value: Interaction[];
-    name: string;
-    colorType: Colors;
-  };
+type HistoryProps = ComponentProps<typeof Container> & {
+  value: Interaction[];
+  name: string;
+  colorType: Colors;
+};
 
 export default function History({
-    value,
-    name,
-    colorType,
-    ...props
-  }: HistoryProps) {
-    const [history, setHistory] = useState<string>("")
-    const textFieldRef = useRef<HTMLDivElement>(null);
+  value,
+  name,
+  colorType,
+  ...props
+}: HistoryProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (textFieldRef.current != null) {
-          const textarea = textFieldRef.current;
-          if (textarea != null) {
-            textarea.scrollTop = textarea.scrollHeight;
-          }
-        }
-      }, [history]);
-
-
-      useEffect(() => {
-        setHistory(buildHistory(value))
-      }, [value])
-    
-      function buildHistory(interactions: Interaction[]): string {
-        let newHistory = "";
-        for (const interaction of interactions) {
-          if (interaction.llmOutput !== "") {
-            if (newHistory !== "") {
-              newHistory += `\n\n===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
-            } else {
-              newHistory = `===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
-            }
-          }
-        }
-        return newHistory;
+  useEffect(() => {
+    if (containerRef.current != null) {
+      const textarea = containerRef.current;
+      if (textarea != null) {
+        textarea.scrollTop = textarea.scrollHeight;
       }
+    }
+  }, [value]);
 
-  
+  const InteractionList = (interactions: Interaction[]) => {
     return (
-      <Typography ref={textFieldRef} {...props}
-        sx={{
-            display: "flex",
-            width: "90%" /* Fields take up full width of their container */,
-            maxHeight: "30vh",
-            overflow: "auto",
-            whiteSpace: "pre-wrap",
-            paddingTop: 0,
-          }}
-        >
-      {history}
-      </Typography>
+      <div>
+        {interactions.map((interaction, index) => (
+          <div key={index}>
+            <Typography variant="subtitle2" fontStyle="italic" color="secondary">
+              <br/>Player<br/>
+            </Typography>
+            <Typography color="secondary">
+              {interaction.playerInput}
+            </Typography>
+            <Typography variant="subtitle2" fontStyle="italic" color="primary">
+              <br/>Gamemaster<br/>
+            </Typography>
+            <Typography color="primary">
+              {interaction.llmOutput}
+            </Typography>
+          </div>
+        ))}
+      </div>
     );
-  }
-  
+  };
+
+  return (
+    <Container
+      ref={containerRef}
+      {...props}
+      sx={{
+        display: "flex",
+        width: "95%" /* Fields take up full width of their container */,
+        maxHeight: "30vh",
+        overflow: "auto",
+        paddingTop: 0,
+        marginLeft: 0,
+        marginRight: 0
+      }}
+    >
+      {InteractionList(value)}
+    </Container>
+  );
+}
