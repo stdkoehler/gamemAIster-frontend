@@ -129,7 +129,7 @@ const App: React.FC = () => {
     for (const interaction of interactions) {
       if (interaction.llmOutput !== "") {
         if (newHistory !== "") {
-          newHistory += `\n===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
+          newHistory += `\n\n===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
         } else {
           newHistory = `===Player===\n ${interaction.playerInput}\n\n===Gamemaster===\n ${interaction.llmOutput}`;
         }
