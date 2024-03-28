@@ -27,7 +27,7 @@ export default function SplitScreen({
       <Box
         sx={{
           flex: leftWeight,
-          maxHeight: "120vh",
+          maxHeight: "80vh",
           overflowY: scrollable ? "auto" : "visible",
           padding: "8px",
           "&::-webkit-scrollbar": {

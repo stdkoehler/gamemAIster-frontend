@@ -1,15 +1,8 @@
-import React, {
-  ReactNode,
-  ComponentProps,
-  useState,
-  useRef,
-  useEffect,
-} from "react";
-import { TextField, Button, Typography, Box, Container, useTheme } from "@mui/material";
+import React, { ReactNode, useState, useRef, useEffect } from "react";
+import { Button, Typography, Box, Container, useTheme } from "@mui/material";
 
-import SplitScreen from "./SplitScreen.tsx";
-
-import { Colors, TextfieldStyle } from "../styles/styles.tsx";
+import { Colors } from "../styles/styles.tsx";
+import StyledTextField from "./StyledTextField.tsx";
 
 function StyledContainer({ children }: { children: ReactNode }) {
   return (
@@ -28,19 +21,6 @@ function StyledContainer({ children }: { children: ReactNode }) {
   );
 }
 
-type StyledTextFieldProps = ComponentProps<typeof TextField> & {
-  innerRef: React.Ref<HTMLDivElement>;
-  color: Colors;
-};
-
-const StyledTextField = ({
-  innerRef,
-  color,
-  ...props
-}: StyledTextFieldProps) => {
-  return <TextField {...props} color={color} ref={innerRef} sx={TextfieldStyle({ color })} />;
-};
-
 const ButtonContainer = ({ children }: { children: ReactNode }) => (
   <Box
     sx={{
@@ -55,15 +35,19 @@ const ButtonContainer = ({ children }: { children: ReactNode }) => (
   </Box>
 );
 
+export enum FieldContainerType {
+  MAIN_SEND = "main_send",
+  PLAYER_OLD = "player_old",
+  GAMEMASTER = "gamemaster",
+}
+
 type FieldContainerProps = {
   sendCallback?: () => Promise<void>;
   changeCallback?: (arg: string) => void;
   value: string;
-  name: string;
-  initialEditable?: boolean;
-  updateButton?: string;
-  fixedRows?: number;
-  colorType: Colors;
+  instance: string;
+  color: Colors;
+  type: FieldContainerType;
   disabled?: boolean;
 };
 
@@ -71,14 +55,14 @@ export default function FieldContainer({
   sendCallback,
   changeCallback,
   value,
-  name,
-  colorType,
-  initialEditable = false,
-  updateButton = "Send",
-  fixedRows = undefined,
+  instance,
+  color,
+  type,
   disabled = false,
 }: FieldContainerProps) {
-  const [editable, setEditable] = useState(initialEditable);
+  const [editable, setEditable] = useState(
+    type === FieldContainerType.MAIN_SEND
+  );
   const [locked, setLocked] = useState(false);
 
   useEffect(() => {
@@ -91,13 +75,7 @@ export default function FieldContainer({
     }
   }, [value]);
 
-  const theme = useTheme();
-
   const textFieldRef = useRef<HTMLDivElement>(null);
-
-  const toggleEditable = () => {
-    setEditable(!editable);
-  };
 
   const handleSend = async () => {
     console.log("test_inner");
@@ -125,45 +103,61 @@ export default function FieldContainer({
   };
 
   return (
-    <StyledContainer>
-      <Container>
-        <Typography  variant="subtitle2" fontStyle="italic" color={disabled ? theme.palette.grey.A700 : colorType}>{name}</Typography>
-        <StyledTextField
-          innerRef={textFieldRef}
-          type={name}
-          name={name} // Assuming it's always the same name
-          value={value}
-          color={colorType}
-          disabled={!editable}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          multiline
-          rows={fixedRows}
-          InputProps={{ readOnly: !editable }}
-        />
+    <>
+      <Typography
+        variant="subtitle2"
+        fontStyle="italic"
+        color={color}
+        sx={{ display: "flex" }}
+      >
+        <br />
+        {instance}
+        <br />
+      </Typography>
+      <Container
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingLeft: "0 !important",
+          paddingRight: "0 !important",
+        }}
+      >
+        {editable ? (
+          <StyledTextField
+            color={color}
+            value={value}
+            innerRef={textFieldRef}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            multiline
+            disabled={disabled}
+          />
+        ) : (
+          <Typography color={color} sx={{ whiteSpace: "pre-wrap" }}>
+            {value}
+          </Typography>
+        )}
+        <Box sx={{ display: "flex", flexDirection: "column" }}>
+          {(type === FieldContainerType.PLAYER_OLD ||
+            type === FieldContainerType.GAMEMASTER) && (
+            <Button
+              color={color}
+              disabled={disabled}
+              onClick={() => setEditable(!editable)}
+            >
+              Edit
+            </Button>
+          )}
+          {(type === FieldContainerType.MAIN_SEND ||
+            type === FieldContainerType.PLAYER_OLD) &&
+            editable && (
+              <Button color={color} disabled={disabled} onClick={handleSend}>
+                Send
+              </Button>
+            )}
+        </Box>
       </Container>
-      <ButtonContainer>
-        {!initialEditable && changeCallback && (
-          <Button
-            onClick={toggleEditable}
-            color={colorType}
-            disabled={disabled}
-            sx={{ width: "20%", textAlign: "center" }}
-          >
-            Toggle Edit
-          </Button>
-        )}
-        {sendCallback && (
-          <Button
-            onClick={handleSend}
-            color={colorType}
-            disabled={disabled}
-            sx={{ width: "20%", textAlign: "center" }}
-          >
-            {updateButton}
-          </Button>
-        )}
-      </ButtonContainer>
-    </StyledContainer>
+    </>
   );
 }

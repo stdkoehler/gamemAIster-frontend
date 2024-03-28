@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { ThemeProvider, Box } from "@mui/material";
+import { ThemeProvider, Box, Container } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { darkTheme } from "./theme";
 
@@ -7,7 +7,10 @@ import AdventureHeading from "./components/AdventureHeading";
 import AppGrid from "./components/AppGrid";
 import ImageContainer from "./components/ImageContainer";
 import SplitScreen from "./components/SplitScreen";
-import FieldContainer from "./components/FieldContainer";
+import FieldContainer, {
+  FieldContainerType,
+} from "./components/FieldContainer";
+
 import History from "./components/History";
 
 import { MissionMenu } from "./components/MissionMenu";
@@ -95,7 +98,8 @@ const App: React.FC = () => {
   }, [reset, mission]);
 
   function stripOutput(llmOutput: string): string {
-    const regexPattern = /\b(?:What\ do\ you\ want\ to\ |What\ would\ you\ like\ to\ )\S[\S\s]*\?\s*$/;
+    const regexPattern =
+      /\b(?:What\ do\ you\ want\ to\ |What\ would\ you\ like\ to\ )\S[\S\s]*\?\s*$/;
     return llmOutput.replace(regexPattern, "");
   }
 
@@ -219,42 +223,38 @@ const App: React.FC = () => {
             </AppGrid>
             <AppGrid item xs={12}>
               <History
-                value={interactions}
-                name="History"
-                colorType="primary"
-              />
-            </AppGrid>
-            <AppGrid item xs={12}>
-              <FieldContainer
                 sendCallback={sendRegenerate}
-                changeCallback={changeCallbackPlayerInputOld}
-                value={playerInputOld}
-                name="Player"
-                colorType="secondary"
-                updateButton="Regenerate"
+                changePlayerInputOldCallback={changeCallbackPlayerInputOld}
+                changeLlmOutputCallback={changeCallbackLlmOutput}
+                interactions={interactions}
+                lastInteraction={{
+                  playerInput: playerInputOld,
+                  llmOutput: llmOutput,
+                }}
                 disabled={mission === null}
               />
             </AppGrid>
             <AppGrid item xs={12}>
-              <FieldContainer
-                changeCallback={changeCallbackLlmOutput}
-                value={llmOutput}
-                name="Gamemaster"
-                colorType="primary"
-                fixedRows={10}
-                disabled={mission === null}
-              />
-            </AppGrid>
-            <AppGrid item xs={12}>
-              <FieldContainer
-                sendCallback={sendPlayerInput}
-                changeCallback={changeCallbackPlayerInput}
-                value={playerInput}
-                name="Player"
-                colorType="secondary"
-                initialEditable={true}
-                disabled={mission === null}
-              />
+              <Container
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  alignItems: "left",
+                  width:
+                    "95%" /* Fields take up full width of their container */,
+                }}
+              >
+                <FieldContainer
+                  sendCallback={sendPlayerInput}
+                  changeCallback={changeCallbackPlayerInput}
+                  value={playerInput}
+                  instance="Player"
+                  color="secondary"
+                  type={FieldContainerType.MAIN_SEND}
+                  disabled={mission === null}
+                />
+              </Container>
             </AppGrid>
           </AppGrid>
         </SplitScreen>
