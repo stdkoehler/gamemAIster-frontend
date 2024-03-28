@@ -75,6 +75,13 @@ export default function FieldContainer({
     }
   }, [value]);
 
+  useEffect(() => {
+    // Focus the input field after sendPlayerInput is executed
+    if (!locked && type === FieldContainerType.MAIN_SEND) {
+      textFieldRef.current?.querySelector("textarea")?.focus();
+    }
+  }, [locked, type]);
+
   const textFieldRef = useRef<HTMLDivElement>(null);
 
   const handleSend = async () => {
