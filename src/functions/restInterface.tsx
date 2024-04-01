@@ -9,11 +9,18 @@ interface State {
 
 interface PromptPayload {
   mission_id: number;
-  prompt: string;
+  prompt?: string;
   prev_interaction?: {
     user_input: string;
     llm_output: string;
   };
+}
+
+interface PlayerInputData {
+  missionId: number;
+  setStateCallback: (state: State) => void;
+  playerInputField?: string;
+  prevInteraction?: Interaction;
 }
 
 export interface MissionPayload {
@@ -48,10 +55,7 @@ export type MissionLoadData = {
  * @throws {Error} - If the network response is not ok or if the reader is undefined.
  */
 export async function sendPlayerInputToLlm(
-  missionId: number,
-  playerInputField: string,
-  setStateCallback: (state: State) => void,
-  prevInteraction?: Interaction
+  {missionId, setStateCallback, playerInputField, prevInteraction}: PlayerInputData
 ) {
   try {
     const payload: PromptPayload = {

@@ -144,13 +144,18 @@ const App: React.FC = () => {
   const sendRegenerate = useCallback(async () => {
     if (mission !== null) {
       if (playerInputOld != "") {
-        await sendPlayerInputToLlm(
-          mission,
-          playerInputOld,
-          (newState: { llmOutput: string }) => {
+        const prevInteraction =
+          playerInputOld != "" && llmOutput != ""
+            ? { playerInput: playerInputOld, llmOutput: llmOutput }
+            : undefined;
+
+        await sendPlayerInputToLlm({
+          missionId: mission,
+          setStateCallback: (newState: { llmOutput: string }) => {
             setLlmOutput(newState.llmOutput);
-          }
-        );
+          },
+          prevInteraction: prevInteraction
+        });
       }
     }
   }, [mission, playerInputOld]);
@@ -176,14 +181,14 @@ const App: React.FC = () => {
         setPlayerInput("");
 
         try {
-          await sendPlayerInputToLlm(
-            mission,
-            stepPlayerInput,
-            (newState: { llmOutput: string }) => {
+          await sendPlayerInputToLlm({
+            missionId: mission, 
+            setStateCallback: (newState: { llmOutput: string }) => {
               setLlmOutput(newState.llmOutput);
             },
-            prevInteraction
-          );
+            playerInputField: stepPlayerInput,
+            prevInteraction: prevInteraction
+        });
         } catch (error) {
           console.error(error);
           setPlayerInputOld(stepPlayerInputOld);
