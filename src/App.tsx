@@ -134,7 +134,7 @@ const App: React.FC = () => {
   const loadMission = useCallback(async (missionId: number) => {
     const mission = await getLoadMissions(missionId);
     setMission(mission.mission.mission_id)
-    setAdventure(mission.mission.name)
+    setAdventure(mission.mission.name_custom ? mission.mission.name_custom : mission.mission.name)
     const interactions = mission.interactions
     setInteractions(interactions.slice(0, interactions.length - 1))
     setPlayerInputOld(interactions[interactions.length - 1].playerInput)
