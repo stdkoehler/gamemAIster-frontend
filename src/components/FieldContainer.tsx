@@ -41,11 +41,9 @@ export default function FieldContainer({
 
   useEffect(() => {
     // Invoke your callback whenever the value changes
-    if (textFieldRef.current != null) {
-      const textarea = textFieldRef.current.querySelector("textarea");
-      if (textarea != null) {
-        textarea.scrollTop = textarea.scrollHeight;
-      }
+    const textarea = textFieldRef.current?.querySelector("textarea");
+    if (textarea) {
+      textarea.scrollTop = textarea.scrollHeight;
     }
   }, [value]);
 
