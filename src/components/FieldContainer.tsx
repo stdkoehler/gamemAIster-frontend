@@ -34,10 +34,10 @@ export default function FieldContainer({
   disabled = false,
   placeholder = "",
 }: FieldContainerProps) {
-  const [editable, setEditable] = useState(
+  const [isEditable, setIsEditable] = useState(
     type === FieldContainerType.MAIN_SEND
   );
-  const [locked, setLocked] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const textFieldRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,21 +50,21 @@ export default function FieldContainer({
 
   useEffect(() => {
     // Focus the input field after sendPlayerInput is executed
-    if (!locked && type === FieldContainerType.MAIN_SEND) {
+    if (!isGenerating && type === FieldContainerType.MAIN_SEND) {
       textFieldRef.current?.querySelector("textarea")?.focus();
     }
-  }, [locked, type]);
+  }, [isGenerating, type]);
 
   
   const handleSend = async () => {
     console.log("test_inner");
-    if (sendCallback && !locked) {
-      setLocked(true);
-      setEditable(false);
+    if (sendCallback && !isGenerating) {
+      setIsGenerating(true);
+      setIsEditable(false);
       await sendCallback();
     }
-    setLocked(false);
-    setEditable(true);
+    setIsGenerating(false);
+    setIsEditable(true);
   };
 
   const handleStop = async () => {
@@ -106,7 +106,7 @@ export default function FieldContainer({
           paddingRight: "0 !important",
         }}
       >
-        {editable ? (
+        {isEditable ? (
           <StyledTextField
             color={color}
             value={value}
@@ -128,14 +128,14 @@ export default function FieldContainer({
             <Button
               color={color}
               disabled={disabled}
-              onClick={() => setEditable(!editable)}
+              onClick={() => setIsEditable(!isEditable)}
             >
               Edit
             </Button>
           )}
           {(type === FieldContainerType.MAIN_SEND ||
             type === FieldContainerType.PLAYER_OLD) &&
-            (locked ? (
+            (isGenerating ? (
               <Button color={color} disabled={disabled} onClick={handleStop}>
                 Stop
               </Button>
