@@ -1,39 +1,9 @@
-import React, { ReactNode, useState, useRef, useEffect } from "react";
-import { Button, Typography, Box, Container, useTheme } from "@mui/material";
+import React, { useState, useRef, useEffect } from "react";
+import { Button, Typography, Box, Container } from "@mui/material";
 
 import { Colors } from "../styles/styles.tsx";
 import StyledTextField from "./StyledTextField.tsx";
 
-function StyledContainer({ children }: { children: ReactNode }) {
-  return (
-    <Box
-      sx={{
-        marginTop: "50px",
-        display: "flex",
-        flexDirection: "column",
-        flexGrow: 1,
-        width: "100%",
-        alignItems: "left",
-      }}
-    >
-      {children}
-    </Box>
-  );
-}
-
-const ButtonContainer = ({ children }: { children: ReactNode }) => (
-  <Box
-    sx={{
-      width: "100%",
-      display: "flex",
-      alignItems: "center",
-      flexDirection: "row",
-      justifyContent: "center",
-    }}
-  >
-    {children}
-  </Box>
-);
 
 export enum FieldContainerType {
   MAIN_SEND = "main_send",
