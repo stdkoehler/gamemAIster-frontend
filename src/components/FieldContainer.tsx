@@ -44,21 +44,25 @@ export enum FieldContainerType {
 type FieldContainerProps = {
   sendCallback?: () => Promise<void>;
   changeCallback?: (arg: string) => void;
+  stopCallback?: () => Promise<void>;
   value: string;
   instance: string;
   color: Colors;
   type: FieldContainerType;
   disabled?: boolean;
+  placeholder?: string;
 };
 
 export default function FieldContainer({
   sendCallback,
   changeCallback,
+  stopCallback,
   value,
   instance,
   color,
   type,
   disabled = false,
+  placeholder = "",
 }: FieldContainerProps) {
   const [editable, setEditable] = useState(
     type === FieldContainerType.MAIN_SEND
@@ -95,6 +99,12 @@ export default function FieldContainer({
     setEditable(true);
   };
 
+  const handleStop = async () => {
+    if (stopCallback) {
+      await stopCallback();
+    }
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter" && event.shiftKey) {
       event.preventDefault(); // don't register the return key
@@ -104,9 +114,7 @@ export default function FieldContainer({
 
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     // Call the callback function with the updated value
-    if (changeCallback) {
-      changeCallback(event.target.value);
-    }
+    changeCallback?.(event.target.value);
   };
 
   return (
@@ -137,6 +145,7 @@ export default function FieldContainer({
             innerRef={textFieldRef}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
+            placeholder={placeholder}
             multiline
             disabled={disabled}
           />
@@ -158,11 +167,15 @@ export default function FieldContainer({
           )}
           {(type === FieldContainerType.MAIN_SEND ||
             type === FieldContainerType.PLAYER_OLD) &&
-            editable && (
+            (locked ? (
+              <Button color={color} disabled={disabled} onClick={handleStop}>
+                Stop
+              </Button>
+            ) : (
               <Button color={color} disabled={disabled} onClick={handleSend}>
                 Send
               </Button>
-            )}
+            ))}
         </Box>
       </Container>
     </>

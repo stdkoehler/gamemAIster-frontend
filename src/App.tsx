@@ -18,6 +18,7 @@ import { CharacterManager } from "./components/CharacterCard";
 import {
   Interaction,
   sendPlayerInputToLlm,
+  postStopGeneration,
   postNewMission,
   postSaveMission,
   getListMissions,
@@ -181,6 +182,14 @@ const App: React.FC = () => {
     }
   }, [mission, interactions, llmOutput, playerInput, playerInputOld]);
 
+  const stopGeneration = useCallback(async () => {
+    try {
+      await postStopGeneration();
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
   const changeCallbackPlayerInputOld = useCallback((value: string) => {
     setPlayerInputOld(value);
   }, []);
@@ -224,6 +233,7 @@ const App: React.FC = () => {
             <AppGrid item xs={12}>
               <History
                 sendCallback={sendRegenerate}
+                stopCallback={stopGeneration}
                 changePlayerInputOldCallback={changeCallbackPlayerInputOld}
                 changeLlmOutputCallback={changeCallbackLlmOutput}
                 interactions={interactions}
@@ -248,11 +258,13 @@ const App: React.FC = () => {
                 <FieldContainer
                   sendCallback={sendPlayerInput}
                   changeCallback={changeCallbackPlayerInput}
+                  stopCallback={stopGeneration}
                   value={playerInput}
                   instance="Player"
                   color="secondary"
                   type={FieldContainerType.MAIN_SEND}
                   disabled={mission === null}
+                  placeholder="Begin by describing your character and what he's currently doing."
                 />
               </Container>
             </AppGrid>

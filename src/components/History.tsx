@@ -6,6 +6,7 @@ import FieldContainer, { FieldContainerType } from "./FieldContainer.tsx";
 
 type HistoryProps = ComponentProps<typeof Container> & {
   sendCallback?: () => Promise<void>;
+  stopCallback?: () => Promise<void>;
   changePlayerInputOldCallback?: (arg: string) => void;
   changeLlmOutputCallback?: (arg: string) => void;
   interactions: Interaction[];
@@ -15,6 +16,7 @@ type HistoryProps = ComponentProps<typeof Container> & {
 
 export default function History({
   sendCallback,
+  stopCallback,
   changePlayerInputOldCallback,
   changeLlmOutputCallback,
   interactions,
@@ -47,13 +49,17 @@ export default function History({
               Player
               <br />
             </Typography>
-            <Typography color="secondary" sx={{ whiteSpace: "pre-wrap" }}>{interaction.playerInput}</Typography>
+            <Typography color="secondary" sx={{ whiteSpace: "pre-wrap" }}>
+              {interaction.playerInput}
+            </Typography>
             <Typography variant="subtitle2" fontStyle="italic" color="primary">
               <br />
               Gamemaster
               <br />
             </Typography>
-            <Typography color="primary" sx={{ whiteSpace: "pre-wrap" }}>{interaction.llmOutput}</Typography>
+            <Typography color="primary" sx={{ whiteSpace: "pre-wrap" }}>
+              {interaction.llmOutput}
+            </Typography>
           </div>
         ))}
       </>
@@ -79,6 +85,7 @@ export default function History({
       {/* {lastInteraction.playerInput !== "" && ( */}
       <FieldContainer
         sendCallback={sendCallback}
+        stopCallback={stopCallback}
         changeCallback={changePlayerInputOldCallback}
         value={lastInteraction.playerInput}
         instance="Player"
