@@ -38,6 +38,7 @@ export default function FieldContainer({
     type === FieldContainerType.MAIN_SEND
   );
   const [locked, setLocked] = useState(false);
+  const textFieldRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Invoke your callback whenever the value changes
@@ -54,8 +55,7 @@ export default function FieldContainer({
     }
   }, [locked, type]);
 
-  const textFieldRef = useRef<HTMLDivElement>(null);
-
+  
   const handleSend = async () => {
     console.log("test_inner");
     if (sendCallback && !locked) {
