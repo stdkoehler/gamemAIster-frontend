@@ -27,11 +27,8 @@ export default function History({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (containerRef.current != null) {
-      const textarea = containerRef.current;
-      if (textarea != null) {
-        textarea.scrollTop = textarea.scrollHeight;
-      }
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [interactions, lastInteraction]);
 
