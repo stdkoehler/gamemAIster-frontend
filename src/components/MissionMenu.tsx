@@ -27,6 +27,13 @@ enum ModalNames {
   LOADING = "loading",
 }
 
+type MissionOption = {
+  label: string;
+  value: number;
+  name_custom: string | undefined;
+};
+
+
 type StyledTextFieldProps = ComponentProps<typeof TextField> & {
   color: Colors;
 };
@@ -141,58 +148,83 @@ type LoadMissionModalComponentProps = {
   onClose: () => void;
   onConfirm: () => void;
   missions: MissionPayload[] | null;
+  selectedMission: MissionOption | null;
+  setSelectedMission: React.Dispatch<React.SetStateAction<MissionOption | null>>
 };
 
-const LoadMissionModal = ({
+function LoadMissionModal({
   open,
   onClose,
   onConfirm,
   missions,
-}: LoadMissionModalComponentProps) => (
-  <Modal
-    open={open}
-    onClose={onClose}
-    aria-labelledby="modal-modal-title"
-    aria-describedby="modal-modal-description"
-  >
-    <Box sx={ModalStyle()}>
-      <Typography id="modal-modal-title" variant="h6" component="h2">
-        Load Mission
-      </Typography>
-      <Autocomplete
-        disablePortal
-        PaperComponent={AutocompletePaper}
-        options={missions?.map((mission) => ({ label: mission.name, value: mission.mission_id, name_custom:mission.name_custom })) || []}
-        getOptionLabel={(option) => (
-          option.name_custom || option.label
-        )}
-        sx={AutocompleteStyle}
-        renderInput={(params) => <TextField {...params} label="Mission" />}
-      />
-      <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-        Are you sure you want to proceed? This will delete your current mission.
-      </Typography>
-      <Button onClick={onClose} color="warning">
-        Cancel
-      </Button>
-      <Button onClick={onConfirm} color="primary">
-        Confirm
-      </Button>
-    </Box>
-  </Modal>
-);
+  selectedMission,
+  setSelectedMission,
+}: LoadMissionModalComponentProps) {
+
+  const handleMissionChange = (
+    _: React.SyntheticEvent<Element, Event>,
+    newValue: MissionOption | null
+  ) => {
+    if (newValue && missions?.some((mission) => mission.mission_id === newValue.value)) {
+      setSelectedMission(newValue);
+    }
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box sx={ModalStyle()}>
+        <Typography id="modal-modal-title" variant="h6" component="h2">
+          Load Mission
+        </Typography>
+        <Autocomplete
+          value={selectedMission}
+          onChange={handleMissionChange}
+          disablePortal
+          PaperComponent={AutocompletePaper}
+          options={
+            missions?.map((mission) => ({
+              label: mission.name,
+              value: mission.mission_id,
+              name_custom: mission.name_custom,
+            })) || []
+          }
+          getOptionLabel={(option) => option.name_custom || option.label}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          sx={AutocompleteStyle}
+          renderInput={(params) => <TextField {...params} label="Mission" />}
+        />
+        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+          Are you sure you want to proceed? This will delete your current
+          mission.
+        </Typography>
+        <Button onClick={onClose} color="warning">
+          Cancel
+        </Button>
+        <Button onClick={onConfirm} color="primary">
+          Confirm
+        </Button>
+      </Box>
+    </Modal>
+  );
+}
 
 type MissionMenuComponentProps = {
   newCallback: () => Promise<void>;
   saveCallback: (nameCustom: string) => Promise<void>;
   listCallback: () => Promise<MissionPayload[]>;
-  //loadCallback: () => void;
+  loadCallback: (missionId: number) => Promise<void>;
 };
 
 export function MissionMenu({
   newCallback,
   saveCallback,
   listCallback,
+  loadCallback,
 }: MissionMenuComponentProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [activeModal, setActiveModal] = React.useState<ModalNames>(
@@ -202,6 +234,7 @@ export function MissionMenu({
   const [missionList, setMissionList] = React.useState<null | MissionPayload[]>(
     null
   );
+  const [selectedMission, setSelectedMission] = React.useState<MissionOption | null>(null);
 
   const open = Boolean(anchorEl);
 
@@ -283,11 +316,18 @@ export function MissionMenu({
     }
   };
 
-  // Load
-
-  const handleLoadModalConfirm = () => {
+  const handleLoadModalConfirm = React.useCallback(async () => {
     handleModalClose();
-  };
+    setActiveModal(ModalNames.LOADING);
+    if (selectedMission) {
+      try {
+        await loadCallback(selectedMission.value);
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+      setActiveModal(ModalNames.CLOSED);
+    }
+  }, [selectedMission, handleModalClose]);
 
   return (
     <div>
@@ -334,6 +374,8 @@ export function MissionMenu({
         onClose={handleModalClose}
         onConfirm={handleLoadModalConfirm}
         missions={missionList}
+        selectedMission={selectedMission}
+        setSelectedMission={setSelectedMission}
       />
     </div>
   );

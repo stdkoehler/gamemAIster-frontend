@@ -23,6 +23,7 @@ import {
   postSaveMission,
   getListMissions,
   getMission,
+  getLoadMissions,
 } from "./functions/restInterface";
 
 import logo from "./assets/sr_00096_.png";
@@ -130,6 +131,16 @@ const App: React.FC = () => {
     return getListMissions();
   }, []);
 
+  const loadMission = useCallback(async (missionId: number) => {
+    const mission = await getLoadMissions(missionId);
+    setMission(mission.mission.mission_id)
+    setAdventure(mission.mission.name)
+    const interactions = mission.interactions
+    setInteractions(interactions.slice(0, interactions.length - 1))
+    setPlayerInputOld(interactions[interactions.length - 1].playerInput)
+    setLlmOutput(interactions[interactions.length - 1].llmOutput)
+  }, [setMission, setAdventure, setInteractions, setPlayerInputOld, setLlmOutput]);
+
   const sendRegenerate = useCallback(async () => {
     if (mission !== null) {
       if (playerInputOld != "") {
@@ -223,6 +234,7 @@ const App: React.FC = () => {
               newCallback={sendNewMissionGenerate}
               saveCallback={saveMission}
               listCallback={listMissions}
+              loadCallback={loadMission}
             ></MissionMenu>
             <CharacterManager></CharacterManager>
           </AppGrid>

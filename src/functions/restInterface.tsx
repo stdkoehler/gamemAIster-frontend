@@ -23,6 +23,18 @@ export interface MissionPayload {
   description: string;
 }
 
+export interface MissionLoadPayload {
+  mission: MissionPayload;
+  interactions: [
+    {user_input: string, llm_output: string}
+  ];
+}
+
+export type MissionLoadData = {
+  mission: MissionPayload;
+  interactions: Interaction[];
+}
+
 /**
  * Sends the player's input to the Language Model (LLM) server for processing.
  *
@@ -197,3 +209,31 @@ export async function getListMissions(): Promise<MissionPayload[]> {
     throw new Error("Server responded with status");
   }
 }
+
+export async function getLoadMissions(mission_id: number): Promise<MissionLoadData> {
+  // For now, consider the data is stored on a static `users.json` file
+  try {
+    const res = await fetch(`http://127.0.0.1:8000/mission/load-mission/${mission_id}`, {
+      method: "GET",
+    });
+    if (!res.ok) {
+      // Check if the response status is not OK (e.g., 404, 500)
+      throw new Error(`Server responded with status: ${res.status}`);
+    }
+    const data = await res.json() as MissionLoadPayload;
+    const convertedData: MissionLoadData = {
+      mission: data.mission,
+      interactions: data.interactions.map((interaction: { user_input: string; llm_output: string }) => {
+        return {
+          playerInput: interaction.user_input,
+          llmOutput: interaction.llm_output,
+        };
+      }),
+    };
+    return convertedData;
+  } catch (error) {
+    console.error("Error getting load mission:", error);
+    throw new Error("Server responded with status");
+  }
+}
+
