@@ -136,9 +136,18 @@ const App: React.FC = () => {
     setMission(mission.mission.mission_id)
     setAdventure(mission.mission.name_custom || mission.mission.name)
     const interactions = mission.interactions
-    setInteractions(interactions.slice(0, interactions.length - 1))
-    setPlayerInputOld(interactions[interactions.length - 1].playerInput)
-    setLlmOutput(interactions[interactions.length - 1].llmOutput)
+    // Check if interactions is an array and not empty
+    if (interactions.length > 0) {
+      const last_interaction = interactions.pop();
+      setInteractions(interactions);
+      setPlayerInputOld(last_interaction?.playerInput ?? "");
+      setLlmOutput(last_interaction?.llmOutput ?? "");
+  } else {
+    setInteractions([]);
+    setPlayerInputOld("");
+    setLlmOutput("");
+  }
+
   }, [setMission, setAdventure, setInteractions, setPlayerInputOld, setLlmOutput]);
 
   const sendRegenerate = useCallback(async () => {

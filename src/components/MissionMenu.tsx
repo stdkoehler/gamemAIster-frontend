@@ -165,9 +165,7 @@ function LoadMissionModal({
     _: React.SyntheticEvent<Element, Event>,
     newValue: MissionOption | null
   ) => {
-    if (newValue && missions?.some((mission) => mission.mission_id === newValue.value)) {
-      setSelectedMission(newValue);
-    }
+    setSelectedMission(newValue);
   };
 
   return (
@@ -269,6 +267,11 @@ export function MissionMenu({
         try {
           const missions = await listCallback();
           setMissionList(missions);
+          setSelectedMission({
+            label: missions[0].name,
+            value: missions[0].mission_id,
+            name_custom: missions[0].name_custom,
+          })
         } catch (error) {
           console.error("An error occurred:", error);
         }
