@@ -13,7 +13,7 @@ import FieldContainer, {
 
 import History from "./components/History";
 
-import { MissionMenu } from "./components/MissionMenu";
+import { MissionMenu, MissionOption } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import {
   Interaction,
@@ -24,6 +24,7 @@ import {
   getListMissions,
   getMission,
   getLoadMissions,
+  MissionPayload,
 } from "./functions/restInterface";
 
 import logo from "./assets/sr_00096_.png";
@@ -127,8 +128,13 @@ const App: React.FC = () => {
     [mission]
   );
 
-  const listMissions = useCallback(async () => {
-    return getListMissions();
+  const listMissions = useCallback(async (): Promise<MissionOption[]> => {
+    const missionPayloads = await getListMissions();
+    return missionPayloads.map((mission: MissionPayload) => ({
+      label: mission.name,
+      value: mission.mission_id,
+      name_custom: mission.name_custom,
+    }))
   }, []);
 
   const loadMission = useCallback(async (missionId: number) => {
