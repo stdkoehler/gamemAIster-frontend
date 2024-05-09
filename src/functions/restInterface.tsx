@@ -32,15 +32,13 @@ export interface MissionPayload {
 
 export interface MissionLoadPayload {
   mission: MissionPayload;
-  interactions: [
-    {user_input: string, llm_output: string}
-  ];
+  interactions: [{ user_input: string; llm_output: string }];
 }
 
 export type MissionLoadData = {
   mission: MissionPayload;
   interactions: Interaction[];
-}
+};
 
 /**
  * Sends the player's input to the Language Model (LLM) server for processing.
@@ -54,9 +52,12 @@ export type MissionLoadData = {
  * @returns {Promise<void>} - A Promise that resolves when the request is completed.
  * @throws {Error} - If the network response is not ok or if the reader is undefined.
  */
-export async function sendPlayerInputToLlm(
-  {missionId, setStateCallback, playerInputField, prevInteraction}: PlayerInputData
-) {
+export async function sendPlayerInputToLlm({
+  missionId,
+  setStateCallback,
+  playerInputField,
+  prevInteraction,
+}: PlayerInputData) {
   try {
     const payload: PromptPayload = {
       mission_id: missionId,
@@ -97,8 +98,22 @@ export async function sendPlayerInputToLlm(
         break;
       }
       const streamPackage = new TextDecoder().decode(value);
-      const jsonData = JSON.parse(streamPackage);
-      result += jsonData.text;
+      const jsonStrings = streamPackage.split("\n");
+
+      // it's possible that the endpoints sends multiple \n separated json strings in one response
+      jsonStrings.forEach((jsonString) => {
+        jsonString = jsonString.trim();
+        if (jsonString.length > 0) {
+          try {
+            const jsonData = JSON.parse(jsonString);
+            result += jsonData.text;
+          } catch (err) {
+            console.error(`json not parsable: ${streamPackage}`);
+            throw new Error("json not parsable");
+          }
+        }
+      });
+
       setStateCallback({ llmOutput: result });
     }
     result = result.trim();
@@ -214,25 +229,32 @@ export async function getListMissions(): Promise<MissionPayload[]> {
   }
 }
 
-export async function getLoadMissions(mission_id: number): Promise<MissionLoadData> {
+export async function getLoadMissions(
+  mission_id: number
+): Promise<MissionLoadData> {
   // For now, consider the data is stored on a static `users.json` file
   try {
-    const res = await fetch(`http://127.0.0.1:8000/mission/load-mission/${mission_id}`, {
-      method: "GET",
-    });
+    const res = await fetch(
+      `http://127.0.0.1:8000/mission/load-mission/${mission_id}`,
+      {
+        method: "GET",
+      }
+    );
     if (!res.ok) {
       // Check if the response status is not OK (e.g., 404, 500)
       throw new Error(`Server responded with status: ${res.status}`);
     }
-    const data = await res.json() as MissionLoadPayload;
+    const data = (await res.json()) as MissionLoadPayload;
     const convertedData: MissionLoadData = {
       mission: data.mission,
-      interactions: data.interactions.map((interaction: { user_input: string; llm_output: string }) => {
-        return {
-          playerInput: interaction.user_input,
-          llmOutput: interaction.llm_output,
-        };
-      }),
+      interactions: data.interactions.map(
+        (interaction: { user_input: string; llm_output: string }) => {
+          return {
+            playerInput: interaction.user_input,
+            llmOutput: interaction.llm_output,
+          };
+        }
+      ),
     };
     return convertedData;
   } catch (error) {
@@ -240,4 +262,3 @@ export async function getLoadMissions(mission_id: number): Promise<MissionLoadDa
     throw new Error("Server responded with status");
   }
 }
-
