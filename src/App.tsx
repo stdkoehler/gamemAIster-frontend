@@ -187,12 +187,14 @@ const App: React.FC = () => {
 
         const stepPlayerInput = playerInput;
         const stepPlayerInputOld = playerInputOld;
+        const stepLlmOutputOld = llmOutput;
 
         if (prevInteraction) {
           setInteractions([...interactions, prevInteraction]);
         }
 
         setPlayerInputOld(stepPlayerInput);
+        setLlmOutput("")
         setPlayerInput("");
 
         try {
@@ -207,6 +209,7 @@ const App: React.FC = () => {
         } catch (error) {
           console.error(error);
           setPlayerInputOld(stepPlayerInputOld);
+          setLlmOutput(stepLlmOutputOld);
           setPlayerInput(stepPlayerInput);
         }
       }

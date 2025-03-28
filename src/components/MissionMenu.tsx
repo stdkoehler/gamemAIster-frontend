@@ -184,7 +184,7 @@ function LoadMissionModal({
           PaperComponent={AutocompletePaper}
           options={missions || []}
           getOptionLabel={(option) => option.name_custom || option.label}
-          isOptionEqualToValue={(option, value) => option.value === value.value}
+          //isOptionEqualToValue={(option, value) => option.value === value.value}
           sx={AutocompleteStyle}
           renderInput={(params) => <TextField {...params} label="Mission" />}
         />
