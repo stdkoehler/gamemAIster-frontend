@@ -4,6 +4,7 @@ import { Button, Typography, Box, Container } from "@mui/material";
 import { Colors } from "../styles/styles.tsx";
 import StyledTextField from "./StyledTextField.tsx";
 import ReactMarkdown from "react-markdown";
+import MarkdownRenderer from "./MarkdownRenderer.tsx";
 
 
 export enum FieldContainerType {
@@ -119,9 +120,7 @@ export default function FieldContainer({
             disabled={disabled}
           />
         ) : (
-          <Typography color={color} sx={{ whiteSpace: "pre-wrap" }}>
-            <ReactMarkdown>{value}</ReactMarkdown>
-          </Typography>
+            <MarkdownRenderer value={value} color={color} />
         )}
         <Box sx={{ display: "flex", flexDirection: "column" }}>
           {(type === FieldContainerType.PLAYER_OLD ||
