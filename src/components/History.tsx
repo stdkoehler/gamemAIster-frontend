@@ -1,5 +1,6 @@
 import { ComponentProps, useRef, useEffect } from "react";
 import { Typography, Container } from "@mui/material";
+import ReactMarkdown from 'react-markdown'; 
 
 import { Interaction } from "../functions/restInterface.tsx";
 import FieldContainer, { FieldContainerType } from "./FieldContainer.tsx";
@@ -47,7 +48,7 @@ export default function History({
               <br />
             </Typography>
             <Typography color="secondary" sx={{ whiteSpace: "pre-wrap" }}>
-              {interaction.playerInput}
+            <ReactMarkdown>{interaction.playerInput}</ReactMarkdown>
             </Typography>
             <Typography variant="subtitle2" fontStyle="italic" color="primary">
               <br />
@@ -55,7 +56,7 @@ export default function History({
               <br />
             </Typography>
             <Typography color="primary" sx={{ whiteSpace: "pre-wrap" }}>
-              {interaction.llmOutput}
+            <ReactMarkdown>{interaction.llmOutput}</ReactMarkdown>
             </Typography>
           </div>
         ))}
