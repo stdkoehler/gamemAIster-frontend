@@ -1,30 +1,40 @@
 /**
  * @hook useGamemasterCallbacks
  *
- * Provides all callback functions for managing game master interactions in an LLM-based adventure game.
+ * React hook providing all callback functions for managing game master interactions in an LLM-based adventure game.
  * Handles mission lifecycle, player input processing, and conversation state management.
  *
- * Key Functionality:
+ * ## Key Functionality:
  * - Mission management (create/save/list/load)
  * - Player input processing and LLM interaction
  * - Conversation history maintenance
  * - Generation control (start/stop/regenerate)
  *
- * State Management:
+ * ## State Management:
  * - Maintains mission ID and adventure name
  * - Tracks current and previous player inputs
  * - Manages LLM output and interaction history
  *
- * Usage:
- * const callbacks = useGamemasterCallbacks({ ...requiredProps });
+ * ## Usage Example:
+ * ```tsx
+ * const callbacks = useGamemasterCallbacks({
+ *   mission,
+ *   setMission,
+ *   setAdventure,
+ *   interactions,
+ *   setInteractions,
+ *   playerInputOld,
+ *   setPlayerInputOld,
+ *   llmOutput,
+ *   setLlmOutput,
+ *   playerInput,
+ *   setPlayerInput,
+ *   reset,
+ * });
+ * ```
  *
- * Props Interface:
- * @type UseGameCallbacksProps - Contains all necessary state setters and values including:
- *   - mission: Current mission ID
- *   - interactions: Conversation history
- *   - playerInput/playerInputOld: Current/previous player inputs
- *   - llmOutput: Current LLM response
- *   - reset: Shared reset function
+ * @param {UseGameCallbacksProps} props - Props containing all state, setters, values, and reset function required to manage the game master.
+ * @returns {object} An object with all game master callback utilities.
  */
 
 import { useCallback } from "react";
@@ -39,6 +49,22 @@ import {
   Interaction,
 } from "../functions/restInterface";
 
+/**
+ * @typedef {object} UseGameCallbacksProps
+ * Props required for useGamemasterCallbacks.
+ * @property {number | null} mission - Current mission ID.
+ * @property {(val: number|null) => void} setMission - Updates current mission ID.
+ * @property {(val: string) => void} setAdventure - Updates current adventure name.
+ * @property {Interaction[]} interactions - Conversation history.
+ * @property {(ints: Interaction[]) => void} setInteractions - Updates conversation history.
+ * @property {string} playerInputOld - Previous player input.
+ * @property {(val: string) => void} setPlayerInputOld - Updates previous input.
+ * @property {string} llmOutput - Current LLM output.
+ * @property {(val: string) => void} setLlmOutput - Updates LLM output.
+ * @property {string} playerInput - Current player input.
+ * @property {(val: string) => void} setPlayerInput - Updates player input.
+ * @property {() => Promise<void>} reset - Resets the game state.
+ */
 type UseGameCallbacksProps = {
   mission: number | null;
   setMission: (val: number | null) => void;
@@ -54,6 +80,22 @@ type UseGameCallbacksProps = {
   reset: () => Promise<void>;
 };
 
+/**
+ * useGamemasterCallbacks implementation
+ * @param {UseGameCallbacksProps} props
+ * @returns {{
+ *   sendNewMissionGenerate: () => Promise<void>,
+ *   saveMission: (nameCustom: string) => Promise<void>,
+ *   listMissions: () => Promise<Array<{ label: string, value: number, name_custom?: string }>>,
+ *   loadMission: (missionId: number) => Promise<void>,
+ *   sendRegenerate: () => Promise<void>,
+ *   sendPlayerInput: () => Promise<void>,
+ *   stopGeneration: () => Promise<void>,
+ *   changeCallbackPlayerInputOld: (value: string) => void,
+ *   changeCallbackPlayerInput: (value: string) => void,
+ *   changeCallbackLlmOutput: (value: string) => void,
+ * }}
+ */
 export function useGamemasterCallbacks({
   mission,
   setMission,
@@ -68,14 +110,26 @@ export function useGamemasterCallbacks({
   setPlayerInput,
   reset,
 }: UseGameCallbacksProps) {
-  // Reusable utilities
+  /**
+   * Utility that strips trailing prompt-like phrases from the LLM output.
+   * For example: removes, "What do you want to do?"
+   * @param {string} llmOutput
+   * @returns {string} Cleaned LLM output without trailing interaction prompts.
+   * @private
+   */
   function stripOutput(llmOutput: string): string {
     const regexPattern =
       /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;
     return llmOutput.replace(regexPattern, "");
   }
 
-  const sendNewMissionGenerate = useCallback(async () => {
+  /**
+   * Generates a new mission (and resets state).
+   * Also updates the adventure name and active mission ID.
+   * @async
+   * @returns {Promise<void>}
+   */
+  const sendNewMissionGenerate = useCallback(async (): Promise<void> => {
     await reset();
     const response = await postNewMission();
     if (response !== null) {
@@ -84,16 +138,34 @@ export function useGamemasterCallbacks({
     }
   }, [reset, setMission, setAdventure]);
 
+  /**
+   * Saves the current mission, using a user-specified custom name.
+   * @async
+   * @param {string} nameCustom - Custom mission name.
+   * @returns {Promise<void>}
+   */
   const saveMission = useCallback(
-    async (nameCustom: string) => {
+    async (nameCustom: string): Promise<void> => {
       if (mission !== null) {
-        postSaveMission(mission, nameCustom);
+        await postSaveMission(mission, nameCustom);
       }
     },
     [mission]
   );
 
-  const listMissions = useCallback(async (): Promise<any[]> => {
+  /**
+   * Lists all available missions in the system.
+   * Returns an array of objects suitable for use in select/dropdown fields.
+   * @async
+   * @returns {Promise<Array<{ label: string, value: number, name_custom?: string }>>}
+   */
+  const listMissions = useCallback(async (): Promise<
+    Array<{
+      label: string;
+      value: number;
+      name_custom?: string;
+    }>
+  > => {
     const missionPayloads = await getListMissions();
     return missionPayloads.map((mission: MissionPayload) => ({
       label: mission.name,
@@ -102,8 +174,15 @@ export function useGamemasterCallbacks({
     }));
   }, []);
 
+  /**
+   * Loads a mission and its interaction history by mission id.
+   * Sets state for mission ID, adventure name, player input, LLM output, and prior interactions.
+   * @async
+   * @param {number} missionId
+   * @returns {Promise<void>}
+   */
   const loadMission = useCallback(
-    async (missionId: number) => {
+    async (missionId: number): Promise<void> => {
       const loaded = await getLoadMissions(missionId);
       setMission(loaded.mission.mission_id);
       setAdventure(loaded.mission.name_custom || loaded.mission.name);
@@ -122,7 +201,13 @@ export function useGamemasterCallbacks({
     [setMission, setAdventure, setInteractions, setPlayerInputOld, setLlmOutput]
   );
 
-  const sendRegenerate = useCallback(async () => {
+  /**
+   * Requests the LLM to regenerate output for the last player input.
+   * Uses the previous player input and LLM output as context.
+   * @async
+   * @returns {Promise<void>}
+   */
+  const sendRegenerate = useCallback(async (): Promise<void> => {
     if (mission !== null && playerInputOld !== "") {
       const prevInteraction =
         playerInputOld !== "" && llmOutput !== ""
@@ -137,7 +222,14 @@ export function useGamemasterCallbacks({
     }
   }, [mission, playerInputOld, llmOutput, setLlmOutput]);
 
-  const sendPlayerInput = useCallback(async () => {
+  /**
+   * Sends the current player input to the LLM for a response.
+   * Updates state: previous/current player input, output, and interaction history.
+   * Handles errors gracefully by rolling back state if the send fails.
+   * @async
+   * @returns {Promise<void>}
+   */
+  const sendPlayerInput = useCallback(async (): Promise<void> => {
     if (mission !== null && playerInput !== "") {
       const strippedLlmOutput = stripOutput(llmOutput);
       const prevInteraction =
@@ -182,27 +274,43 @@ export function useGamemasterCallbacks({
     setInteractions,
   ]);
 
-  const stopGeneration = useCallback(async () => {
+  /**
+   * Stops the ongoing LLM response generation (if present).
+   * @async
+   * @returns {Promise<void>}
+   */
+  const stopGeneration = useCallback(async (): Promise<void> => {
     try {
       await postStopGeneration();
     } catch (error) {
-      // Handle error as needed
+      // Error is swallowed: caller may handle via UI if desired.
     }
   }, []);
 
-  // Change handlers, purely delegated, for clarity.
+  /**
+   * Change handler for previous player input state.
+   * @param {string} value - New previous input string.
+   */
   const changeCallbackPlayerInputOld = useCallback(
     (value: string) => {
       setPlayerInputOld(value);
     },
     [setPlayerInputOld]
   );
+  /**
+   * Change handler for current player input.
+   * @param {string} value - New player input string.
+   */
   const changeCallbackPlayerInput = useCallback(
     (value: string) => {
       setPlayerInput(value);
     },
     [setPlayerInput]
   );
+  /**
+   * Change handler for LLM output.
+   * @param {string} value - New LLM output string.
+   */
   const changeCallbackLlmOutput = useCallback(
     (value: string) => {
       setLlmOutput(value);
