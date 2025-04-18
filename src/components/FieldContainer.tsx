@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button, Typography, Box, Container } from "@mui/material";
 
 import { Colors } from "../styles/styles.tsx";
@@ -23,7 +23,99 @@ type FieldContainerProps = {
   placeholder?: string;
 };
 
-export default function FieldContainer({
+// --- Subcomponents ---
+
+// Editable input field with autofocus and scroll on value change
+function EditableField({
+  value,
+  onChange,
+  onKeyDown,
+  color,
+  placeholder,
+  disabled,
+  inputRef,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  color: Colors;
+  placeholder: string;
+  disabled: boolean;
+  inputRef: React.RefObject<HTMLDivElement>;
+}) {
+  useEffect(() => {
+    const textarea = inputRef.current?.querySelector("textarea");
+    if (textarea) {
+      textarea.scrollTop = textarea.scrollHeight;
+      textarea.focus();
+    }
+  }, [value, inputRef]);
+
+  return (
+    <StyledTextField
+      color={color}
+      value={value}
+      innerRef={inputRef}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      placeholder={placeholder}
+      multiline
+      disabled={disabled}
+    />
+  );
+}
+
+// Markdown display field
+function DisplayField({ value, color }: { value: string; color: Colors }) {
+  return <MarkdownRenderer value={value} color={color} />;
+}
+
+// Send/Stop/Edit button group
+function FieldButtonGroup({
+  isEditable,
+  isGenerating,
+  type,
+  color,
+  disabled,
+  onEditClick,
+  onSendClick,
+  onStopClick,
+}: {
+  isEditable: boolean;
+  isGenerating: boolean;
+  type: FieldContainerType;
+  color: Colors;
+  disabled: boolean;
+  onEditClick: () => void;
+  onSendClick: () => void;
+  onStopClick: () => void;
+}) {
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
+      {(type === FieldContainerType.PLAYER_OLD ||
+        type === FieldContainerType.GAMEMASTER) && (
+        <Button color={color} disabled={disabled} onClick={onEditClick}>
+          {isEditable ? "View" : "Edit"}
+        </Button>
+      )}
+      {(type === FieldContainerType.MAIN_SEND ||
+        type === FieldContainerType.PLAYER_OLD) &&
+        (isGenerating ? (
+          <Button color={color} disabled={disabled} onClick={onStopClick}>
+            Stop
+          </Button>
+        ) : (
+          <Button color={color} disabled={disabled} onClick={onSendClick}>
+            Send
+          </Button>
+        ))}
+    </Box>
+  );
+}
+
+// --- Main Component ---
+
+const FieldContainer: React.FC<FieldContainerProps> = ({
   sendCallback,
   changeCallback,
   stopCallback,
@@ -33,56 +125,50 @@ export default function FieldContainer({
   type,
   disabled = false,
   placeholder = "",
-}: FieldContainerProps) {
+}) => {
   const [isEditable, setIsEditable] = useState(
     type === FieldContainerType.MAIN_SEND
   );
   const [isGenerating, setIsGenerating] = useState(false);
   const textFieldRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Invoke your callback whenever the value changes
-    const textarea = textFieldRef.current?.querySelector("textarea");
-    if (textarea) {
-      textarea.scrollTop = textarea.scrollHeight;
-    }
-  }, [value]);
-
-  useEffect(() => {
-    // Focus the input field after sendPlayerInput is executed
-    if (!isGenerating && type === FieldContainerType.MAIN_SEND) {
-      textFieldRef.current?.querySelector("textarea")?.focus();
-    }
-  }, [isGenerating, type]);
-
-  const handleSend = async () => {
-    console.log("test_inner");
+  // Use useCallback for stable memoized handlers
+  const handleSend = useCallback(async () => {
     if (sendCallback && !isGenerating) {
       setIsGenerating(true);
       setIsEditable(false);
       await sendCallback();
+      setIsGenerating(false);
+      setIsEditable(true);
     }
-    setIsGenerating(false);
-    setIsEditable(true);
-  };
+  }, [sendCallback, isGenerating]);
 
-  const handleStop = async () => {
+  const handleStop = useCallback(async () => {
     if (stopCallback) {
       await stopCallback();
     }
-  };
+  }, [stopCallback]);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && event.shiftKey) {
-      event.preventDefault(); // don't register the return key
-      handleSend();
-    }
-  };
+  const handleEditToggle = useCallback(() => {
+    setIsEditable((prev) => !prev);
+  }, []);
 
-  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // Call the callback function with the updated value
-    changeCallback?.(event.target.value);
-  };
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter" && event.shiftKey) {
+        event.preventDefault(); // don't register the return key
+        handleSend();
+      }
+    },
+    [handleSend]
+  );
+
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      changeCallback?.(event.target.value);
+    },
+    [changeCallback]
+  );
 
   return (
     <>
@@ -106,43 +192,31 @@ export default function FieldContainer({
         }}
       >
         {isEditable ? (
-          <StyledTextField
-            color={color}
+          <EditableField
             value={value}
-            innerRef={textFieldRef}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
+            color={color}
             placeholder={placeholder}
-            multiline
             disabled={disabled}
+            inputRef={textFieldRef}
           />
         ) : (
-          <MarkdownRenderer value={value} color={color} />
+          <DisplayField value={value} color={color} />
         )}
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          {(type === FieldContainerType.PLAYER_OLD ||
-            type === FieldContainerType.GAMEMASTER) && (
-            <Button
-              color={color}
-              disabled={disabled}
-              onClick={() => setIsEditable(!isEditable)}
-            >
-              Edit
-            </Button>
-          )}
-          {(type === FieldContainerType.MAIN_SEND ||
-            type === FieldContainerType.PLAYER_OLD) &&
-            (isGenerating ? (
-              <Button color={color} disabled={disabled} onClick={handleStop}>
-                Stop
-              </Button>
-            ) : (
-              <Button color={color} disabled={disabled} onClick={handleSend}>
-                Send
-              </Button>
-            ))}
-        </Box>
+        <FieldButtonGroup
+          isEditable={isEditable}
+          isGenerating={isGenerating}
+          type={type}
+          color={color}
+          disabled={disabled}
+          onEditClick={handleEditToggle}
+          onSendClick={handleSend}
+          onStopClick={handleStop}
+        />
       </Container>
     </>
   );
-}
+};
+
+export default FieldContainer;
