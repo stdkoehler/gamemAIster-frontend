@@ -1,3 +1,32 @@
+/**
+ * @hook useGamemasterCallbacks
+ *
+ * Provides all callback functions for managing game master interactions in an LLM-based adventure game.
+ * Handles mission lifecycle, player input processing, and conversation state management.
+ *
+ * Key Functionality:
+ * - Mission management (create/save/list/load)
+ * - Player input processing and LLM interaction
+ * - Conversation history maintenance
+ * - Generation control (start/stop/regenerate)
+ *
+ * State Management:
+ * - Maintains mission ID and adventure name
+ * - Tracks current and previous player inputs
+ * - Manages LLM output and interaction history
+ *
+ * Usage:
+ * const callbacks = useGamemasterCallbacks({ ...requiredProps });
+ *
+ * Props Interface:
+ * @type UseGameCallbacksProps - Contains all necessary state setters and values including:
+ *   - mission: Current mission ID
+ *   - interactions: Conversation history
+ *   - playerInput/playerInputOld: Current/previous player inputs
+ *   - llmOutput: Current LLM response
+ *   - reset: Shared reset function
+ */
+
 import { useCallback } from "react";
 import {
   sendPlayerInputToLlm,
@@ -5,7 +34,6 @@ import {
   postNewMission,
   postSaveMission,
   getListMissions,
-  getMission,
   getLoadMissions,
   MissionPayload,
   Interaction,
@@ -14,7 +42,6 @@ import {
 type UseGameCallbacksProps = {
   mission: number | null;
   setMission: (val: number | null) => void;
-  adventure: string;
   setAdventure: (val: string) => void;
   interactions: Interaction[];
   setInteractions: (ints: Interaction[]) => void;
@@ -24,14 +51,12 @@ type UseGameCallbacksProps = {
   setLlmOutput: (val: string) => void;
   playerInput: string;
   setPlayerInput: (val: string) => void;
-  placeholder: string;
   reset: () => Promise<void>;
 };
 
 export function useGamemasterCallbacks({
   mission,
   setMission,
-  adventure,
   setAdventure,
   interactions,
   setInteractions,
@@ -41,7 +66,6 @@ export function useGamemasterCallbacks({
   setLlmOutput,
   playerInput,
   setPlayerInput,
-  placeholder,
   reset,
 }: UseGameCallbacksProps) {
   // Reusable utilities

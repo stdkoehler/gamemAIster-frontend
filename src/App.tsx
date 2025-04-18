@@ -111,7 +111,6 @@ const App: React.FC = () => {
   } = useGamemasterCallbacks({
     mission,
     setMission,
-    adventure,
     setAdventure,
     interactions,
     setInteractions,
@@ -121,7 +120,6 @@ const App: React.FC = () => {
     setLlmOutput,
     playerInput,
     setPlayerInput,
-    placeholder,
     reset,
   });
 

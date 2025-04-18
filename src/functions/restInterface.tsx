@@ -1,3 +1,29 @@
+/**
+ * @module restInterface
+ *
+ * Service module for handling all API communications with the game backend.
+ * Maintains a functional, stateless interface for game-related operations.
+ *
+ * Primary Responsibilities:
+ * - Mission lifecycle management (create/save/load/list)
+ * - Player-LLM interaction handling
+ * - Stream processing for real-time LLM responses
+ * - Data type definitions for game entities
+ *
+ * Key Features:
+ * - Type-safe interfaces for all API contracts
+ * - Consistent error handling patterns
+ * - Stream processing for LLM responses
+ * - Data transformation between API and client formats
+ *
+ * API Endpoints:
+ * - All endpoints target http://127.0.0.1:8000
+ * - Covers /interaction/ and /mission/ routes
+ */
+
+/**
+ * Represents a single interaction between player and LLM
+ */
 export type Interaction = {
   playerInput: string;
   llmOutput: string;
@@ -23,6 +49,9 @@ interface PlayerInputData {
   prevInteraction?: Interaction;
 }
 
+/**
+ * Mission data structure returned by the API
+ */
 export interface MissionPayload {
   mission_id: number;
   name: string;
@@ -35,22 +64,22 @@ export interface MissionLoadPayload {
   interactions: [{ user_input: string; llm_output: string }];
 }
 
+/**
+ * Enhanced mission data with properly typed interactions
+ */
 export type MissionLoadData = {
   mission: MissionPayload;
   interactions: Interaction[];
 };
 
 /**
- * Sends the player's input to the Language Model (LLM) server for processing.
- *
- *
- * @param missionId - The ID of the mission.
- * @param playerInputField - The player's input.
- * @param setStateCallback - A callback function to update the state with the LLM output for live stream update.
- * @param prevInteraction - (Optional) Previous interaction. This will be send with the new input and only then is persisted in the database of the backend
- *  This is to allow for changes by the user in the Player Prev and Gamemaster field. It will not be send at first input or when using "regenerate"
- * @returns {Promise<void>} - A Promise that resolves when the request is completed.
- * @throws {Error} - If the network response is not ok or if the reader is undefined.
+ * Sends player input to LLM and streams the response
+ * @param params - {@link PlayerInputData} containing:
+ *   - missionId: Current mission ID
+ *   - setStateCallback: State updater for streaming response
+ *   - playerInputField: Current player input
+ *   - prevInteraction: Optional previous interaction for context
+ * @throws {Error} On network issues or malformed responses
  */
 export async function sendPlayerInputToLlm({
   missionId,
@@ -123,7 +152,10 @@ export async function sendPlayerInputToLlm({
   }
 }
 
-export async function postStopGeneration() {
+/**
+ * Stops current LLM generation
+ * @throws {Error} On network issues
+ */ export async function postStopGeneration() {
   // For now, consider the data is stored on a static `users.json` file
   try {
     const res = await fetch(
@@ -147,6 +179,11 @@ export async function postStopGeneration() {
   }
 }
 
+/**
+ * Creates a new mission
+ * @returns {Promise<MissionPayload>} New mission data
+ * @throws {Error} On network issues
+ */
 export async function postNewMission(): Promise<MissionPayload> {
   // For now, consider the data is stored on a static `users.json` file
   try {
@@ -168,6 +205,12 @@ export async function postNewMission(): Promise<MissionPayload> {
   }
 }
 
+/**
+ * Saves a mission with custom name
+ * @param missionId - Mission ID to save
+ * @param nameCustom - Custom name for the mission
+ * @throws {Error} On network issues
+ */
 export async function postSaveMission(missionId: number, nameCustom: string) {
   // For now, consider the data is stored on a static `users.json` file
   try {
@@ -191,6 +234,12 @@ export async function postSaveMission(missionId: number, nameCustom: string) {
   }
 }
 
+/**
+ * Fetches mission details by ID
+ * @param mission_id - Mission ID to fetch
+ * @returns {Promise<MissionPayload | null>} Mission data or null if not found
+ * @throws {Error} On network issues
+ */
 export async function getMission(
   mission_id: number
 ): Promise<MissionPayload | null> {
@@ -212,6 +261,11 @@ export async function getMission(
   }
 }
 
+/**
+ * Lists all available missions
+ * @returns {Promise<MissionPayload[]>} Array of mission summaries
+ * @throws {Error} On network issues
+ */
 export async function getListMissions(): Promise<MissionPayload[]> {
   // For now, consider the data is stored on a static `users.json` file
   try {
@@ -229,6 +283,12 @@ export async function getListMissions(): Promise<MissionPayload[]> {
   }
 }
 
+/**
+ * Loads a full mission with interaction history
+ * @param mission_id - Mission ID to load
+ * @returns {Promise<MissionLoadData>} Complete mission data with interactions
+ * @throws {Error} On network issues
+ */
 export async function getLoadMissions(
   mission_id: number
 ): Promise<MissionLoadData> {
