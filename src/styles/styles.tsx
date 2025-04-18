@@ -11,19 +11,27 @@ export function MenuStyle() {
 
   return {
     "& .MuiButtonBase-root.MuiMenuItem-root:hover": {
-      backgroundColor: alpha(theme.palette.primary.main, 0.08),
+      backgroundColor: alpha(theme.palette.primary.main, 0.12),
+      textShadow: `0 0 6px ${theme.palette.primary.main}`, // Neon glow effect
+      transition: "all 0.2s ease-in-out",
     },
     "& .MuiList-root.MuiMenu-list": {
-      padding: "8px 8px 8px 8px",
+      padding: "8px",
     },
     "& .MuiPaper-root.MuiPopover-paper.MuiMenu-paper": {
       color: theme.palette.primary.main,
     },
     "& .MuiPaper-root": {
-      backgroundImage: "none",
-      boxShadow: `inset 0px 0px 0px 1px ${theme.palette.primary.dark}, 0px 0px 0px 0px #FF0000, 0px 0px 0px 0px #FF0000`,
+      backgroundImage:
+        "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", // Subtle grid overlay
+      backgroundSize: "20px 20px",
+      backgroundColor: "#121212", // Deep cyberpunk backdrop
+      boxShadow: `inset 0px 0px 0px 1px ${
+        theme.palette.primary.dark
+      }, 0 0 8px ${alpha(theme.palette.primary.main, 0.25)}`, // Added outer glow
+      borderRadius: "6px",
       "&::before": {
-        backgroundColor: "#121212", //"#FF0000",
+        backgroundColor: "#121212",
       },
     },
   };
@@ -36,12 +44,10 @@ export function AutocompleteStyle() {
   const editColor = theme.palette.primary.light;
   const darkColor = theme.palette.primary.dark;
 
-  const hoverColor = baseColor;
-  const disabledColor = baseColor;
-
   return {
     "& .MuiInputBase-root": {
       color: editColor,
+      transition: "all 0.2s ease-in-out",
     },
     "& .MuiOutlinedInput-notchedOutline": {
       borderColor: darkColor, // Set default border color based on colorType
@@ -52,12 +58,12 @@ export function AutocompleteStyle() {
       },
     },
     "& .MuiInputBase-input.Mui-disabled": {
-      WebkitTextFillColor: disabledColor, // Adjust text color when disabled
+      WebkitTextFillColor: baseColor, // Adjust text color when disabled
     },
     // set color when inactive
     "& .MuiOutlinedInput-root": {
       "&:hover fieldset": {
-        borderColor: hoverColor, // Adjust color on hover
+        borderColor: baseColor, // Adjust color on hover
       },
     },
     "& .MuiOutlinedInput-input": {
@@ -68,88 +74,97 @@ export function AutocompleteStyle() {
     // set color when active
     "& .Mui-focused": {
       "&:hover fieldset": {
-        borderColor: hoverColor, // Adjust color on hover
+        borderColor: baseColor, // Adjust color on hover
       },
       "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: darkColor, // Set default border color based on colorType
+        borderColor: darkColor, // Set border color when focused
       },
     },
     "& .MuiButtonBase-root.MuiIconButton-root.MuiAutocomplete-popupIndicator": {
-        "color": theme.palette.primary.light,
+      color: theme.palette.primary.light,
+      transition: "all 0.2s ease-in-out",
       "&:hover": {
-        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+        backgroundColor: alpha(baseColor, 0.12),
+        textShadow: `0 0 4px ${baseColor}`, // Neon glow
       },
     },
     "& .MuiButtonBase-root.MuiIconButton-root.MuiAutocomplete-clearIndicator": {
-        "color": theme.palette.primary.light,
-        "&:hover": {
-            backgroundColor: alpha(theme.palette.primary.main, 0.08),
-          },
+      color: theme.palette.primary.light,
+      transition: "all 0.2s ease-in-out",
+      "&:hover": {
+        backgroundColor: alpha(baseColor, 0.12),
+        textShadow: `0 0 4px ${baseColor}`, // Neon glow
+      },
     },
     "& .MuiFormLabel-root.MuiInputLabel-root": {
-        "color": theme.palette.primary.light
+      color: theme.palette.primary.light,
+      textShadow: `0 0 2px ${theme.palette.primary.main}`, // Futuristic label look
     },
     "& .MuiPaper-root.MuiAutocomplete-paper": {
-        "backgroundColor": theme.palette.primary.light
+      backgroundColor: theme.palette.background.default,
+      boxShadow: `0 0 10px ${alpha(baseColor, 0.3)}`, // Popup glow
+      backgroundImage:
+        "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
+      backgroundSize: "20px 20px",
     },
     "& .MuiAutocomplete-listbox .MuiAutocomplete-option.Mui-focused": {
-        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+      backgroundColor: alpha(baseColor, 0.12),
+      textShadow: `0 0 4px ${baseColor}`, // Glow on focus
     },
-    
-
   };
 }
 
-
-export function AutocompletePaper({children}: React.HTMLAttributes<HTMLElement>) {
-    const theme = useTheme();
-    return (
-      <Paper 
-        sx={{
-          "color": theme.palette.primary.main,
-          "& .MuiAutocomplete-listbox": {
-            padding: "8px 8px 8px 8px",
-            "& .MuiAutocomplete-option[aria-selected='true']": {
-              bgcolor: alpha(theme.palette.primary.main, 0.16),
-              "&.Mui-focused": {
-                bgcolor: alpha(theme.palette.primary.main, 0.08),
-              }
-            }
-          },
-          "& .MuiAutocomplete-listbox .MuiAutocomplete-option.Mui-focused": {
-            bgcolor: alpha(theme.palette.primary.main, 0.08),
-          },
-
-            backgroundImage: "none",
-            boxShadow: `inset 0px 0px 0px 1px ${theme.palette.primary.dark}, 0px 0px 0px 0px #FF0000, 0px 0px 0px 0px #FF0000`,
-            "&::before": {
-              backgroundColor: "#121212", //"#FF0000",
+export function AutocompletePaper({
+  children,
+}: React.HTMLAttributes<HTMLElement>) {
+  const theme = useTheme();
+  return (
+    <Paper
+      sx={{
+        color: theme.palette.primary.main,
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+        backgroundSize: "20px 20px",
+        backgroundColor: "#121212", // Matrix-style backdrop
+        boxShadow: `inset 0px 0px 0px 1px ${
+          theme.palette.primary.dark
+        }, 0 0 10px ${alpha(theme.palette.primary.main, 0.3)}`,
+        borderRadius: "6px",
+        "& .MuiAutocomplete-listbox": {
+          padding: "8px",
+          "& .MuiAutocomplete-option[aria-selected='true']": {
+            bgcolor: alpha(theme.palette.primary.main, 0.16),
+            "&.Mui-focused": {
+              bgcolor: alpha(theme.palette.primary.main, 0.12),
             },
+          },
+          "& .MuiAutocomplete-option.Mui-focused": {
+            bgcolor: alpha(theme.palette.primary.main, 0.12),
+            textShadow: `0 0 4px ${theme.palette.primary.main}`,
+          },
+        },
+      }}
+    >
+      {children}
+    </Paper>
+  );
+}
 
-
-          
-        }}
-      >
-        {children}
-      </Paper>
-    );
-  }
-  
-
-
-export function ModalStyle () {
-    return {
-        position: "absolute" as "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: 400,
-        bgcolor: "background.paper",
-        border: "0px solid #000",
-        boxShadow: 0,
-        p: 4,
-    };
-    }
+export function ModalStyle() {
+  const theme = useTheme();
+  return {
+    position: "absolute" as "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 400,
+    bgcolor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.primary.dark}`, // Slight border for visibility
+    boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.25)}`, // Soft glow effect
+    borderRadius: "8px",
+    p: 4,
+  };
+}
 
 export function TextfieldStyle({ color }: { color: Colors }) {
   const theme = useTheme();
@@ -157,15 +172,13 @@ export function TextfieldStyle({ color }: { color: Colors }) {
   const editColor = theme.palette[color].light;
   const darkColor = theme.palette[color].dark;
 
-  const hoverColor = baseColor;
-  const disabledColor = baseColor;
-
   return {
     display: "flex",
-    width: "100%" /* Fields take up full width of their container */,
+    width: "100%", // Fields take up full width of their container
     paddingTop: 0,
     "& .MuiInputBase-root": {
       color: editColor,
+      transition: "all 0.2s ease-in-out",
     },
     "& .MuiOutlinedInput-notchedOutline": {
       borderColor: darkColor, // Set default border color based on colorType
@@ -176,18 +189,20 @@ export function TextfieldStyle({ color }: { color: Colors }) {
       },
     },
     "& .MuiInputBase-input.Mui-disabled": {
-      WebkitTextFillColor: disabledColor, // Adjust text color when disabled
+      WebkitTextFillColor: baseColor, // Adjust text color when disabled
     },
     // set color when inactive
     "& .MuiOutlinedInput-root": {
       "&:hover fieldset": {
-        borderColor: hoverColor, // Adjust color on hover
+        borderColor: baseColor, // Adjust color on hover
       },
     },
     ".MuiOutlinedInput-root.Mui-focused": {
-      "& .MuiOutlinedInput-notchedOutline":{borderColor: darkColor},
+      "& .MuiOutlinedInput-notchedOutline": {
+        borderColor: darkColor, // Focus border
+      },
       "&:hover fieldset": {
-        borderColor: baseColor, // Adjust color on hover
+        borderColor: baseColor,
       },
     },
     "& .MuiInputBase-input.MuiOutlinedInput-input": {
@@ -202,7 +217,7 @@ export function TextfieldStyle({ color }: { color: Colors }) {
       "&::-webkit-scrollbar-thumb": {
         backgroundColor: "rgba(0,0,0,.1)",
         outline: "1px solid",
-        color: theme.palette[color].dark,
+        color: darkColor,
         cursor: "default !important",
       },
     },

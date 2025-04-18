@@ -2,19 +2,25 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import Typography from "@mui/material/Typography";
-import { Box } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 
 interface MarkdownRendererProps {
   value: string;
-  color?: string;
+  color: string;
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   value,
-  color = "inherit",
+  color,
 }) => {
   return (
-    <Typography color={color} component="div" sx={{ whiteSpace: "normal" }}>
+    <Typography
+      color={color}
+      component="div"
+      sx={{
+        whiteSpace: "normal",
+      }}
+    >
       <ReactMarkdown
         remarkPlugins={[remarkBreaks]}
         components={{
@@ -22,7 +28,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             <Typography
               color={color}
               component="div"
-              sx={{ marginBottom: "8px" }}
+              sx={{
+                marginBottom: "8px",
+                lineHeight: 1.7,
+                fontSize: "0.95rem",
+                letterSpacing: "0.02em",
+              }}
               {...props}
             />
           ),
