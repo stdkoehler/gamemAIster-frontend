@@ -3,9 +3,7 @@ import { Button, Typography, Box, Container } from "@mui/material";
 
 import { Colors } from "../styles/styles.tsx";
 import StyledTextField from "./StyledTextField.tsx";
-import ReactMarkdown from "react-markdown";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
-
 
 export enum FieldContainerType {
   MAIN_SEND = "main_send",
@@ -57,7 +55,6 @@ export default function FieldContainer({
     }
   }, [isGenerating, type]);
 
-  
   const handleSend = async () => {
     console.log("test_inner");
     if (sendCallback && !isGenerating) {
@@ -120,7 +117,7 @@ export default function FieldContainer({
             disabled={disabled}
           />
         ) : (
-            <MarkdownRenderer value={value} color={color} />
+          <MarkdownRenderer value={value} color={color} />
         )}
         <Box sx={{ display: "flex", flexDirection: "column" }}>
           {(type === FieldContainerType.PLAYER_OLD ||

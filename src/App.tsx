@@ -134,27 +134,29 @@ const App: React.FC = () => {
       label: mission.name,
       value: mission.mission_id,
       name_custom: mission.name_custom,
-    }))
+    }));
   }, []);
 
-  const loadMission = useCallback(async (missionId: number) => {
-    const mission = await getLoadMissions(missionId);
-    setMission(mission.mission.mission_id)
-    setAdventure(mission.mission.name_custom || mission.mission.name)
-    const interactions = mission.interactions
-    // Check if interactions is an array and not empty
-    if (interactions.length > 0) {
-      const last_interaction = interactions.pop();
-      setInteractions(interactions);
-      setPlayerInputOld(last_interaction?.playerInput ?? "");
-      setLlmOutput(last_interaction?.llmOutput ?? "");
-  } else {
-    setInteractions([]);
-    setPlayerInputOld("");
-    setLlmOutput("");
-  }
-
-  }, [setMission, setAdventure, setInteractions, setPlayerInputOld, setLlmOutput]);
+  const loadMission = useCallback(
+    async (missionId: number) => {
+      const mission = await getLoadMissions(missionId);
+      setMission(mission.mission.mission_id);
+      setAdventure(mission.mission.name_custom || mission.mission.name);
+      const interactions = mission.interactions;
+      // Check if interactions is an array and not empty
+      if (interactions.length > 0) {
+        const last_interaction = interactions.pop();
+        setInteractions(interactions);
+        setPlayerInputOld(last_interaction?.playerInput ?? "");
+        setLlmOutput(last_interaction?.llmOutput ?? "");
+      } else {
+        setInteractions([]);
+        setPlayerInputOld("");
+        setLlmOutput("");
+      }
+    },
+    [setMission, setAdventure, setInteractions, setPlayerInputOld, setLlmOutput]
+  );
 
   const sendRegenerate = useCallback(async () => {
     if (mission !== null) {
@@ -169,7 +171,7 @@ const App: React.FC = () => {
           setStateCallback: (newState: { llmOutput: string }) => {
             setLlmOutput(newState.llmOutput);
           },
-          prevInteraction: prevInteraction
+          prevInteraction: prevInteraction,
         });
       }
     }
@@ -194,18 +196,18 @@ const App: React.FC = () => {
         }
 
         setPlayerInputOld(stepPlayerInput);
-        setLlmOutput("")
+        setLlmOutput("");
         setPlayerInput("");
 
         try {
           await sendPlayerInputToLlm({
-            missionId: mission, 
+            missionId: mission,
             setStateCallback: (newState: { llmOutput: string }) => {
               setLlmOutput(newState.llmOutput);
             },
             playerInputField: stepPlayerInput,
-            prevInteraction: prevInteraction
-        });
+            prevInteraction: prevInteraction,
+          });
         } catch (error) {
           console.error(error);
           setPlayerInputOld(stepPlayerInputOld);

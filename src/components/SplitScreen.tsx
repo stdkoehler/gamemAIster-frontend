@@ -48,7 +48,11 @@ export default function SplitScreen({
       </Box>
       <Box
         sx={{
+          display: "flex",
           flex: rightWeight,
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {right}

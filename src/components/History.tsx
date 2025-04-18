@@ -1,6 +1,5 @@
 import { ComponentProps, useRef, useEffect } from "react";
 import { Typography, Container } from "@mui/material";
-import ReactMarkdown from 'react-markdown'; 
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
 
 import { Interaction } from "../functions/restInterface.tsx";
@@ -48,13 +47,16 @@ export default function History({
               Player
               <br />
             </Typography>
-            <MarkdownRenderer value={interaction.playerInput} color="secondary"/>
+            <MarkdownRenderer
+              value={interaction.playerInput}
+              color="secondary"
+            />
             <Typography variant="subtitle2" fontStyle="italic" color="primary">
               <br />
               Gamemaster
               <br />
             </Typography>
-            <MarkdownRenderer value={interaction.llmOutput} color="primary"/>
+            <MarkdownRenderer value={interaction.llmOutput} color="primary" />
           </div>
         ))}
       </>

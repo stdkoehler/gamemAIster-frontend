@@ -92,10 +92,9 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
             backgroundImage: "none",
             boxShadow: `inset 0px 0px 0px 1px ${theme.palette.primary.dark}, 0px 0px 0px 0px #FF0000, 0px 0px 0px 0px #FF0000`,
             "&::before": {
-                backgroundColor: "#121212"//"#FF0000",
-                },
+              backgroundColor: "#121212", //"#FF0000",
+            },
           },
-          
         }}
       >
         {characters.map((character) => (
@@ -181,7 +180,6 @@ const getDamageColor = (value: number) => {
 };
 
 const createDamageInputFieldStyles = (damagePercentage: number) => {
-  const theme = useTheme();
   const damageColor = getDamageColor(damagePercentage);
   return {
     padding: "5px 5px 5px 5px",
