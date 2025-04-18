@@ -22,9 +22,7 @@ export function MenuStyle() {
       color: theme.palette.primary.main,
     },
     "& .MuiPaper-root": {
-      backgroundImage:
-        "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", // Subtle grid overlay
-      backgroundSize: "20px 20px",
+      backgroundImage: "none",
       backgroundColor: "#121212", // Deep cyberpunk backdrop
       boxShadow: `inset 0px 0px 0px 1px ${
         theme.palette.primary.dark
@@ -103,9 +101,6 @@ export function AutocompleteStyle() {
     "& .MuiPaper-root.MuiAutocomplete-paper": {
       backgroundColor: theme.palette.background.default,
       boxShadow: `0 0 10px ${alpha(baseColor, 0.3)}`, // Popup glow
-      backgroundImage:
-        "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-      backgroundSize: "20px 20px",
     },
     "& .MuiAutocomplete-listbox .MuiAutocomplete-option.Mui-focused": {
       backgroundColor: alpha(baseColor, 0.12),
@@ -121,11 +116,8 @@ export function AutocompletePaper({
   return (
     <Paper
       sx={{
+        backgroundImage: "none",
         color: theme.palette.primary.main,
-        backgroundImage:
-          "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
-        backgroundSize: "20px 20px",
-        backgroundColor: "#121212", // Matrix-style backdrop
         boxShadow: `inset 0px 0px 0px 1px ${
           theme.palette.primary.dark
         }, 0 0 10px ${alpha(theme.palette.primary.main, 0.3)}`,
