@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { ThemeProvider, Box, Container } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { darkTheme } from "./theme";
@@ -13,25 +13,20 @@ import FieldContainer, {
 
 import History from "./components/History";
 
-import { MissionMenu, MissionOption } from "./components/MissionMenu";
+import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
-import {
-  Interaction,
-  sendPlayerInputToLlm,
-  postStopGeneration,
-  postNewMission,
-  postSaveMission,
-  getListMissions,
-  getMission,
-  getLoadMissions,
-  MissionPayload,
-} from "./functions/restInterface";
+import { Interaction } from "./functions/restInterface";
 
 import logo from "./assets/sr_00096_.png";
+
+// ************* HOOK IMPORT (update the path as per request) ***************
+import { useGamemasterCallbacks } from "./hooks/gamemasterCallbacks"; // <-- NOTE path
 
 const placeholder = "GameMAIster";
 
 const App: React.FC = () => {
+  // --- State ---
+
   const [interactions, setInteractions] = useState<Interaction[]>(() => {
     return JSON.parse(localStorage.getItem("interactions") || "[]");
   });
@@ -54,9 +49,8 @@ const App: React.FC = () => {
 
   const isFirstRender = useRef(true);
 
+  // --- Synced localStorage persistance ---
   useEffect(() => {
-    // Function that is called whenever any of the dependency array is called
-    // This is used to save the state in local storage so that it persists on page refresh
     localStorage.setItem("interactions", JSON.stringify(interactions));
     localStorage.setItem("playerInputOld", playerInputOld);
     localStorage.setItem("llmOutput", llmOutput);
@@ -65,9 +59,17 @@ const App: React.FC = () => {
       ? localStorage.removeItem("mission")
       : localStorage.setItem("mission", mission.toString());
     localStorage.setItem("adventure", adventure);
-  }, [history, playerInputOld, llmOutput, playerInput, mission, adventure]);
+  }, [
+    interactions,
+    playerInputOld,
+    llmOutput,
+    playerInput,
+    mission,
+    adventure,
+  ]);
 
-  const reset = useCallback(async () => {
+  // --- Reset helper ---
+  const reset = React.useCallback(async () => {
     setMission(null);
     setAdventure(placeholder);
     setInteractions([]);
@@ -76,166 +78,54 @@ const App: React.FC = () => {
     setPlayerInput("");
   }, []);
 
+  // --- Mission existence check on load or reset ---
   useEffect(() => {
-    // Function to be executed only on browser refresh and on changes of reset, mission.
-    // We use a isFirstRender ref that is initially set to true. Executing on first render,
-    // we set is false. When mission or reset is changing now it will be false and we don't
-    // execute the check.
-    // We check if our current mission exists in database, otherwise we reset the state
     if (isFirstRender.current) {
-      console.log(`Browser refreshed with mission_id ${mission}`);
       if (mission !== null) {
-        getMission(mission)
-          .then((result) => {
-            if (result === null) {
-              console.log("mission does not exist");
-              reset();
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching mission:", error);
-          });
+        import("./functions/restInterface").then(({ getMission }) => {
+          getMission(mission)
+            .then((result) => {
+              if (result === null) {
+                reset();
+              }
+            })
+            .catch(() => {});
+        });
       }
       isFirstRender.current = false;
     }
   }, [reset, mission]);
 
-  function stripOutput(llmOutput: string): string {
-    const regexPattern =
-      /\b(?:What\ do\ you\ want\ to\ |What\ would\ you\ like\ to\ )\S[\S\s]*\?\s*$/;
-    return llmOutput.replace(regexPattern, "");
-  }
+  // --- CENTRALIZED: All game/mission/interaction handlers from hook ---
+  const {
+    sendNewMissionGenerate,
+    saveMission,
+    listMissions,
+    loadMission,
+    sendRegenerate,
+    sendPlayerInput,
+    stopGeneration,
+    changeCallbackPlayerInputOld,
+    changeCallbackPlayerInput,
+    changeCallbackLlmOutput,
+  } = useGamemasterCallbacks({
+    mission,
+    setMission,
+    adventure,
+    setAdventure,
+    interactions,
+    setInteractions,
+    playerInputOld,
+    setPlayerInputOld,
+    llmOutput,
+    setLlmOutput,
+    playerInput,
+    setPlayerInput,
+    placeholder,
+    reset,
+  });
 
-  const sendNewMissionGenerate = useCallback(async () => {
-    console.log(mission);
-    await reset();
-    const response = await postNewMission();
-    if (response !== null) {
-      setMission(response.mission_id);
-      setAdventure(response.name);
-    }
-  }, [reset, mission]);
-
-  const saveMission = useCallback(
-    async (nameCustom: string) => {
-      console.log(mission);
-
-      if (mission !== null) {
-        console.log("save mission do");
-        postSaveMission(mission, nameCustom);
-      }
-    },
-    [mission]
-  );
-
-  const listMissions = useCallback(async (): Promise<MissionOption[]> => {
-    const missionPayloads = await getListMissions();
-    return missionPayloads.map((mission: MissionPayload) => ({
-      label: mission.name,
-      value: mission.mission_id,
-      name_custom: mission.name_custom,
-    }));
-  }, []);
-
-  const loadMission = useCallback(
-    async (missionId: number) => {
-      const mission = await getLoadMissions(missionId);
-      setMission(mission.mission.mission_id);
-      setAdventure(mission.mission.name_custom || mission.mission.name);
-      const interactions = mission.interactions;
-      // Check if interactions is an array and not empty
-      if (interactions.length > 0) {
-        const last_interaction = interactions.pop();
-        setInteractions(interactions);
-        setPlayerInputOld(last_interaction?.playerInput ?? "");
-        setLlmOutput(last_interaction?.llmOutput ?? "");
-      } else {
-        setInteractions([]);
-        setPlayerInputOld("");
-        setLlmOutput("");
-      }
-    },
-    [setMission, setAdventure, setInteractions, setPlayerInputOld, setLlmOutput]
-  );
-
-  const sendRegenerate = useCallback(async () => {
-    if (mission !== null) {
-      if (playerInputOld != "") {
-        const prevInteraction =
-          playerInputOld != "" && llmOutput != ""
-            ? { playerInput: playerInputOld, llmOutput: llmOutput }
-            : undefined;
-
-        await sendPlayerInputToLlm({
-          missionId: mission,
-          setStateCallback: (newState: { llmOutput: string }) => {
-            setLlmOutput(newState.llmOutput);
-          },
-          prevInteraction: prevInteraction,
-        });
-      }
-    }
-  }, [mission, playerInputOld]);
-
-  const sendPlayerInput = useCallback(async () => {
-    console.log(mission);
-    if (mission !== null) {
-      if (playerInput != "") {
-        const strippedLlmOutput = stripOutput(llmOutput);
-        const prevInteraction =
-          playerInputOld != "" && strippedLlmOutput != ""
-            ? { playerInput: playerInputOld, llmOutput: strippedLlmOutput }
-            : undefined;
-
-        const stepPlayerInput = playerInput;
-        const stepPlayerInputOld = playerInputOld;
-        const stepLlmOutputOld = llmOutput;
-
-        if (prevInteraction) {
-          setInteractions([...interactions, prevInteraction]);
-        }
-
-        setPlayerInputOld(stepPlayerInput);
-        setLlmOutput("");
-        setPlayerInput("");
-
-        try {
-          await sendPlayerInputToLlm({
-            missionId: mission,
-            setStateCallback: (newState: { llmOutput: string }) => {
-              setLlmOutput(newState.llmOutput);
-            },
-            playerInputField: stepPlayerInput,
-            prevInteraction: prevInteraction,
-          });
-        } catch (error) {
-          console.error(error);
-          setPlayerInputOld(stepPlayerInputOld);
-          setLlmOutput(stepLlmOutputOld);
-          setPlayerInput(stepPlayerInput);
-        }
-      }
-    }
-  }, [mission, interactions, llmOutput, playerInput, playerInputOld]);
-
-  const stopGeneration = useCallback(async () => {
-    try {
-      await postStopGeneration();
-    } catch (error) {
-      console.error(error);
-    }
-  }, []);
-
-  const changeCallbackPlayerInputOld = useCallback((value: string) => {
-    setPlayerInputOld(value);
-  }, []);
-  const changeCallbackPlayerInput = useCallback((value: string) => {
-    setPlayerInput(value);
-  }, []);
-  const changeCallbackLlmOutput = useCallback((value: string) => {
-    setLlmOutput(value);
-  }, []);
-
+  // --- UI ---
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -252,7 +142,7 @@ const App: React.FC = () => {
           leftWeight={1}
           rightWeight={4}
           color={"primary"}
-          scrollable={true}
+          scrollable
         >
           <AppGrid container spacing={2}>
             <MissionMenu
@@ -260,8 +150,8 @@ const App: React.FC = () => {
               saveCallback={saveMission}
               listCallback={listMissions}
               loadCallback={loadMission}
-            ></MissionMenu>
-            <CharacterManager></CharacterManager>
+            />
+            <CharacterManager />
           </AppGrid>
           <AppGrid container spacing={2}>
             <AppGrid item xs={12}>
@@ -288,8 +178,7 @@ const App: React.FC = () => {
                   flexDirection: "column",
                   justifyContent: "space-between",
                   alignItems: "left",
-                  width:
-                    "95%" /* Fields take up full width of their container */,
+                  width: "95%",
                 }}
               >
                 <FieldContainer
