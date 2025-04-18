@@ -7,9 +7,11 @@ function textShadow(theme: Theme, color: string): string {
   
   switch (color) {
     case 'secondary.main':
+    case 'secondary':
       textShadowColor = theme.palette.secondary.main;
       break;
     case 'warning.main':
+    case 'warning':
       textShadowColor = theme.palette.warning.main;
       break;
     default:
@@ -60,7 +62,7 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
             fontFamily: fontFamily,
-            textShadow: textShadow(theme, ownerState.color),
+            textShadow:  textShadow(theme, ownerState.color),
         })
       },
     },
