@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
 import {
-  useTheme,
   Box,
   Button,
   Typography,
@@ -70,7 +69,6 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
   onClear,
 }) => {
   const [characters, setCharacters] = useState<Array<CharacterProps>>([]);
-  const theme = useTheme();
 
   const handleCreateNPCs = useCallback(() => {
     setCharacters((prevCharacters) => [
@@ -202,8 +200,6 @@ export const CharacterCard: React.FC<CharacterProps> = ({
   cyberware,
   damage,
 }) => {
-  const theme = useTheme();
-
   return (
     <Box sx={CardBoxStyle()}>
       <Typography variant="h5">{name}</Typography>
