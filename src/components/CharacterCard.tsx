@@ -10,170 +10,20 @@ import {
   Accordion,
   AccordionSummary,
 } from "@mui/material";
-
-// =====================
-// Styles (centralized)
-// =====================
-
-const actionButtonsBoxSx = {
-  display: "flex",
-  justifyContent: "space-around",
-  width: "100%",
-};
-
-const actionButtonSx = {
-  width: "20%",
-  textAlign: "center",
-};
-
-const accordionGridSx = (theme: any) => ({
-  "& .MuiPaper-root": {
-    backgroundImage: "none",
-    boxShadow: `inset 0px 0px 0px 1px ${theme.palette.primary.dark}, 0px 0px 0px 0px #FF0000, 0px 0px 0px 0px #FF0000`,
-    "&::before": {
-      backgroundColor: "#121212",
-    },
-  },
-});
-
-const cardBoxSx = (theme: any) => ({
-  p: 2,
-  border: "0px solid",
-  borderColor: theme.palette.primary.dark,
-  borderRadius: "4px",
-});
-
-const infoBoxSx = { my: 2 };
-const infoInnerBoxSx = { textAlign: "right" };
-
-const cyberwareBoxSx = {
-  my: 2,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "flex-start",
-};
-
-const skillsBoxSx = cyberwareBoxSx;
-
-const damageGridSx = {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  flexWrap: "wrap",
-};
-
-const damageComponentBoxSx = {
-  display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-// =====================
-// Utility Functions
-// =====================
-
-const getDamageColor = (value: number) => {
-  const hexToRgb = (hex: string) => {
-    const bigint = parseInt(hex.slice(1), 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return { r, g, b };
-  };
-
-  const color1Rgb = hexToRgb("#11ea7b");
-  const color2Rgb = hexToRgb("#ffc400");
-  const color3Rgb = hexToRgb("#e53f7e");
-
-  const calculateTransition = (
-    startColor: { r: number; g: number; b: number },
-    endColor: { r: number; g: number; b: number },
-    percentage: number
-  ) => {
-    const r = Math.round(
-      startColor.r + (endColor.r - startColor.r) * (percentage / 100)
-    );
-    const g = Math.round(
-      startColor.g + (endColor.g - startColor.g) * (percentage / 100)
-    );
-    const b = Math.round(
-      startColor.b + (endColor.b - startColor.b) * (percentage / 100)
-    );
-    return `rgb(${r}, ${g}, ${b})`;
-  };
-
-  const percentage = value * 100;
-
-  if (percentage <= 50) {
-    return calculateTransition(color1Rgb, color2Rgb, percentage * 2);
-  } else {
-    return calculateTransition(color2Rgb, color3Rgb, (percentage - 50) * 2);
-  }
-};
-
-const createDamageInputFieldStyles = (damagePercentage: number) => {
-  const damageColor = getDamageColor(damagePercentage);
-  return {
-    padding: "5px 5px 5px 5px",
-    width: "40%",
-    "& .MuiInputBase-root": {
-      color: damageColor,
-    },
-    "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: damageColor,
-    },
-    "& .MuiInputBase-root.Mui-disabled": {
-      "& > fieldset": {
-        borderColor: "#121212",
-      },
-    },
-    "& .MuiInputBase-input.Mui-disabled": {
-      WebkitTextFillColor: damageColor,
-    },
-    "& .MuiOutlinedInput-root": {
-      "&:hover fieldset": {
-        borderColor: damageColor,
-      },
-    },
-    "& .Mui-focused": {
-      "&:hover fieldset": {
-        borderColor: damageColor,
-      },
-      "& .MuiOutlinedInput-notchedOutline": {
-        borderColor: damageColor,
-      },
-    },
-    "& input[type=number]::-webkit-outer-spin-button": {
-      WebkitAppearance: "none",
-      background:
-        "#121212 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAcCAYAAADr9QYhAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAI6ADAAQAAAABAAAAHAAAAACbzWzwAAABB0lEQVRIDe2XMQ6DMAxFf6suwAjszLDCTeASHALEyFlg5hLsXIJDtPIQVFkkgrhDVCWLcQzJ84/liEeSJG84MIqiwMMVmCAI8HRAlAPBwxxSsIf/VKZpGozjiCiKWL7X3Z8oQyB1XSPLMnRdZw0khlEgKn8JkAiGg0iBrJse1UZZlmr/U7vvO7ZtO43xSWp61jB8ManvO7BJQVEBmxa2iXkYnWpOKfPSUV6Zb9sWaZpqX12WBeu6auM8IOozBNL3/SnQNE2Y55nvp/XFfYY67DAMIPs97oKob8U1w4FsQQhIdEwqI7J0ZFVVgerEZvi7yaSauGZMi9+NOQMThqEbP3FxHCPPc3wAmdpEetL9b2QAAAAASUVORK5CYII=) no-repeat center center",
-      width: "2em",
-      opacity: 1,
-      position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      overflow: "hidden",
-      borderTopRightRadius: "0.25rem",
-      borderBottomRightRadius: "0.25rem",
-    },
-    "& input[type=number]::-webkit-inner-spin-button": {
-      WebkitAppearance: "none",
-      background:
-        "#121212 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAcCAYAAADr9QYhAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAI6ADAAQAAAABAAAAHAAAAACbzWzwAAABB0lEQVRIDe2XMQ6DMAxFf6suwAjszLDCTeASHALEyFlg5hLsXIJDtPIQVFkkgrhDVCWLcQzJ84/liEeSJG84MIqiwMMVmCAI8HRAlAPBwxxSsIf/VKZpGozjiCiKWL7X3Z8oQyB1XSPLMnRdZw0khlEgKn8JkAiGg0iBrJse1UZZlmr/U7vvO7ZtO43xSWp61jB8ManvO7BJQVEBmxa2iXkYnWpOKfPSUV6Zb9sWaZpqX12WBeu6auM8IOozBNL3/SnQNE2Y55nvp/XFfYY67DAMIPs97oKob8U1w4FsQQhIdEwqI7J0ZFVVgerEZvi7yaSauGZMi9+NOQMThqEbP3FxHCPPc3wAmdpEetL9b2QAAAAASUVORK5CYII=) no-repeat center center",
-      width: "2em",
-      opacity: 1,
-      position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      overflow: "hidden",
-      borderTopRightRadius: "0.25rem",
-      borderBottomRightRadius: "0.25rem",
-    },
-  };
-};
+import {
+  ActionButtonsBoxStyle,
+  ActionButtonStyle,
+  AccordionGridStyle,
+  CardBoxStyle,
+  InfoBoxStyle,
+  InfoInnerBoxStyle,
+  CyberwareBoxStyle,
+  SkillsBoxStyle,
+  DamageGridStyle,
+  DamageComponentBoxStyle,
+  getDamageColor,
+  CreateDamageInputFieldStyle,
+} from "../styles/styles";
 
 // =====================
 // Types
@@ -259,20 +109,24 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
   return (
     <Grid container spacing={2}>
       <Grid item xs={12}>
-        <Box sx={actionButtonsBoxSx}>
+        <Box sx={ActionButtonsBoxStyle()}>
           <Button
             color="primary"
-            sx={actionButtonSx}
+            sx={ActionButtonStyle()}
             onClick={handleCreateNPCs}
           >
             Create NPCs
           </Button>
-          <Button color="primary" sx={actionButtonSx} onClick={handleClear}>
+          <Button
+            color="primary"
+            sx={ActionButtonStyle()}
+            onClick={handleClear}
+          >
             Clear
           </Button>
         </Box>
       </Grid>
-      <Grid item xs={12} sx={accordionGridSx(theme)}>
+      <Grid item xs={12} sx={AccordionGridStyle()}>
         {characters.map((character) => (
           <Accordion key={character.id}>
             <AccordionSummary
@@ -310,13 +164,13 @@ const DamageComponent: React.FC<{
   return (
     <>
       <Typography>{label}:</Typography>
-      <Box sx={damageComponentBoxSx}>
+      <Box sx={DamageComponentBoxStyle()}>
         <TextField
           type="number"
           value={currentDamage}
           onChange={handleDamageChange}
           size="small"
-          sx={createDamageInputFieldStyles(percentage)}
+          sx={CreateDamageInputFieldStyle(percentage)}
         />
         <CircularProgress
           variant="determinate"
@@ -351,23 +205,23 @@ export const CharacterCard: React.FC<CharacterProps> = ({
   const theme = useTheme();
 
   return (
-    <Box sx={cardBoxSx(theme)}>
+    <Box sx={CardBoxStyle()}>
       <Typography variant="h5">{name}</Typography>
       <Typography variant="body1">Race: {race}</Typography>
       <Typography variant="body1">Role: {role}</Typography>
       <Typography variant="body1">Description: {description}</Typography>
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          <Box sx={infoBoxSx}>
-            <Box sx={infoInnerBoxSx}>
+          <Box sx={InfoBoxStyle()}>
+            <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Armor: {armor}</Typography>
               <Typography variant="body2">Weapon: {weapon}</Typography>
             </Box>
           </Box>
         </Grid>
         <Grid item xs={6}>
-          <Box sx={cyberwareBoxSx}>
-            <Box sx={infoInnerBoxSx}>
+          <Box sx={CyberwareBoxStyle()}>
+            <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Cyberware:</Typography>
               {cyberware.map((item, index) => (
                 <Typography key={index} variant="body2">
@@ -380,8 +234,8 @@ export const CharacterCard: React.FC<CharacterProps> = ({
       </Grid>
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          <Box sx={infoBoxSx}>
-            <Box sx={infoInnerBoxSx}>
+          <Box sx={InfoBoxStyle()}>
+            <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Attributes:</Typography>
               {Object.entries(attributes).map(([key, value]) => (
                 <Typography key={key} variant="body2">
@@ -392,8 +246,8 @@ export const CharacterCard: React.FC<CharacterProps> = ({
           </Box>
         </Grid>
         <Grid item xs={6}>
-          <Box sx={skillsBoxSx}>
-            <Box sx={infoInnerBoxSx}>
+          <Box sx={SkillsBoxStyle()}>
+            <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Skills:</Typography>
               {Object.entries(skills).map(([key, value]) => (
                 <Typography key={key} variant="body2">
@@ -404,7 +258,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
           </Box>
         </Grid>
       </Grid>
-      <Grid container spacing={2} sx={damageGridSx}>
+      <Grid container spacing={2} sx={DamageGridStyle()}>
         <Grid item>
           <DamageComponent label="Physical Damage" damage={damage.physical} />
         </Grid>
