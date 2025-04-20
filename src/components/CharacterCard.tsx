@@ -149,6 +149,26 @@ const DamageComponent: React.FC<{
   };
 }> = ({ label, damage }) => {
   const [currentDamage, setCurrentDamage] = React.useState(damage.current);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // we implement the wheel effect ourselfes to be able to avoid
+  // propagating wheel event -> container scoll
+  React.useEffect(() => {
+    const inputEl = inputRef.current;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (document.activeElement === inputEl) {
+        // avoid propagting wheel event -> container scoll
+        e.stopPropagation();
+      }
+    };
+
+    inputEl?.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      inputEl?.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
 
   const handleDamageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = parseInt(event.target.value);
@@ -168,6 +188,7 @@ const DamageComponent: React.FC<{
           value={currentDamage}
           onChange={handleDamageChange}
           size="small"
+          inputRef={inputRef}
           sx={CreateDamageInputFieldStyle(percentage)}
         />
         <CircularProgress
@@ -187,7 +208,6 @@ const DamageComponent: React.FC<{
     </>
   );
 };
-
 export const CharacterCard: React.FC<CharacterProps> = ({
   name,
   race,
