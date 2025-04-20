@@ -28,9 +28,8 @@ enum ModalNames {
 export type MissionOption = {
   label: string;
   value: number;
-  name_custom: string | undefined;
+  name_custom?: string;
 };
-
 
 type StyledTextFieldProps = ComponentProps<typeof TextField> & {
   color: Colors;
@@ -147,7 +146,9 @@ type LoadMissionModalComponentProps = {
   onConfirm: () => void;
   missions: MissionOption[] | null;
   selectedMission: MissionOption | null;
-  setSelectedMission: React.Dispatch<React.SetStateAction<MissionOption | null>>
+  setSelectedMission: React.Dispatch<
+    React.SetStateAction<MissionOption | null>
+  >;
 };
 
 function LoadMissionModal({
@@ -158,7 +159,6 @@ function LoadMissionModal({
   selectedMission,
   setSelectedMission,
 }: LoadMissionModalComponentProps) {
-
   const handleMissionChange = (
     _: React.SyntheticEvent<Element, Event>,
     newValue: MissionOption | null
@@ -224,7 +224,8 @@ export function MissionMenu({
   const [missionList, setMissionList] = React.useState<MissionOption[] | null>(
     null
   );
-  const [selectedMission, setSelectedMission] = React.useState<MissionOption | null>(null);
+  const [selectedMission, setSelectedMission] =
+    React.useState<MissionOption | null>(null);
 
   const open = Boolean(anchorEl);
 
@@ -259,7 +260,7 @@ export function MissionMenu({
         try {
           const missions = await listCallback();
           setMissionList(missions);
-          setSelectedMission(missions[0])
+          setSelectedMission(missions[0]);
         } catch (error) {
           console.error("An error occurred:", error);
         }

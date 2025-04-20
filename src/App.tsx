@@ -15,14 +15,14 @@ import History from "./components/History";
 
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
-import { Interaction } from "./functions/restInterface";
+import { Interaction, getMission } from "./functions/restInterface";
 
 import logo from "./assets/sr_00096_.png";
 
 // ************* HOOK IMPORT (update the path as per request) ***************
 import { useGamemasterCallbacks } from "./hooks/gamemasterCallbacks"; // <-- NOTE path
 
-const placeholder = "GameMAIster";
+const placeholder = "GamemAIster";
 
 const App: React.FC = () => {
   // --- State ---
@@ -76,21 +76,19 @@ const App: React.FC = () => {
     setPlayerInputOld("");
     setLlmOutput("");
     setPlayerInput("");
-  }, []);
+  }, [placeholder]);
 
   // --- Mission existence check on load or reset ---
   useEffect(() => {
     if (isFirstRender.current) {
       if (mission !== null) {
-        import("./functions/restInterface").then(({ getMission }) => {
-          getMission(mission)
-            .then((result) => {
-              if (result === null) {
-                reset();
-              }
-            })
-            .catch(() => {});
-        });
+        getMission(mission)
+          .then((result) => {
+            if (result === null) {
+              reset();
+            }
+          })
+          .catch(() => {});
       }
       isFirstRender.current = false;
     }
@@ -135,7 +133,7 @@ const App: React.FC = () => {
           flexDirection: "column",
         }}
       >
-        <ImageContainer>{logo}</ImageContainer>
+        <ImageContainer src={logo} />
         <SplitScreen
           leftWeight={1}
           rightWeight={4}

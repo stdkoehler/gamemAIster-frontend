@@ -1,6 +1,11 @@
 import { Box } from "@mui/material";
 
-export default function ImageContainer({ children }: { children: string }) {
+interface ImageContainerProps {
+  src: string;
+  alt?: string;
+}
+
+export default function ImageContainer({ src, alt = "" }: ImageContainerProps) {
   return (
     <Box
       sx={{
@@ -11,7 +16,7 @@ export default function ImageContainer({ children }: { children: string }) {
           "linear-gradient(to bottom, rgba(0, 0, 0, 1) 50%, transparent 100%)",
       }}
     >
-      <img src={children} alt="" style={{ width: "100%", height: "auto" }} />
+      <img src={src} alt={alt} style={{ width: "100%", height: "auto" }} />
     </Box>
   );
 }
