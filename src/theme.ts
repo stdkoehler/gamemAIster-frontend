@@ -69,7 +69,6 @@ export const darkTheme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
-            color: theme.palette.primary.main, // Use the main primary color for the text
             fontFamily: fontFamily,
             textShadow: textShadow(theme, ownerState.color),
             "&::-webkit-scrollbar": {
