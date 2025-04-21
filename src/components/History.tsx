@@ -1,6 +1,13 @@
-import { ComponentProps, useRef, useEffect, useState } from "react";
+import {
+  ComponentProps,
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { Typography, Container, Button, CircularProgress } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
 
 import { Interaction, sendTextToSpeech } from "../functions/restInterface.tsx";
@@ -40,15 +47,40 @@ export default function History({
     }
   }, [interactions, lastInteraction]);
 
+  // Utility to safely clean up an audio element and its object URL
+  const cleanupAudioElement = useCallback(
+    (audioElem: HTMLAudioElement | null) => {
+      if (!audioElem) return;
+      try {
+        // Remove event handlers to avoid firing during cleanup
+        audioElem.onerror = null;
+        audioElem.onended = null;
+        audioElem.pause();
+        audioElem.currentTime = 0;
+        const url = audioElem.src;
+        if (url && url.startsWith("blob:")) {
+          audioElem.src = ""; // Detach before revoking
+          try {
+            URL.revokeObjectURL(url);
+          } catch (e) {
+            // harmless if already revoked
+          }
+        } else {
+          audioElem.src = ""; // Detach anyway
+        }
+      } catch (e) {
+        // Ignore any errors during cleanup
+      }
+    },
+    []
+  );
+
   // Clean up audio object on unmount or new playback
   useEffect(() => {
     return () => {
-      if (audio) {
-        audio.pause();
-        audio.src = "";
-      }
+      cleanupAudioElement(audio);
     };
-  }, [audio]);
+  }, [audio, cleanupAudioElement]);
 
   const handlePlayTTS = async () => {
     setAudioError(null);
@@ -58,10 +90,9 @@ export default function History({
       const blob = await sendTextToSpeech(lastInteraction.llmOutput);
       const url = URL.createObjectURL(blob);
 
-      // Clean up previous audio
+      // Clean up previous audio instance
       if (audio) {
-        audio.pause();
-        URL.revokeObjectURL(audio.src);
+        cleanupAudioElement(audio);
       }
 
       const audioElem = new Audio(url);
@@ -82,6 +113,17 @@ export default function History({
       setIsPlaying(false);
     } finally {
       setLoadingAudio(false);
+    }
+  };
+
+  const handleStopTTS = () => {
+    if (audio) {
+      // Remove event handlers to prevent triggering after cleanup
+      audio.onerror = null;
+      audio.onended = null;
+      cleanupAudioElement(audio);
+      setIsPlaying(false);
+      setAudio(null);
     }
   };
 
@@ -162,20 +204,36 @@ export default function History({
           marginTop: 4,
         }}
       >
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={
-            loadingAudio ? <CircularProgress size={20} /> : <PlayArrowIcon />
-          }
-          onClick={handlePlayTTS}
-          disabled={
-            disabled || loadingAudio || !lastInteraction.llmOutput || isPlaying
-          }
-          sx={{ mt: 1, mb: 1 }}
-        >
-          {loadingAudio ? "Synthesizing..." : "Play"}
-        </Button>
+        {isPlaying ? (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<StopIcon />}
+            onClick={handleStopTTS}
+            disabled={disabled || !audio}
+            sx={{ mt: 1, mb: 1 }}
+          >
+            Stop
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={
+              loadingAudio ? <CircularProgress size={20} /> : <PlayArrowIcon />
+            }
+            onClick={handlePlayTTS}
+            disabled={
+              disabled ||
+              loadingAudio ||
+              !lastInteraction.llmOutput ||
+              isPlaying
+            }
+            sx={{ mt: 1, mb: 1 }}
+          >
+            {loadingAudio ? "Synthesizing..." : "Play"}
+          </Button>
+        )}
         {audioError && (
           <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
             {audioError}

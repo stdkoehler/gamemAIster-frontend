@@ -2,7 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import Typography from "@mui/material/Typography";
-import { Box, useTheme } from "@mui/material";
+import { Box } from "@mui/material";
 
 interface MarkdownRendererProps {
   value: string;
