@@ -29,8 +29,8 @@
  * The base URL for all backend API requests.
  * @constant
  */
-const API_BASE = "http://127.0.0.1:8000";
-
+//const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "http://192.168.0.109:8000";
 ////////////////////
 //  Data Types    //
 ////////////////////
@@ -358,7 +358,7 @@ export async function getLoadMissions(
  */
 export async function sendTextToSpeech(text: string): Promise<Blob> {
   // Send POST request to TTS service, expecting a Blob (audio/mp3)
-  const response = await fetch("http://127.0.0.1:8000/tts/tts", {
+  const response = await fetch(`${API_BASE}/tts/tts`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
