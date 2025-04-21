@@ -5,20 +5,21 @@ type AppGridProps = ComponentProps<typeof Grid> & {
   children: ReactNode;
 };
 
-export default function AppGrid({ children }: AppGridProps) {
+export default function AppGrid({ children, ...props }: AppGridProps) {
   return (
     <Grid
-      container
+      {...props}
       sx={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        width: "800px", // Use viewport width for 50% of screen width
-        maxWidth: "100%", // Prevents overflow, making sure it doesn't exceed 100% width
+        width: "800px",
+        maxWidth: "100%",
         "@media (max-width: 1000px)": {
-          width: "100%", // Adjusts width to 100% if the screen is too small
+          width: "100%",
         },
+        ...(props.sx || {}),
       }}
     >
       {children}

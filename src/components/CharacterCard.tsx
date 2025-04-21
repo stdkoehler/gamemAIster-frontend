@@ -80,7 +80,7 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
         role: "Warrior",
         description: "This is a new character",
         attributes: {
-          Agility: 1,
+          Agility: 2,
           Strength: 2,
           Body: 3,
           Intuition: 4,
@@ -106,7 +106,7 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
 
   return (
     <Grid container spacing={2}>
-      <Grid item xs={12}>
+      <Grid>
         <Box sx={ActionButtonsBoxStyle()}>
           <Button
             color="primary"
@@ -124,7 +124,7 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
           </Button>
         </Box>
       </Grid>
-      <Grid item xs={12} sx={AccordionGridStyle()}>
+      <Grid sx={AccordionGridStyle()}>
         {characters.map((character) => (
           <Accordion key={character.id}>
             <AccordionSummary
@@ -227,7 +227,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
       <Typography variant="body1">Role: {role}</Typography>
       <Typography variant="body1">Description: {description}</Typography>
       <Grid container spacing={2}>
-        <Grid item xs={6}>
+        <Grid>
           <Box sx={InfoBoxStyle()}>
             <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Armor: {armor}</Typography>
@@ -235,7 +235,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
             </Box>
           </Box>
         </Grid>
-        <Grid item xs={6}>
+        <Grid>
           <Box sx={CyberwareBoxStyle()}>
             <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Cyberware:</Typography>
@@ -249,7 +249,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        <Grid item xs={6}>
+        <Grid>
           <Box sx={InfoBoxStyle()}>
             <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Attributes:</Typography>
@@ -261,7 +261,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
             </Box>
           </Box>
         </Grid>
-        <Grid item xs={6}>
+        <Grid>
           <Box sx={SkillsBoxStyle()}>
             <Box sx={InfoInnerBoxStyle()}>
               <Typography variant="body2">Skills:</Typography>
@@ -275,10 +275,10 @@ export const CharacterCard: React.FC<CharacterProps> = ({
         </Grid>
       </Grid>
       <Grid container spacing={2} sx={DamageGridStyle()}>
-        <Grid item>
+        <Grid>
           <DamageComponent label="Physical Damage" damage={damage.physical} />
         </Grid>
-        <Grid item>
+        <Grid>
           <DamageComponent label="Stun Damage" damage={damage.stun} />
         </Grid>
       </Grid>

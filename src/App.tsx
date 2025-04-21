@@ -150,10 +150,10 @@ const App: React.FC = () => {
             <CharacterManager />
           </AppGrid>
           <AppGrid container spacing={2}>
-            <AppGrid item xs={12}>
+            <AppGrid>
               <AdventureHeading>{adventure}</AdventureHeading>
             </AppGrid>
-            <AppGrid item xs={12}>
+            <AppGrid>
               <History
                 sendCallback={sendRegenerate}
                 stopCallback={stopGeneration}
@@ -167,7 +167,7 @@ const App: React.FC = () => {
                 disabled={mission === null}
               />
             </AppGrid>
-            <AppGrid item xs={12}>
+            <AppGrid>
               <Container
                 sx={{
                   display: "flex",

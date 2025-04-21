@@ -1,8 +1,9 @@
-import { ComponentProps, useRef, useEffect } from "react";
-import { Typography, Container } from "@mui/material";
+import { ComponentProps, useRef, useEffect, useState } from "react";
+import { Typography, Container, Button, CircularProgress } from "@mui/material";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
 
-import { Interaction } from "../functions/restInterface.tsx";
+import { Interaction, sendTextToSpeech } from "../functions/restInterface.tsx";
 import FieldContainer, { FieldContainerType } from "./FieldContainer.tsx";
 
 type HistoryProps = ComponentProps<typeof Container> & {
@@ -27,11 +28,62 @@ export default function History({
 }: HistoryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // State for TTS audio playback
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [loadingAudio, setLoadingAudio] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [interactions, lastInteraction]);
+
+  // Clean up audio object on unmount or new playback
+  useEffect(() => {
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.src = "";
+      }
+    };
+  }, [audio]);
+
+  const handlePlayTTS = async () => {
+    setAudioError(null);
+    setLoadingAudio(true);
+
+    try {
+      const blob = await sendTextToSpeech(lastInteraction.llmOutput);
+      const url = URL.createObjectURL(blob);
+
+      // Clean up previous audio
+      if (audio) {
+        audio.pause();
+        URL.revokeObjectURL(audio.src);
+      }
+
+      const audioElem = new Audio(url);
+
+      audioElem.onended = () => setIsPlaying(false);
+      audioElem.onerror = () => {
+        setAudioError("Audio playback error.");
+        setIsPlaying(false);
+      };
+      setAudio(audioElem);
+      setIsPlaying(true);
+      audioElem.play();
+    } catch (err) {
+      setAudioError(
+        "❌ Could not synthesize or play audio: " +
+          (err instanceof Error ? err.message : String(err))
+      );
+      setIsPlaying(false);
+    } finally {
+      setLoadingAudio(false);
+    }
+  };
 
   const InteractionList = (interactions: Interaction[]) => {
     return (
@@ -101,6 +153,35 @@ export default function History({
         disabled={disabled}
       />
       {/* )} */}
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          marginTop: 4,
+        }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={
+            loadingAudio ? <CircularProgress size={20} /> : <PlayArrowIcon />
+          }
+          onClick={handlePlayTTS}
+          disabled={
+            disabled || loadingAudio || !lastInteraction.llmOutput || isPlaying
+          }
+          sx={{ mt: 1, mb: 1 }}
+        >
+          {loadingAudio ? "Synthesizing..." : "Play"}
+        </Button>
+        {audioError && (
+          <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+            {audioError}
+          </Typography>
+        )}
+      </div>
     </Container>
   );
 }

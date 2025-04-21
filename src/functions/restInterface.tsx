@@ -347,3 +347,30 @@ export async function getLoadMissions(
       : [],
   };
 }
+
+/**
+ * Sends text to an external TTS service and returns the resulting MP3 audio as a Blob.
+ * The caller is responsible for handling playback or further processing.
+ *
+ * @param {string} text - The text to convert to speech.
+ * @returns {Promise<Blob>} - The MP3 audio as a Blob.
+ * @throws {Error} If the TTS request fails.
+ */
+export async function sendTextToSpeech(text: string): Promise<Blob> {
+  // Send POST request to TTS service, expecting a Blob (audio/mp3)
+  const response = await fetch("http://127.0.0.1:8000/tts/tts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `TTS request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return await response.blob();
+}
