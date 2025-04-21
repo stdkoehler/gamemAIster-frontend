@@ -67,6 +67,9 @@ export const darkTheme = createTheme({
       },
     },
     MuiTypography: {
+      defaultProps: {
+        color: "primary"
+      },
       styleOverrides: {
         root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
             fontFamily: fontFamily,
