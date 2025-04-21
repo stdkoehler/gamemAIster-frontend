@@ -226,7 +226,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
       <Typography variant="body1">Race: {race}</Typography>
       <Typography variant="body1">Role: {role}</Typography>
       <Typography variant="body1">Description: {description}</Typography>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} justifyContent={"center"}>
         <Grid>
           <Box sx={InfoBoxStyle()}>
             <Box sx={InfoInnerBoxStyle()}>
@@ -248,7 +248,7 @@ export const CharacterCard: React.FC<CharacterProps> = ({
           </Box>
         </Grid>
       </Grid>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} justifyContent={"center"}>
         <Grid>
           <Box sx={InfoBoxStyle()}>
             <Box sx={InfoInnerBoxStyle()}>
