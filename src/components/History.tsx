@@ -10,7 +10,11 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
 
-import { Interaction, sendTextToSpeech } from "../functions/restInterface.tsx";
+import {
+  Interaction,
+  sendTextToSpeech,
+  sendTextToSpeechStream,
+} from "../functions/restInterface.tsx";
 import FieldContainer, { FieldContainerType } from "./FieldContainer.tsx";
 
 type HistoryProps = ComponentProps<typeof Container> & {
@@ -22,6 +26,9 @@ type HistoryProps = ComponentProps<typeof Container> & {
   lastInteraction: Interaction;
   disabled: boolean;
 };
+
+// Toggle this to switch between legacy Blob method and streaming
+const USE_TTS_STREAM = true;
 
 export default function History({
   sendCallback,
@@ -82,20 +89,26 @@ export default function History({
     };
   }, [audio, cleanupAudioElement]);
 
+  // Play function supporting streaming as well as fallback
   const handlePlayTTS = async () => {
     setAudioError(null);
     setLoadingAudio(true);
 
     try {
-      const blob = await sendTextToSpeech(lastInteraction.llmOutput);
-      const url = URL.createObjectURL(blob);
+      let audioElem: HTMLAudioElement;
+
+      if (USE_TTS_STREAM) {
+        audioElem = await sendTextToSpeechStream(lastInteraction.llmOutput);
+      } else {
+        const blob = await sendTextToSpeech(lastInteraction.llmOutput);
+        const url = URL.createObjectURL(blob);
+        audioElem = new Audio(url);
+      }
 
       // Clean up previous audio instance
       if (audio) {
         cleanupAudioElement(audio);
       }
-
-      const audioElem = new Audio(url);
 
       audioElem.onended = () => setIsPlaying(false);
       audioElem.onerror = () => {
@@ -104,7 +117,16 @@ export default function History({
       };
       setAudio(audioElem);
       setIsPlaying(true);
-      audioElem.play();
+      // We use .play() here even for the MediaSource-based audio
+      try {
+        await audioElem.play();
+      } catch (err) {
+        setAudioError(
+          "❌ Could not start audio playback: " +
+            (err instanceof Error ? err.message : String(err))
+        );
+        setIsPlaying(false);
+      }
     } catch (err) {
       setAudioError(
         "❌ Could not synthesize or play audio: " +

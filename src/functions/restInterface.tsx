@@ -374,3 +374,135 @@ export async function sendTextToSpeech(text: string): Promise<Blob> {
 
   return await response.blob();
 }
+
+/**
+ * Sends text to TTS service and streams the WebM Opus audio response.
+ * Uses MediaSource with Opus-in-WebM for excellent browser support.
+ *
+ * @param {string} text - The text to convert to speech.
+ * @returns {Promise<HTMLAudioElement>} - Audio element that plays the streaming Opus WebM audio.
+ * @throws {Error} If the TTS streaming request fails or browser doesn't support WebM Opus streaming.
+ */
+export async function sendTextToSpeechStream(
+  text: string
+): Promise<HTMLAudioElement> {
+  const response = await fetch(`${API_BASE}/tts/tts-stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text }),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error(
+      `TTS stream request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  // Use WebM Opus MIME type for streaming audio
+  const mimeType = 'audio/webm; codecs="opus"';
+  if (!window.MediaSource.isTypeSupported(mimeType)) {
+    throw new Error(`Browser does not support ${mimeType} streaming`);
+  }
+
+  const mediaSource = new MediaSource();
+  const audio = new Audio();
+  audio.src = URL.createObjectURL(mediaSource);
+
+  let sourceBuffer: SourceBuffer;
+  let isSourceOpen = false;
+
+  function cleanup() {
+    audio.src = "";
+    try {
+      URL.revokeObjectURL(audio.src);
+    } catch {}
+  }
+
+  mediaSource.addEventListener("sourceopen", async () => {
+    try {
+      isSourceOpen = true;
+      sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+
+      const reader = response.body!.getReader();
+      let appendQueue: Uint8Array[] = [];
+      let isBufferUpdating = false;
+      let isEnded = false;
+      let initialBuffer = false;
+
+      // Function to append next chunk in queue if possible
+      const tryAppend = () => {
+        if (!isBufferUpdating && appendQueue.length > 0 && isSourceOpen) {
+          isBufferUpdating = true;
+          const chunk = appendQueue.shift()!;
+          sourceBuffer.appendBuffer(chunk);
+
+          // After the first append, start playback
+          if (!initialBuffer) {
+            initialBuffer = true;
+            sourceBuffer.addEventListener("updateend", function playStarter() {
+              sourceBuffer.removeEventListener("updateend", playStarter);
+              setTimeout(() => {
+                audio.play().catch((e) => {
+                  /* Ignore play failures (e.g. autoplay policy) */
+                });
+              }, 0);
+            });
+          }
+        }
+      };
+
+      sourceBuffer.addEventListener("updateend", () => {
+        isBufferUpdating = false;
+        tryAppend();
+        // If stream ended and no data left, end MediaSource
+        if (
+          isEnded &&
+          appendQueue.length === 0 &&
+          mediaSource.readyState === "open"
+        ) {
+          try {
+            mediaSource.endOfStream();
+          } catch {}
+        }
+      });
+
+      // Read loop
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          isEnded = true;
+          if (
+            !isBufferUpdating &&
+            appendQueue.length === 0 &&
+            mediaSource.readyState === "open"
+          ) {
+            try {
+              mediaSource.endOfStream();
+            } catch {}
+          }
+          break;
+        }
+        if (value?.length) {
+          appendQueue.push(value);
+          tryAppend();
+        }
+      }
+    } catch (err) {
+      cleanup();
+      // Attempt to end stream
+      if (mediaSource.readyState === "open") {
+        try {
+          mediaSource.endOfStream("decode");
+        } catch {}
+      }
+      throw err;
+    }
+  });
+
+  audio.addEventListener("error", cleanup);
+  audio.load();
+
+  return audio;
+}
