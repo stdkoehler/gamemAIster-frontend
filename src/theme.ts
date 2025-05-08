@@ -4,10 +4,12 @@ declare module "@mui/material/styles" {
   interface Theme {
     spinButtonBackgroundImage: (color: string) => string;
     scrollbarStyles: Record<string, any>;
+    logo: string;
   }
   interface ThemeOptions {
     spinButtonBackgroundImage?: (color: string) => string;
     scrollbarStyles?: Record<string, any>;
+    logo?: string;
   }
 }
 
@@ -127,5 +129,6 @@ export const shadowrunTheme = createTheme({
       cursor: "default !important",
     },
   },
+  logo: "/src/assets/shadowrun/sr_00096_.png",
 });
 

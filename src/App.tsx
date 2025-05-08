@@ -17,8 +17,6 @@ import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { Interaction, getMission } from "./functions/restInterface";
 
-import logo from "./assets/shadowrun/sr_00096_.png";
-
 // ************* HOOK IMPORT (update the path as per request) ***************
 import { useGamemasterCallbacks } from "./hooks/gamemasterCallbacks"; // <-- NOTE path
 
@@ -133,7 +131,7 @@ const App: React.FC = () => {
           flexDirection: "column",
         }}
       >
-        <ImageContainer src={logo} />
+        <ImageContainer src={shadowrunTheme.logo} />
         <SplitScreen
           leftWeight={1}
           rightWeight={4}
