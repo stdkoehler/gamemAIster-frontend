@@ -16,12 +16,10 @@ export default function SplitScreen({
   children,
   leftWeight = 1,
   rightWeight = 1,
-  color,
   scrollable = false,
 }: SplitScreenProps) {
   const [left, right] = children;
   const theme = useTheme();
-  const darkColor = theme.palette[color].dark;
   return (
     <Box sx={{ display: "flex", flexDirection: "row" }}>
       <Box
