@@ -1,5 +1,16 @@
 import { createTheme, Theme } from "@mui/material";
 
+declare module "@mui/material/styles" {
+  interface Theme {
+    spinButtonBackgroundImage: (color: string) => string;
+    scrollbarStyles: Record<string, any>;
+  }
+  interface ThemeOptions {
+    spinButtonBackgroundImage?: (color: string) => string;
+    scrollbarStyles?: Record<string, any>;
+  }
+}
+
 const fontFamily = '"Share Tech Mono", monospace';
 
 function textShadow(theme: Theme, color: string): string {
@@ -21,7 +32,7 @@ function textShadow(theme: Theme, color: string): string {
   return `0 0 4px ${textShadowColor}`;
 }
 
-export const darkTheme = createTheme({
+export const shadowrunTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
@@ -42,6 +53,9 @@ export const darkTheme = createTheme({
       dark: "#a0204f",
       contrastText: "#000",
     },
+    background: {
+      default: "#121212",
+    },
   },
   typography: {
     fontFamily: fontFamily,
@@ -55,6 +69,7 @@ export const darkTheme = createTheme({
         root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
             fontFamily: fontFamily,
             textShadow: textShadow(theme, ownerState.color),
+            ...theme.scrollbarStyles,
         })
       },
     },
@@ -63,6 +78,7 @@ export const darkTheme = createTheme({
         root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
             fontFamily: fontFamily,
             textShadow:  textShadow(theme, ownerState.color),
+            ...theme.scrollbarStyles,
         })
       },
     },
@@ -74,20 +90,7 @@ export const darkTheme = createTheme({
         root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
             fontFamily: fontFamily,
             textShadow: textShadow(theme, ownerState.color),
-            "&::-webkit-scrollbar": {
-              width: "0.4em",
-              cursor: "default !important",
-            },
-            "&::-webkit-scrollbar-track": {
-              boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-              webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              backgroundColor: "rgba(0,0,0,.1)",
-              outline: "1px solid",
-              color: theme.palette.primary.dark,
-              cursor: "default !important",
-            },
+            ...theme.scrollbarStyles,
         })
       },
     },
@@ -99,22 +102,30 @@ export const darkTheme = createTheme({
           [theme.breakpoints.up("lg")]: {
             maxWidth: "1700px", // Set the maximum width to 1700px from lg breakpoint onwards
           },
-          "&::-webkit-scrollbar": {
-            width: "0.4em",
-            cursor: "default !important",
-          },
-          "&::-webkit-scrollbar-track": {
-            boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-            webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "rgba(0,0,0,.1)",
-            outline: "1px solid",
-            color: theme.palette.primary.dark,
-            cursor: "default !important",
-          },
+          ...theme.scrollbarStyles,
         }),
       },
     },
   },
+  spinButtonBackgroundImage: (color: string) =>
+    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 30 12 36 18 30'></polyline><polyline points='6 18 12 12 18 18'></polyline></svg>`
+    )}")`,
+  scrollbarStyles: {
+    "&::-webkit-scrollbar": {
+      width: "0.4em",
+      cursor: "default !important",
+    },
+    "&::-webkit-scrollbar-track": {
+      boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
+      webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: "rgba(0,0,0,0)",
+      outline: "1px solid",
+      color: (theme: Theme) => theme.palette.primary.main,
+      cursor: "default !important",
+    },
+  },
 });
+

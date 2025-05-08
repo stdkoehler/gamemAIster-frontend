@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ThemeProvider, Box, Container } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import { darkTheme } from "./theme";
+import { shadowrunTheme } from "./theme";
 
 import AdventureHeading from "./components/AdventureHeading";
 import AppGrid from "./components/AppGrid";
@@ -17,7 +17,7 @@ import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { Interaction, getMission } from "./functions/restInterface";
 
-import logo from "./assets/sr_00096_.png";
+import logo from "./assets/shadowrun/sr_00096_.png";
 
 // ************* HOOK IMPORT (update the path as per request) ***************
 import { useGamemasterCallbacks } from "./hooks/gamemasterCallbacks"; // <-- NOTE path
@@ -123,7 +123,7 @@ const App: React.FC = () => {
 
   // --- UI ---
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={shadowrunTheme}>
       <CssBaseline />
       <Box
         sx={{

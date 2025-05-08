@@ -23,13 +23,13 @@ export function MenuStyle() {
     },
     "& .MuiPaper-root": {
       backgroundImage: "none",
-      backgroundColor: "#121212", // Deep cyberpunk backdrop
+      backgroundColor: theme.palette.background.default, // Use background color from theme
       boxShadow: `inset 0px 0px 0px 1px ${
         theme.palette.primary.dark
       }, 0 0 8px ${alpha(theme.palette.primary.main, 0.25)}`, // Added outer glow
       borderRadius: "6px",
       "&::before": {
-        backgroundColor: "#121212",
+        backgroundColor: theme.palette.background.default, // Use background color from theme
       },
     },
   };
@@ -52,7 +52,7 @@ export function AutocompleteStyle() {
     },
     "& .MuiInputBase-root.Mui-disabled": {
       "& > fieldset": {
-        borderColor: "#121212", // Adjust color when disabled
+        borderColor: theme.palette.background.default, // Use background color from theme
       },
     },
     "& .MuiInputBase-input.Mui-disabled": {
@@ -99,7 +99,7 @@ export function AutocompleteStyle() {
       textShadow: `0 0 2px ${theme.palette.primary.main}`, // Futuristic label look
     },
     "& .MuiPaper-root.MuiAutocomplete-paper": {
-      backgroundColor: theme.palette.background.default,
+      backgroundColor: theme.palette.background.default, // Use background color from theme
       boxShadow: `0 0 10px ${alpha(baseColor, 0.3)}`, // Popup glow
     },
     "& .MuiAutocomplete-listbox .MuiAutocomplete-option.Mui-focused": {
@@ -117,6 +117,7 @@ export function AutocompletePaper({
     <Paper
       sx={{
         backgroundImage: "none",
+        backgroundColor: theme.palette.background.default, // Use background color from theme
         color: theme.palette.primary.main,
         boxShadow: `inset 0px 0px 0px 1px ${
           theme.palette.primary.dark
@@ -150,7 +151,7 @@ export function ModalStyle() {
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: 400,
-    bgcolor: theme.palette.background.paper,
+    bgcolor: theme.palette.background.default, // Use background color from theme
     border: `1px solid ${theme.palette.primary.dark}`, // Slight border for visibility
     boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.25)}`, // Soft glow effect
     borderRadius: "8px",
@@ -185,9 +186,10 @@ export function AccordionGridStyle() {
   return {
     "& .MuiPaper-root": {
       backgroundImage: "none",
+      backgroundColor: theme.palette.background.default,
       boxShadow: `inset 0px 0px 0px 1px ${theme.palette.primary.dark}, 0px 0px 0px 0px #FF0000, 0px 0px 0px 0px #FF0000`,
       "&::before": {
-        backgroundColor: "#121212",
+        backgroundColor: theme.palette.background.default,
       },
     },
   };
@@ -289,6 +291,8 @@ export function getDamageColor(value: number) {
 // Used for TextField showing current damage percentage
 export function CreateDamageInputFieldStyle(damagePercentage: number) {
   const damageColor = getDamageColor(damagePercentage);
+  const theme = useTheme();
+
   return {
     padding: "5px 5px 5px 5px",
     width: "40%",
@@ -300,7 +304,7 @@ export function CreateDamageInputFieldStyle(damagePercentage: number) {
     },
     "& .MuiInputBase-root.Mui-disabled": {
       "& > fieldset": {
-        borderColor: "#121212",
+        borderColor: theme.palette.background.default,
       },
     },
     "& .MuiInputBase-input.Mui-disabled": {
@@ -319,24 +323,9 @@ export function CreateDamageInputFieldStyle(damagePercentage: number) {
         borderColor: damageColor,
       },
     },
-    "& input[type=number]::-webkit-outer-spin-button": {
-      WebkitAppearance: "none",
-      background:
-        "#121212 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAcCAYAAADr9QYhAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAI6ADAAQAAAABAAAAHAAAAACbzWzwAAABB0lEQVRIDe2XMQ6DMAxFf6suwAjszLDCTeASHALEyFlg5hLsXIJDtPIQVFkkgrhDVCWLcQzJ84/liEeSJG84MIqiwMMVmCAI8HRAlAPBwxxSsIf/VKZpGozjiCiKWL7X3Z8oQyB1XSPLMnRdZw0khlEgKn8JkAiGg0iBrJse1UZZlmr/U7vvO7ZtO43xSWp61jB8ManvO7BJQVEBmxa2iXkYnWpOKfPSUV6Zb9sWaZpqX12WBeu6auM8IOozBNL3/SnQNE2Y55nvp/XFfYY67DAMIPs97oKob8U1w4FsQQhIdEwqI7J0ZFVVgerEZvi7yaSauGZMi9+NOQMThqEbP3FxHCPPc3wAmdpEetL9b2QAAAAASUVORK5CYII=) no-repeat center center",
-      width: "2em",
-      opacity: 1,
-      position: "absolute",
-      top: 0,
-      right: 0,
-      bottom: 0,
-      overflow: "hidden",
-      borderTopRightRadius: "0.25rem",
-      borderBottomRightRadius: "0.25rem",
-    },
     "& input[type=number]::-webkit-inner-spin-button": {
       WebkitAppearance: "none",
-      background:
-        "#121212 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAAcCAYAAADr9QYhAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAI6ADAAQAAAABAAAAHAAAAACbzWzwAAABB0lEQVRIDe2XMQ6DMAxFf6suwAjszLDCTeASHALEyFlg5hLsXIJDtPIQVFkkgrhDVCWLcQzJ84/liEeSJG84MIqiwMMVmCAI8HRAlAPBwxxSsIf/VKZpGozjiCiKWL7X3Z8oQyB1XSPLMnRdZw0khlEgKn8JkAiGg0iBrJse1UZZlmr/U7vvO7ZtO43xSWp61jB8ManvO7BJQVEBmxa2iXkYnWpOKfPSUV6Zb9sWaZpqX12WBeu6auM8IOozBNL3/SnQNE2Y55nvp/XFfYY67DAMIPs97oKob8U1w4FsQQhIdEwqI7J0ZFVVgerEZvi7yaSauGZMi9+NOQMThqEbP3FxHCPPc3wAmdpEetL9b2QAAAAASUVORK5CYII=) no-repeat center center",
+      background: `${theme.spinButtonBackgroundImage(damageColor)} no-repeat`,
       width: "2em",
       opacity: 1,
       position: "absolute",
@@ -369,7 +358,7 @@ export function TextfieldStyle({ color }: { color: Colors }) {
     },
     "& .MuiInputBase-root.Mui-disabled": {
       "& > fieldset": {
-        borderColor: "#121212", // Adjust color when disabled
+        borderColor: theme.palette.background.default,
       },
     },
     "& .MuiInputBase-input.Mui-disabled": {
@@ -390,20 +379,7 @@ export function TextfieldStyle({ color }: { color: Colors }) {
       },
     },
     "& .MuiInputBase-input.MuiOutlinedInput-input": {
-      "&::-webkit-scrollbar": {
-        width: "0.4em",
-        cursor: "default !important",
-      },
-      "&::-webkit-scrollbar-track": {
-        boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-        webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-      },
-      "&::-webkit-scrollbar-thumb": {
-        backgroundColor: "rgba(0,0,0,.1)",
-        outline: "1px solid",
-        color: darkColor,
-        cursor: "default !important",
-      },
+      ...theme.scrollbarStyles,
     },
   };
 }
