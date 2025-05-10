@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ThemeProvider, Box, Container } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import { shadowrunTheme } from "./theme";
+import { shadowrunTheme, vampireTheme } from "./theme";
 
 import AdventureHeading from "./components/AdventureHeading";
 import AppGrid from "./components/AppGrid";
@@ -44,8 +44,15 @@ const App: React.FC = () => {
   const [adventure, setAdventure] = useState<string>(() => {
     return localStorage.getItem("adventure") || placeholder;
   });
+  const [currentTheme, setCurrentTheme] = useState(shadowrunTheme);
 
   const isFirstRender = useRef(true);
+
+  const toggleTheme = () => {
+    setCurrentTheme((prevTheme) =>
+      prevTheme === shadowrunTheme ? vampireTheme : shadowrunTheme
+    );
+  };
 
   // --- Synced localStorage persistance ---
   useEffect(() => {
@@ -121,7 +128,7 @@ const App: React.FC = () => {
 
   // --- UI ---
   return (
-    <ThemeProvider theme={shadowrunTheme}>
+    <ThemeProvider theme={currentTheme}>
       <CssBaseline />
       <Box
         sx={{
@@ -131,7 +138,24 @@ const App: React.FC = () => {
           flexDirection: "column",
         }}
       >
-        <ImageContainer src={shadowrunTheme.logo} />
+        <button
+          onClick={toggleTheme}
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            zIndex: 1000,
+            padding: "10px 20px",
+            backgroundColor: currentTheme.palette.primary.main,
+            color: currentTheme.palette.primary.contrastText,
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Switch Theme
+        </button>
+        <ImageContainer src={currentTheme.logo} />
         <SplitScreen
           leftWeight={1}
           rightWeight={4}

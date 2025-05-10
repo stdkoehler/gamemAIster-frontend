@@ -132,3 +132,101 @@ export const shadowrunTheme = createTheme({
   logo: "/src/assets/shadowrun/sr_00096_.png",
 });
 
+export const vampireTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: {
+      light: "#ffb3b3",
+      main: "#ff0000",
+      dark: "#b20000",
+      contrastText: "#fff",
+    },
+    secondary: {
+      light: "#d1c4e9",
+      main: "#673ab7",
+      dark: "#320b86",
+      contrastText: "#fff",
+    },
+    warning: {
+      light: "#ffcc80",
+      main: "#ff9800",
+      dark: "#e65100",
+      contrastText: "#000",
+    },
+    background: {
+      default: "#1a1a1a",
+    },
+  },
+  typography: {
+    fontFamily: fontFamily,
+    allVariants: {
+      fontFamily: fontFamily,
+    },
+  },
+  components: {
+    MuiMenuItem:{
+      styleOverrides: {
+        root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
+            fontFamily: fontFamily,
+            textShadow: textShadow(theme, ownerState.color),
+            ...theme.scrollbarStyles,
+        })
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
+            fontFamily: fontFamily,
+            textShadow:  textShadow(theme, ownerState.color),
+            ...theme.scrollbarStyles,
+        })
+      },
+    },
+    MuiTypography: {
+      defaultProps: {
+        color: "primary"
+      },
+      styleOverrides: {
+        root: ({ theme, ownerState }: { theme: Theme, ownerState: any }) => ({
+            fontFamily: fontFamily,
+            textShadow: textShadow(theme, ownerState.color),
+            ...theme.scrollbarStyles,
+        })
+      },
+    },
+    MuiContainer: {
+      styleOverrides: {
+        root: ({ theme }: { theme: Theme }) => ({
+          color: theme.palette.primary.main,
+          fontFamily: fontFamily,
+          [theme.breakpoints.up("lg")]: {
+            maxWidth: "1700px", // Set the maximum width to 1700px from lg breakpoint onwards
+          },
+          ...theme.scrollbarStyles,
+        }),
+      },
+    },
+  },
+  spinButtonBackgroundImage: (color: string) =>
+    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 30 12 36 18 30'></polyline><polyline points='6 18 12 12 18 18'></polyline></svg>`
+    )}")`,
+  scrollbarStyles: {
+    "&::-webkit-scrollbar": {
+      width: "0.4em",
+      cursor: "default !important",
+    },
+    "&::-webkit-scrollbar-track": {
+      boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
+      webkitBoxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: "rgba(0,0,0,0)",
+      outline: "1px solid",
+      color: (theme: Theme) => theme.palette.primary.main,
+      cursor: "default !important",
+    },
+  },
+  logo: "/src/assets/vampire/vtm_00004_.png",
+});
+
