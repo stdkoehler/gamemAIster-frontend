@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ThemeProvider, Box, Container } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import { shadowrunTheme, vampireTheme } from "./theme";
+import { shadowrunTheme, vampireTheme, cthulhuTheme } from "./theme";
 
 import AdventureHeading from "./components/AdventureHeading";
 import AppGrid from "./components/AppGrid";
@@ -49,9 +49,11 @@ const App: React.FC = () => {
   const isFirstRender = useRef(true);
 
   const toggleTheme = () => {
-    setCurrentTheme((prevTheme) =>
-      prevTheme === shadowrunTheme ? vampireTheme : shadowrunTheme
-    );
+    setCurrentTheme((prevTheme) => {
+      if (prevTheme === shadowrunTheme) return vampireTheme;
+      if (prevTheme === vampireTheme) return cthulhuTheme;
+      return shadowrunTheme;
+    });
   };
 
   // --- Synced localStorage persistance ---

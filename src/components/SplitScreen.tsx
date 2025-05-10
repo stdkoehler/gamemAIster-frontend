@@ -28,7 +28,7 @@ export default function SplitScreen({
           maxHeight: "80vh",
           overflowY: scrollable ? "auto" : "visible",
           padding: "8px",
-          ...theme.scrollbarStyles,
+          ...theme.scrollbarStyles(theme),
         }}
       >
         {left}

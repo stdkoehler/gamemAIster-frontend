@@ -379,7 +379,7 @@ export function TextfieldStyle({ color }: { color: Colors }) {
       },
     },
     "& .MuiInputBase-input.MuiOutlinedInput-input": {
-      ...theme.scrollbarStyles,
+      ...theme.scrollbarStyles(theme),
     },
   };
 }
