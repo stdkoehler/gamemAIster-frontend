@@ -25,6 +25,12 @@ enum ModalNames {
   LOADING = "loading",
 }
 
+export enum GameType {
+  SHADOWRUN = "shadowrun",
+  VAMPIRE_THE_MASQUERADE = "vampire_the_masquerade",
+  CALL_OF_CTHULHU = "call_of_cthulhu",
+}
+
 export type MissionOption = {
   label: string;
   value: number;
@@ -46,7 +52,7 @@ export const StyledTextField = React.memo(
 type NewMissionModalComponentProps = {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (selectedGame: GameType) => void;
 };
 
 const LoadingModal = ({ open }: { open: boolean }) => (
@@ -72,31 +78,54 @@ const NewMissionModal = ({
   open,
   onClose,
   onConfirm,
-}: NewMissionModalComponentProps) => (
-  <Modal
-    open={open}
-    onClose={onClose}
-    aria-labelledby="modal-modal-title"
-    aria-describedby="modal-modal-description"
-  >
-    <Box sx={ModalStyle()}>
-      <Typography id="modal-modal-title" variant="h6" component="h2">
-        New Mission
-      </Typography>
-      <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-        Are you sure you want to proceed? This will delete your current mission.
-      </Typography>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-        <Button onClick={onClose} color="warning">
-          Cancel
-        </Button>
-        <Button onClick={onConfirm} color="primary">
-          Confirm
-        </Button>
+}: NewMissionModalComponentProps) => {
+  const [selectedGame, setSelectedGame] = React.useState(GameType.SHADOWRUN);
+
+  const handleGameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setSelectedGame(event.target.value as GameType);
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box sx={ModalStyle()}>
+        <Typography id="modal-modal-title" variant="h6" component="h2">
+          New Mission
+        </Typography>
+        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+          Are you sure you want to proceed? This will delete your current
+          mission.
+        </Typography>
+        <TextField
+          select
+          label="Select Game"
+          value={selectedGame}
+          onChange={handleGameChange}
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
+          <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
+            Vampire The Masquerade
+          </MenuItem>
+          <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
+        </TextField>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+          <Button onClick={onClose} color="warning">
+            Cancel
+          </Button>
+          <Button onClick={() => onConfirm(selectedGame)} color="primary">
+            Confirm
+          </Button>
+        </Box>
       </Box>
-    </Box>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 type SaveMissionModalComponentProps = {
   open: boolean;
@@ -204,7 +233,7 @@ function LoadMissionModal({
 }
 
 type MissionMenuComponentProps = {
-  newCallback: () => Promise<void>;
+  newCallback: (gameType: GameType) => Promise<void>;
   saveCallback: (nameCustom: string) => Promise<void>;
   listCallback: () => Promise<MissionOption[]>;
   loadCallback: (missionId: number) => Promise<void>;
@@ -276,16 +305,19 @@ export function MissionMenu({
 
   // New
 
-  const handleNewModalConfirm = React.useCallback(async () => {
-    handleModalClose();
-    setActiveModal(ModalNames.LOADING);
-    try {
-      await newCallback();
-    } catch (error) {
-      console.error("An error occurred:", error);
-    }
-    setActiveModal(ModalNames.CLOSED);
-  }, [newCallback, handleModalClose]);
+  const handleNewModalConfirm = React.useCallback(
+    async (selectedGame: GameType) => {
+      handleModalClose();
+      setActiveModal(ModalNames.LOADING);
+      try {
+        await newCallback(selectedGame);
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+      setActiveModal(ModalNames.CLOSED);
+    },
+    [newCallback, handleModalClose]
+  );
 
   // Save
 

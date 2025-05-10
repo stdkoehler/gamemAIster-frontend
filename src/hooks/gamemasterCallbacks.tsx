@@ -48,6 +48,7 @@ import {
   MissionPayload,
   Interaction,
 } from "../functions/restInterface";
+import { GameType } from "../components/MissionMenu";
 
 /**
  * @typedef {object} UseGameCallbacksProps
@@ -84,7 +85,7 @@ type UseGameCallbacksProps = {
  * useGamemasterCallbacks implementation
  * @param {UseGameCallbacksProps} props
  * @returns {{
- *   sendNewMissionGenerate: () => Promise<void>,
+ *   sendNewMissionGenerate: (game: GameType) => Promise<void>,
  *   saveMission: (nameCustom: string) => Promise<void>,
  *   listMissions: () => Promise<Array<{ label: string, value: number, name_custom?: string }>>,
  *   loadMission: (missionId: number) => Promise<void>,
@@ -127,16 +128,20 @@ export function useGamemasterCallbacks({
    * Generates a new mission (and resets state).
    * Also updates the adventure name and active mission ID.
    * @async
+   * @param {GameType} game - The game identifier.
    * @returns {Promise<void>}
    */
-  const sendNewMissionGenerate = useCallback(async (): Promise<void> => {
-    await reset();
-    const response = await postNewMission();
-    if (response !== null) {
-      setMission(response.mission_id);
-      setAdventure(response.name);
-    }
-  }, [reset, setMission, setAdventure]);
+  const sendNewMissionGenerate = useCallback(
+    async (gameType: GameType): Promise<void> => {
+      await reset();
+      const response = await postNewMission({ game_type: gameType });
+      if (response !== null) {
+        setMission(response.mission_id);
+        setAdventure(response.name);
+      }
+    },
+    [reset, setMission, setAdventure]
+  );
 
   /**
    * Saves the current mission, using a user-specified custom name.

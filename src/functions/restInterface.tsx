@@ -21,6 +21,8 @@
  * - Includes: /interaction/ and /mission/ routes
  */
 
+import { GameType } from "../components/MissionMenu";
+
 ////////////////////
 // Configuration  //
 ////////////////////
@@ -95,12 +97,14 @@ interface PlayerInputData {
  * @property {string} name - Mission's default or system name.
  * @property {string} [name_custom] - Custom name, if set by the user.
  * @property {string} description - Mission description.
+ * @property {GameType} game_type - Type of game (e.g., RPG, strategy).
  */
 export interface MissionPayload {
   mission_id: number;
   name: string;
   name_custom?: string;
   description: string;
+  game_type: GameType;
 }
 
 /**
@@ -271,11 +275,19 @@ export async function postStopGeneration(): Promise<void> {
 /**
  * Creates a new mission (server-side).
  *
+ * @param {object} payload - Payload containing the game type.
+ * @param {GameType} payload.game_type - The game type.
  * @returns {Promise<MissionPayload>} - Newly created mission data.
  * @throws {Error} On network or API error.
  */
-export async function postNewMission(): Promise<MissionPayload> {
-  return await apiRequest<MissionPayload>("/mission/new-mission", "POST", {});
+export async function postNewMission(payload: {
+  game_type: GameType;
+}): Promise<MissionPayload> {
+  return await apiRequest<MissionPayload>(
+    "/mission/new-mission",
+    "POST",
+    payload
+  );
 }
 
 /**

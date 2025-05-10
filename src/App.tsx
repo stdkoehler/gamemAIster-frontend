@@ -13,7 +13,7 @@ import FieldContainer, {
 
 import History from "./components/History";
 
-import { MissionMenu } from "./components/MissionMenu";
+import { MissionMenu, GameType } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { Interaction, getMission } from "./functions/restInterface";
 
@@ -48,12 +48,20 @@ const App: React.FC = () => {
 
   const isFirstRender = useRef(true);
 
-  const toggleTheme = () => {
-    setCurrentTheme((prevTheme) => {
-      if (prevTheme === shadowrunTheme) return vampireTheme;
-      if (prevTheme === vampireTheme) return cthulhuTheme;
-      return shadowrunTheme;
-    });
+  const handleThemeChange = (gameType: GameType) => {
+    switch (gameType) {
+      case GameType.SHADOWRUN:
+        setCurrentTheme(shadowrunTheme);
+        break;
+      case GameType.VAMPIRE_THE_MASQUERADE:
+        setCurrentTheme(vampireTheme);
+        break;
+      case GameType.CALL_OF_CTHULHU:
+        setCurrentTheme(cthulhuTheme);
+        break;
+      default:
+        setCurrentTheme(shadowrunTheme);
+    }
   };
 
   // --- Synced localStorage persistance ---
@@ -140,23 +148,6 @@ const App: React.FC = () => {
           flexDirection: "column",
         }}
       >
-        <button
-          onClick={toggleTheme}
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            zIndex: 1000,
-            padding: "10px 20px",
-            backgroundColor: currentTheme.palette.primary.main,
-            color: currentTheme.palette.primary.contrastText,
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
-        >
-          Switch Theme
-        </button>
         <ImageContainer src={currentTheme.logo} />
         <SplitScreen
           leftWeight={1}
@@ -166,7 +157,10 @@ const App: React.FC = () => {
         >
           <AppGrid container spacing={2}>
             <MissionMenu
-              newCallback={sendNewMissionGenerate}
+              newCallback={async (gameType: GameType) => {
+                handleThemeChange(gameType);
+                await sendNewMissionGenerate(gameType);
+              }}
               saveCallback={saveMission}
               listCallback={listMissions}
               loadCallback={loadMission}
