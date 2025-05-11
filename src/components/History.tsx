@@ -11,11 +11,11 @@ import StopIcon from "@mui/icons-material/Stop";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
 
 import {
-  Interaction,
   sendTextToSpeech,
   sendTextToSpeechStream,
-} from "../functions/restInterface.tsx";
-import FieldContainer, { FieldContainerType } from "./FieldContainer.tsx";
+} from "../functions/restInterface";
+import { Interaction } from "../models/MissionModels";
+import FieldContainer, { FieldContainerType } from "./FieldContainer";
 
 type HistoryProps = ComponentProps<typeof Container> & {
   sendCallback?: () => Promise<void>;

@@ -45,10 +45,10 @@ import {
   postSaveMission,
   getListMissions,
   getLoadMissions,
-  MissionPayload,
-  Interaction,
 } from "../functions/restInterface";
-import { GameType } from "../components/MissionMenu";
+import { MissionOption, Interaction } from "../models/MissionModels";
+import { MissionPayload } from "../models/RestInterface";
+import { GameType } from "../models/Types";
 
 /**
  * @typedef {object} UseGameCallbacksProps
@@ -167,21 +167,17 @@ export function useGamemasterCallbacks({
   /**
    * Lists all available missions in the system.
    * Returns an array of objects suitable for use in select/dropdown fields.
+   * Each object includes the mission label, value, optional custom name, and game type.
    * @async
-   * @returns {Promise<Array<{ label: string, value: number, name_custom?: string }>>}
+   * @returns {Promise<MissionOption[]>}
    */
-  const listMissions = useCallback(async (): Promise<
-    Array<{
-      label: string;
-      value: number;
-      name_custom?: string;
-    }>
-  > => {
+  const listMissions = useCallback(async (): Promise<MissionOption[]> => {
     const missionPayloads = await getListMissions();
     return missionPayloads.map((mission: MissionPayload) => ({
       label: mission.name,
       value: mission.mission_id,
-      name_custom: mission.name_custom,
+      nameCustom: mission.name_custom, // Map name_custom to nameCustom
+      gameType: mission.game_type, // Map game_type to gameType
     }));
   }, []);
 

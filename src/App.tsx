@@ -13,9 +13,11 @@ import FieldContainer, {
 
 import History from "./components/History";
 
-import { MissionMenu, GameType } from "./components/MissionMenu";
+import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
-import { Interaction, getMission } from "./functions/restInterface";
+import { getMission } from "./functions/restInterface";
+import { Interaction } from "./models/MissionModels";
+import { GameType } from "./models/Types";
 
 // ************* HOOK IMPORT (update the path as per request) ***************
 import { useGamemasterCallbacks } from "./hooks/gamemasterCallbacks"; // <-- NOTE path

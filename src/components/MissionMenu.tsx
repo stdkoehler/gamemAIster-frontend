@@ -22,6 +22,10 @@ import {
   AutocompletePaper,
 } from "../styles/styles";
 
+// Import MissionOption from centralized model
+import { MissionOption } from "../models/MissionModels";
+import { GameType } from "../models/Types";
+
 enum ModalNames {
   CLOSED = "closed",
   NEW = "new",
@@ -29,18 +33,6 @@ enum ModalNames {
   LOAD = "load",
   LOADING = "loading",
 }
-
-export enum GameType {
-  SHADOWRUN = "shadowrun",
-  VAMPIRE_THE_MASQUERADE = "vampire_the_masquerade",
-  CALL_OF_CTHULHU = "call_of_cthulhu",
-}
-
-export type MissionOption = {
-  label: string;
-  value: number;
-  name_custom?: string;
-};
 
 type StyledTextFieldProps = ComponentProps<typeof TextField> & {
   color: Colors;
@@ -242,7 +234,7 @@ function LoadMissionModal({
           disablePortal
           PaperComponent={AutocompletePaper}
           options={missions || []}
-          getOptionLabel={(option) => option.name_custom || option.label}
+          getOptionLabel={(option) => option.nameCustom || option.label}
           //isOptionEqualToValue={(option, value) => option.value === value.value}
           sx={AutocompleteStyle}
           renderInput={(params) => <TextField {...params} label="Mission" />}

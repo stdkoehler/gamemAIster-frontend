@@ -21,7 +21,11 @@
  * - Includes: /interaction/ and /mission/ routes
  */
 
-import { GameType } from "../components/MissionMenu";
+import { Interaction } from "../models/MissionModels";
+import { MissionPayload } from "../models/RestInterface";
+import { PlayerInputData } from "../models/PlayerInputData";
+import { MissionLoadPayload } from "../models/RestInterface";
+import { GameType } from "../models/Types";
 
 ////////////////////
 // Configuration  //
@@ -36,17 +40,6 @@ const API_BASE = "http://192.168.0.109:8000";
 ////////////////////
 //  Data Types    //
 ////////////////////
-
-/**
- * Represents a single in-game interaction.
- * @typedef {object} Interaction
- * @property {string} playerInput - Player's input text.
- * @property {string} llmOutput - LLM's generated output.
- */
-export type Interaction = {
-  playerInput: string;
-  llmOutput: string;
-};
 
 /**
  * UI state for streaming LLM outputs.
@@ -76,50 +69,7 @@ interface PromptPayload {
 }
 
 /**
- * Combined object for player inputs, controller, and previous state.
- * @typedef {object} PlayerInputData
- * @property {number} missionId - The target mission's ID.
- * @property {(state: State) => void} setStateCallback - Callback for streaming state updates.
- * @property {string} [playerInputField] - Text input from player.
- * @property {Interaction} [prevInteraction] - Previous prompt/response context.
- */
-interface PlayerInputData {
-  missionId: number;
-  setStateCallback: (state: State) => void;
-  playerInputField?: string;
-  prevInteraction?: Interaction;
-}
-
-/**
- * Mission data structure returned by API endpoints.
- * @typedef {object} MissionPayload
- * @property {number} mission_id - Mission's unique identifier.
- * @property {string} name - Mission's default or system name.
- * @property {string} [name_custom] - Custom name, if set by the user.
- * @property {string} description - Mission description.
- * @property {GameType} game_type - Type of game (e.g., RPG, strategy).
- */
-export interface MissionPayload {
-  mission_id: number;
-  name: string;
-  name_custom?: string;
-  description: string;
-  game_type: GameType;
-}
-
-/**
  * Mission load payload with low-level interaction format (API shape).
- * @typedef {object} MissionLoadPayload
- * @property {MissionPayload} mission - Mission metadata.
- * @property {{ user_input: string; llm_output: string }[]} interactions - Raw interaction list.
- */
-export interface MissionLoadPayload {
-  mission: MissionPayload;
-  interactions: { user_input: string; llm_output: string }[];
-}
-
-/**
- * Enhanced mission data type with typed interactions for client.
  * @typedef {object} MissionLoadData
  * @property {MissionPayload} mission - Mission metadata.
  * @property {Interaction[]} interactions - List of structured interactions.
