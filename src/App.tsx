@@ -44,7 +44,21 @@ const App: React.FC = () => {
   const [adventure, setAdventure] = useState<string>(() => {
     return localStorage.getItem("adventure") || placeholder;
   });
-  const [currentTheme, setCurrentTheme] = useState(shadowrunTheme);
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    const storedGameType = localStorage.getItem("gameType");
+    switch (storedGameType) {
+      case GameType.VAMPIRE_THE_MASQUERADE:
+        return vampireTheme;
+      case GameType.CALL_OF_CTHULHU:
+        return cthulhuTheme;
+      default:
+        return shadowrunTheme;
+    }
+  });
+  const [gameType, setGameType] = useState<GameType>(() => {
+    const storedGameType = localStorage.getItem("gameType");
+    return storedGameType ? (storedGameType as GameType) : GameType.SHADOWRUN;
+  });
 
   const isFirstRender = useRef(true);
 
@@ -82,6 +96,11 @@ const App: React.FC = () => {
     mission,
     adventure,
   ]);
+
+  useEffect(() => {
+    localStorage.setItem("gameType", gameType);
+    handleThemeChange(gameType);
+  }, [gameType]);
 
   // --- Reset helper ---
   const reset = React.useCallback(async () => {
@@ -157,9 +176,12 @@ const App: React.FC = () => {
         >
           <AppGrid container spacing={2}>
             <MissionMenu
-              newCallback={async (gameType: GameType, background: string) => {
-                handleThemeChange(gameType);
-                await sendNewMissionGenerate(gameType, background);
+              newCallback={async (
+                selectedGameType: GameType,
+                background: string
+              ) => {
+                setGameType(selectedGameType);
+                await sendNewMissionGenerate(selectedGameType, background);
               }}
               saveCallback={saveMission}
               listCallback={listMissions}
