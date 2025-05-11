@@ -85,7 +85,7 @@ type UseGameCallbacksProps = {
  * useGamemasterCallbacks implementation
  * @param {UseGameCallbacksProps} props
  * @returns {{
- *   sendNewMissionGenerate: (game: GameType) => Promise<void>,
+ *   sendNewMissionGenerate: (game: GameType, background: string) => Promise<void>,
  *   saveMission: (nameCustom: string) => Promise<void>,
  *   listMissions: () => Promise<Array<{ label: string, value: number, name_custom?: string }>>,
  *   loadMission: (missionId: number) => Promise<void>,
@@ -129,12 +129,16 @@ export function useGamemasterCallbacks({
    * Also updates the adventure name and active mission ID.
    * @async
    * @param {GameType} game - The game identifier.
+   * @param {string} background - The background description for the mission.
    * @returns {Promise<void>}
    */
   const sendNewMissionGenerate = useCallback(
-    async (gameType: GameType): Promise<void> => {
+    async (gameType: GameType, background: string): Promise<void> => {
       await reset();
-      const response = await postNewMission({ game_type: gameType });
+      const response = await postNewMission({
+        game_type: gameType,
+        background,
+      });
       if (response !== null) {
         setMission(response.mission_id);
         setAdventure(response.name);

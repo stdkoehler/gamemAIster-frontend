@@ -275,13 +275,15 @@ export async function postStopGeneration(): Promise<void> {
 /**
  * Creates a new mission (server-side).
  *
- * @param {object} payload - Payload containing the game type.
+ * @param {object} payload - Payload containing the game type and background.
  * @param {GameType} payload.game_type - The game type.
+ * @param {string} payload.background - The background string.
  * @returns {Promise<MissionPayload>} - Newly created mission data.
  * @throws {Error} On network or API error.
  */
 export async function postNewMission(payload: {
   game_type: GameType;
+  background: string;
 }): Promise<MissionPayload> {
   return await apiRequest<MissionPayload>(
     "/mission/new-mission",

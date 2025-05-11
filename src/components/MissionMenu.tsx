@@ -7,7 +7,12 @@ import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
 
 import Typography from "@mui/material/Typography";
-import { TextField, Autocomplete, CircularProgress } from "@mui/material";
+import {
+  TextField,
+  Autocomplete,
+  CircularProgress,
+  useTheme,
+} from "@mui/material";
 import {
   TextfieldStyle,
   ModalStyle,
@@ -52,7 +57,7 @@ export const StyledTextField = React.memo(
 type NewMissionModalComponentProps = {
   open: boolean;
   onClose: () => void;
-  onConfirm: (selectedGame: GameType) => void;
+  onConfirm: (selectedGame: GameType, background: string) => void;
 };
 
 const LoadingModal = ({ open }: { open: boolean }) => (
@@ -79,10 +84,18 @@ const NewMissionModal = ({
   onClose,
   onConfirm,
 }: NewMissionModalComponentProps) => {
+  const theme = useTheme();
   const [selectedGame, setSelectedGame] = React.useState(GameType.SHADOWRUN);
+  const [background, setBackground] = React.useState("");
 
   const handleGameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setSelectedGame(event.target.value as GameType);
+  };
+
+  const handleBackgroundChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setBackground(event.target.value);
   };
 
   return (
@@ -114,11 +127,28 @@ const NewMissionModal = ({
           </MenuItem>
           <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
         </TextField>
+        <TextField
+          label="Background"
+          value={background}
+          onChange={handleBackgroundChange}
+          fullWidth
+          multiline
+          rows={10}
+          sx={{
+            mt: 3,
+            "& .MuiInputBase-input.MuiOutlinedInput-input": {
+              ...theme.scrollbarStyles(theme),
+            },
+          }}
+        />
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
           <Button onClick={onClose} color="warning">
             Cancel
           </Button>
-          <Button onClick={() => onConfirm(selectedGame)} color="primary">
+          <Button
+            onClick={() => onConfirm(selectedGame, background)}
+            color="primary"
+          >
             Confirm
           </Button>
         </Box>
@@ -233,7 +263,7 @@ function LoadMissionModal({
 }
 
 type MissionMenuComponentProps = {
-  newCallback: (gameType: GameType) => Promise<void>;
+  newCallback: (gameType: GameType, background: string) => Promise<void>;
   saveCallback: (nameCustom: string) => Promise<void>;
   listCallback: () => Promise<MissionOption[]>;
   loadCallback: (missionId: number) => Promise<void>;
@@ -306,11 +336,11 @@ export function MissionMenu({
   // New
 
   const handleNewModalConfirm = React.useCallback(
-    async (selectedGame: GameType) => {
+    async (selectedGame: GameType, background: string) => {
       handleModalClose();
       setActiveModal(ModalNames.LOADING);
       try {
-        await newCallback(selectedGame);
+        await newCallback(selectedGame, background);
       } catch (error) {
         console.error("An error occurred:", error);
       }
@@ -384,7 +414,9 @@ export function MissionMenu({
       <NewMissionModal
         open={activeModal === ModalNames.NEW}
         onClose={handleModalClose}
-        onConfirm={handleNewModalConfirm}
+        onConfirm={(gameType, background) =>
+          handleNewModalConfirm(gameType, background)
+        }
       />
       <SaveMissionModal
         open={activeModal === ModalNames.SAVE}

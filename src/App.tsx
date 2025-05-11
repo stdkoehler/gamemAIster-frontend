@@ -157,9 +157,9 @@ const App: React.FC = () => {
         >
           <AppGrid container spacing={2}>
             <MissionMenu
-              newCallback={async (gameType: GameType) => {
+              newCallback={async (gameType: GameType, background: string) => {
                 handleThemeChange(gameType);
-                await sendNewMissionGenerate(gameType);
+                await sendNewMissionGenerate(gameType, background);
               }}
               saveCallback={saveMission}
               listCallback={listMissions}
