@@ -200,7 +200,7 @@ type LoadMissionModalComponentProps = {
   setSelectedMission: React.Dispatch<React.SetStateAction<Mission | null>>;
 };
 
-function LoadMissionModal({
+function FilterableLoadMissionModal({
   open,
   onClose,
   onConfirm,
@@ -208,12 +208,28 @@ function LoadMissionModal({
   selectedMission,
   setSelectedMission,
 }: LoadMissionModalComponentProps) {
+  const [selectedGameType, setSelectedGameType] =
+    React.useState<GameType | null>(null);
+
   const handleMissionChange = (
     _: React.SyntheticEvent<Element, Event>,
     newValue: Mission | null
   ) => {
     setSelectedMission(newValue);
   };
+
+  const handleGameTypeChange = (
+    event: React.ChangeEvent<{ value: unknown }>
+  ) => {
+    setSelectedGameType(event.target.value as GameType);
+  };
+
+  const filteredMissions = React.useMemo(() => {
+    if (!selectedGameType) return missions || [];
+    return (missions || []).filter(
+      (mission) => mission.gameType === selectedGameType
+    );
+  }, [missions, selectedGameType]);
 
   return (
     <Modal
@@ -226,18 +242,32 @@ function LoadMissionModal({
         <Typography id="modal-modal-title" variant="h6" component="h2">
           Load Mission
         </Typography>
+        <TextField
+          select
+          label="Filter by Game Type"
+          value={selectedGameType || ""}
+          onChange={handleGameTypeChange}
+          fullWidth
+          sx={{ mt: 2 }}
+        >
+          <MenuItem value="">All</MenuItem>
+          <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
+          <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
+            Vampire The Masquerade
+          </MenuItem>
+          <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
+        </TextField>
         <Autocomplete
           value={selectedMission}
           onChange={handleMissionChange}
           disablePortal
           PaperComponent={AutocompletePaper}
-          options={missions || []}
+          options={filteredMissions}
           getOptionLabel={(option) => option.nameCustom || option.name}
-          //isOptionEqualToValue={(option, value) => option.value === value.value}
-          sx={AutocompleteStyle}
+          sx={{ ...AutocompleteStyle, mt: 2 }}
           renderInput={(params) => <TextField {...params} label="Mission" />}
         />
-        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+        <Typography id="modal-modal-description" sx={{ mt: 2, mb: 2 }}>
           Are you sure you want to proceed? This will delete your current
           mission.
         </Typography>
@@ -414,7 +444,7 @@ export function MissionMenu({
         value={saveModalValue}
         onValueChange={handleSaveModalValueChange}
       />
-      <LoadMissionModal
+      <FilterableLoadMissionModal
         open={activeModal === ModalNames.LOAD}
         onClose={handleModalClose}
         onConfirm={handleLoadModalConfirm}
