@@ -79,6 +79,7 @@ type UseGameCallbacksProps = {
   playerInput: string;
   setPlayerInput: (val: string) => void;
   reset: () => Promise<void>;
+  setGameType: (val: GameType) => void;
 };
 
 /**
@@ -110,6 +111,7 @@ export function useGamemasterCallbacks({
   playerInput,
   setPlayerInput,
   reset,
+  setGameType,
 }: UseGameCallbacksProps) {
   /**
    * Utility that strips trailing prompt-like phrases from the LLM output.
@@ -195,6 +197,7 @@ export function useGamemasterCallbacks({
       const loaded = await getLoadMissions(missionId);
       setMission(loaded.mission.mission_id);
       setAdventure(loaded.mission.name_custom || loaded.mission.name);
+      setGameType(loaded.mission.game_type); // Set the game type
       const loadedInteractions = loaded.interactions;
       if (loadedInteractions.length > 0) {
         const last_interaction = loadedInteractions.pop();
@@ -207,7 +210,14 @@ export function useGamemasterCallbacks({
         setLlmOutput("");
       }
     },
-    [setMission, setAdventure, setInteractions, setPlayerInputOld, setLlmOutput]
+    [
+      setMission,
+      setAdventure,
+      setGameType,
+      setInteractions,
+      setPlayerInputOld,
+      setLlmOutput,
+    ]
   );
 
   /**

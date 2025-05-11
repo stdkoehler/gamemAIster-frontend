@@ -153,6 +153,7 @@ const App: React.FC = () => {
     playerInput,
     setPlayerInput,
     reset,
+    setGameType,
   });
 
   // --- UI ---
