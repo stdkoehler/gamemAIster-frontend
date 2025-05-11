@@ -231,6 +231,16 @@ function FilterableLoadMissionModal({
     );
   }, [missions, selectedGameType]);
 
+  React.useEffect(() => {
+    if (
+      selectedMission &&
+      selectedGameType &&
+      selectedMission.gameType !== selectedGameType
+    ) {
+      setSelectedMission(null);
+    }
+  }, [selectedMission, selectedGameType]);
+
   return (
     <Modal
       open={open}
