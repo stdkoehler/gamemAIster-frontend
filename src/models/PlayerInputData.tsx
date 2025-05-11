@@ -1,5 +1,5 @@
-import { State } from "../functions/restInterface";
 import { Interaction } from "./MissionModels";
+import { State } from "./RestInterface";
 
 export interface PlayerInputData {
   missionId: number;

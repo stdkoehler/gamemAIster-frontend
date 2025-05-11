@@ -23,7 +23,7 @@ import {
 } from "../styles/styles";
 
 // Import MissionOption from centralized model
-import { MissionOption } from "../models/MissionModels";
+import { Mission } from "../models/MissionModels";
 import { GameType } from "../models/Types";
 
 enum ModalNames {
@@ -195,11 +195,9 @@ type LoadMissionModalComponentProps = {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  missions: MissionOption[] | null;
-  selectedMission: MissionOption | null;
-  setSelectedMission: React.Dispatch<
-    React.SetStateAction<MissionOption | null>
-  >;
+  missions: Mission[] | null;
+  selectedMission: Mission | null;
+  setSelectedMission: React.Dispatch<React.SetStateAction<Mission | null>>;
 };
 
 function LoadMissionModal({
@@ -212,7 +210,7 @@ function LoadMissionModal({
 }: LoadMissionModalComponentProps) {
   const handleMissionChange = (
     _: React.SyntheticEvent<Element, Event>,
-    newValue: MissionOption | null
+    newValue: Mission | null
   ) => {
     setSelectedMission(newValue);
   };
@@ -234,7 +232,7 @@ function LoadMissionModal({
           disablePortal
           PaperComponent={AutocompletePaper}
           options={missions || []}
-          getOptionLabel={(option) => option.nameCustom || option.label}
+          getOptionLabel={(option) => option.nameCustom || option.name}
           //isOptionEqualToValue={(option, value) => option.value === value.value}
           sx={AutocompleteStyle}
           renderInput={(params) => <TextField {...params} label="Mission" />}
@@ -257,7 +255,7 @@ function LoadMissionModal({
 type MissionMenuComponentProps = {
   newCallback: (gameType: GameType, background: string) => Promise<void>;
   saveCallback: (nameCustom: string) => Promise<void>;
-  listCallback: () => Promise<MissionOption[]>;
+  listCallback: () => Promise<Mission[]>;
   loadCallback: (missionId: number) => Promise<void>;
 };
 
@@ -272,11 +270,10 @@ export function MissionMenu({
     ModalNames.CLOSED
   );
   const [saveModalValue, setSaveModalValue] = React.useState("");
-  const [missionList, setMissionList] = React.useState<MissionOption[] | null>(
+  const [missionList, setMissionList] = React.useState<Mission[] | null>(null);
+  const [selectedMission, setSelectedMission] = React.useState<Mission | null>(
     null
   );
-  const [selectedMission, setSelectedMission] =
-    React.useState<MissionOption | null>(null);
 
   const open = Boolean(anchorEl);
 
@@ -367,7 +364,7 @@ export function MissionMenu({
     setActiveModal(ModalNames.LOADING);
     if (selectedMission) {
       try {
-        await loadCallback(selectedMission.value);
+        await loadCallback(selectedMission.missionId);
       } catch (error) {
         console.error("An error occurred:", error);
       }

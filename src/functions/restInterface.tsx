@@ -21,8 +21,8 @@
  * - Includes: /interaction/ and /mission/ routes
  */
 
-import { Interaction } from "../models/MissionModels";
-import { MissionPayload } from "../models/RestInterface";
+import { Interaction, Mission, MissionLoadData } from "../models/MissionModels";
+import { MissionPayload, PromptPayload } from "../models/RestInterface";
 import { PlayerInputData } from "../models/PlayerInputData";
 import { MissionLoadPayload } from "../models/RestInterface";
 import { GameType } from "../models/Types";
@@ -37,47 +37,6 @@ import { GameType } from "../models/Types";
  */
 //const API_BASE = "http://127.0.0.1:8000";
 const API_BASE = "http://192.168.0.109:8000";
-////////////////////
-//  Data Types    //
-////////////////////
-
-/**
- * UI state for streaming LLM outputs.
- * @typedef {object} State
- * @property {string} llmOutput - The current/accumulated LLM output.
- */
-export interface State {
-  llmOutput: string;
-}
-
-/**
- * Payload sent to the backend for a prompt/turn.
- * @typedef {object} PromptPayload
- * @property {number} mission_id - The current mission's numeric ID.
- * @property {string} [prompt] - The current prompt text.
- * @property {object} [prev_interaction] - Previous exchange context.
- * @property {string} prev_interaction.user_input - Last user input.
- * @property {string} prev_interaction.llm_output - Last LLM output.
- */
-interface PromptPayload {
-  mission_id: number;
-  prompt?: string;
-  prev_interaction?: {
-    user_input: string;
-    llm_output: string;
-  };
-}
-
-/**
- * Mission load payload with low-level interaction format (API shape).
- * @typedef {object} MissionLoadData
- * @property {MissionPayload} mission - Mission metadata.
- * @property {Interaction[]} interactions - List of structured interactions.
- */
-export type MissionLoadData = {
-  mission: MissionPayload;
-  interactions: Interaction[];
-};
 
 ////////////////////
 // Helper Logic   //
@@ -300,15 +259,24 @@ export async function getLoadMissions(
     `/mission/load-mission/${mission_id}`,
     "GET"
   );
-  // Map API's interaction shape to cleaner Interaction[]
+  const mission: Mission = {
+    missionId: data.mission.mission_id,
+    name: data.mission.name,
+    nameCustom: data.mission.name_custom,
+    description: data.mission.description,
+    gameType: data.mission.game_type,
+  };
+
+  const interactions: Interaction[] = Array.isArray(data.interactions)
+    ? data.interactions.map(({ user_input, llm_output }) => ({
+        playerInput: user_input,
+        llmOutput: llm_output,
+      }))
+    : [];
+
   return {
-    mission: data.mission,
-    interactions: Array.isArray(data.interactions)
-      ? data.interactions.map(({ user_input, llm_output }) => ({
-          playerInput: user_input,
-          llmOutput: llm_output,
-        }))
-      : [],
+    mission,
+    interactions,
   };
 }
 

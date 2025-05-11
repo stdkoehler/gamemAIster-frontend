@@ -46,7 +46,7 @@ import {
   getListMissions,
   getLoadMissions,
 } from "../functions/restInterface";
-import { MissionOption, Interaction } from "../models/MissionModels";
+import { Mission, Interaction } from "../models/MissionModels";
 import { MissionPayload } from "../models/RestInterface";
 import { GameType } from "../models/Types";
 
@@ -169,13 +169,13 @@ export function useGamemasterCallbacks({
    * Returns an array of objects suitable for use in select/dropdown fields.
    * Each object includes the mission label, value, optional custom name, and game type.
    * @async
-   * @returns {Promise<MissionOption[]>}
+   * @returns {Promise<Mission[]>}
    */
-  const listMissions = useCallback(async (): Promise<MissionOption[]> => {
+  const listMissions = useCallback(async (): Promise<Mission[]> => {
     const missionPayloads = await getListMissions();
     return missionPayloads.map((mission: MissionPayload) => ({
-      label: mission.name,
-      value: mission.mission_id,
+      name: mission.name,
+      missionId: mission.mission_id,
       nameCustom: mission.name_custom, // Map name_custom to nameCustom
       gameType: mission.game_type, // Map game_type to gameType
     }));
@@ -191,9 +191,9 @@ export function useGamemasterCallbacks({
   const loadMission = useCallback(
     async (missionId: number): Promise<void> => {
       const loaded = await getLoadMissions(missionId);
-      setMission(loaded.mission.mission_id);
-      setAdventure(loaded.mission.name_custom || loaded.mission.name);
-      setGameType(loaded.mission.game_type); // Set the game type
+      setMission(loaded.mission.missionId);
+      setAdventure(loaded.mission.nameCustom || loaded.mission.name);
+      setGameType(loaded.mission.gameType); // Set the game type
       const loadedInteractions = loaded.interactions;
       if (loadedInteractions.length > 0) {
         const last_interaction = loadedInteractions.pop();
