@@ -123,6 +123,7 @@ const vampireFontFamily = '"IM Fell English SC", "Georgia", serif'; // Base font
 const vampireModernFontFamily = '"Cormorant Garamond", "Georgia", serif'; // More modern elegant serif
 const vampireDisplayFontFamily = '"Cinzel Decorative", serif'; // Ornate display font for headings
 const vampireSansFontFamily = '"Trajan Pro", "Trajan", "Optima", sans-serif'; // Clan-like sans font
+const vampireHeadingFontFamily = '"Nosifer", Cinzel Decorative, "IM Fell English SC", "Georgia", serif'; // Clan-like sans font
 
 const cthulhuFontFamily = '"Libre Baskerville", "Times New Roman", serif'; // Classic serif for 1920s feel
 const cthulhuHeadingFontFamily = '"Playfair Display", "Times New Roman", serif'; // Elegant serif for headings
@@ -257,7 +258,6 @@ export const shadowrunTheme = createTheme({
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
-          fontFamily: defaultMonospaceFontFamily,
           // ownerState.color for Typography can be 'primary', 'textPrimary', 'error', etc.
           textShadow: neonTextShadow(theme, ownerState.color),
           // If defaultProps.color is "primary", ownerState.color will be "primary".
@@ -630,7 +630,6 @@ export const vampireTheme = createTheme({
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
-          fontFamily: vampireModernFontFamily,
           textShadow: ownerState.variant?.startsWith('h') ? 
             gothicTextShadow(theme, ownerState.color) : 
             subtleGothicShadow(theme),
@@ -1151,7 +1150,6 @@ export const cthulhuTheme = createTheme({
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
-          fontFamily: cthulhuFontFamily,
           textShadow: antiquarianTextShadow(theme, ownerState.color),
           ...theme.scrollbarStyles(theme),
         }),

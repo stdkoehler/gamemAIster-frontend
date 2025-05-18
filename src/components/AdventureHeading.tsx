@@ -8,7 +8,8 @@ export default function AdventureHeading(props: AdventureHeadingProps) {
   return (
     <Typography
       {...props}
-      sx={{ color: theme.palette.primary.main, fontSize: "2rem" }}
+      variant="h1"
+      sx={{ color: theme.palette.primary.main }}
     />
   );
 }
