@@ -123,7 +123,7 @@ const vampireFontFamily = '"IM Fell English SC", "Georgia", serif'; // Base font
 const vampireModernFontFamily = '"Cormorant Garamond", "Georgia", serif'; // More modern elegant serif
 const vampireDisplayFontFamily = '"Cinzel Decorative", serif'; // Ornate display font for headings
 const vampireSansFontFamily = '"Trajan Pro", "Trajan", "Optima", sans-serif'; // Clan-like sans font
-const vampireHeadingFontFamily = '"Nosifer", Cinzel Decorative, "IM Fell English SC", "Georgia", serif'; // Clan-like sans font
+const vampireHeadingFontFamily = '"Merlinn", Cinzel Decorative, "IM Fell English SC", "Georgia", serif'; // Use Merlinn as primary heading font
 
 const cthulhuFontFamily = '"Libre Baskerville", "Times New Roman", serif'; // Classic serif for 1920s feel
 const cthulhuHeadingFontFamily = '"Playfair Display", "Times New Roman", serif'; // Elegant serif for headings
@@ -186,15 +186,89 @@ export const shadowrunTheme = createTheme({
       fontFamily: defaultMonospaceFontFamily,
       color: "#e0e0e0",
     },
-    h1: { letterSpacing: "0.05em", textTransform: "uppercase" },
-    h2: { letterSpacing: "0.05em", textTransform: "uppercase" },
-    h3: { letterSpacing: "0.03em", textTransform: "uppercase" },
+    h1: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontWeight: 700,
+      letterSpacing: "0.05em",
+      textTransform: "uppercase",
+      fontSize: "2.3rem",
+      color: "#f392ff"
+    },
+    h2: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontWeight: 600,
+      letterSpacing: "0.05em",
+      textTransform: "uppercase",
+      fontSize: "1.8rem",
+      color: "#d500f9"
+    },
+    h3: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontWeight: 600,
+      letterSpacing: "0.03em",
+      textTransform: "uppercase",
+      fontSize: "1.4rem",
+      color: "#ffc400"
+    },
+    h4: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontWeight: 500,
+      fontSize: "1.15rem",
+      letterSpacing: "0.04em",
+      textTransform: "uppercase",
+      color: "#fff350"
+    },
+    h5: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontWeight: 500,
+      fontSize: "1.05rem",
+      letterSpacing: "0.03em",
+      color: "#a0a0a0"
+    },
+    h6: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontWeight: 500,
+      fontSize: "0.95rem",
+      letterSpacing: "0.02em",
+      color: "#a0a0a0"
+    },
+    subtitle1: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontStyle: "italic",
+      fontSize: "1.05rem",
+      color: "#e0e0e0"
+    },
+    subtitle2: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontStyle: "italic",
+      fontSize: "0.95rem",
+      color: "#a0a0a0"
+    },
     button: {
       fontFamily: defaultMonospaceFontFamily,
       textTransform: "uppercase",
       letterSpacing: "0.08em",
       fontWeight: 600,
+      fontSize: "1rem",
+      color: "#fff350"
     },
+    body1: {
+      lineHeight: 1.7,
+      letterSpacing: "0.01em",
+      fontSize: "1rem",
+      color: "#e0e0e0"
+    },
+    body2: {
+      lineHeight: 1.6,
+      fontSize: "0.95rem",
+      color: "#a0a0a0"
+    },
+    caption: {
+      fontFamily: defaultMonospaceFontFamily,
+      fontStyle: "italic",
+      fontSize: "0.85rem",
+      color: "#616161"
+    }
   },
   components: {
     MuiMenuItem: {
@@ -362,7 +436,7 @@ export const vampireTheme = createTheme({
       color: "#e8e6e3",
     },
     h1: { 
-      fontFamily: vampireDisplayFontFamily, 
+      fontFamily: vampireHeadingFontFamily, 
       fontWeight: 700, 
       letterSpacing: '0.03em',
       fontSize: "2.5rem",
@@ -437,6 +511,14 @@ export const vampireTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        '@font-face': [
+          {
+            fontFamily: 'Merlinn',
+            src: 'url(/src/assets/Merlinn.ttf) format("truetype")',
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+          },
+        ],
         '*, *::before, *::after': {
           transition: 'background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s'
         },
@@ -930,16 +1012,21 @@ export const vampireTheme = createTheme({
       cursor: "default !important",
     },
     "&::-webkit-scrollbar-track": {
-      backgroundColor: "rgba(0,0,0,0.3)",
-      boxShadow: `inset 0 0 6px rgba(0,0,0,0.5)`,
+      backgroundColor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.03)' : 'rgba(0,0,0,0.2)',
+      boxShadow: theme.palette.mode === 'light' ? 'none' : `inset 0 0 6px ${theme.palette.background.paper}`,
     },
     "&::-webkit-scrollbar-thumb": {
-      backgroundColor: `${theme.palette.primary.dark}E6`, // 90% opacity
-      border: `1px solid ${theme.palette.primary.dark}`,
+      backgroundColor: theme.palette.mode === 'light' 
+        ? theme.palette.primary.main + '40'  // Lighter for light mode
+        : theme.palette.primary.dark + '80', // Darker for dark mode
+      border: theme.palette.mode === 'light' 
+        ? `1px solid ${theme.palette.primary.light + '30'}`
+        : `1px solid ${theme.palette.primary.dark + '60'}`,
       borderRadius: "2px",
       "&:hover": {
-        backgroundColor: `${theme.palette.primary.main}E6`, // 90% opacity
-        borderColor: theme.palette.primary.main,
+        backgroundColor: theme.palette.mode === 'light'
+          ? theme.palette.primary.main + '60'
+          : theme.palette.primary.dark + 'AA',
       },
       cursor: "default !important",
     },
@@ -1254,6 +1341,14 @@ export const cthulhuTheme = createTheme({
     },
     MuiCssBaseline: {
       styleOverrides: {
+        '@font-face': [
+          {
+            fontFamily: 'Merlinn',
+            src: 'url(/src/assets/Merlinn.ttf) format("truetype")',
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+          },
+        ],
         '*, *::before, *::after': {
           transition: 'background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s'
         },
