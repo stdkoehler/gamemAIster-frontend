@@ -651,12 +651,28 @@ export const vampireTheme = createTheme({
         color: "textPrimary", // Using text.primary for better contrast
       },
       styleOverrides: {
-        root: ({ theme, ownerState }) => ({
-          textShadow: ownerState.variant?.startsWith('h') ? 
-            gothicTextShadow(theme, ownerState.color) : 
-            subtleGothicShadow(theme),
-          ...theme.scrollbarStyles(theme),
-        }),
+        root: ({ theme, ownerState }) => {
+          // if we don't overwrite color here, if color = "primary" is passed, primary.main will be used.
+          const colorKey = (ownerState.color &&
+            ['primary', 'secondary', 'error', 'warning', 'info', 'success'].includes(ownerState.color) &&
+            ownerState.color !== 'inherit')
+            ? ownerState.color as ThemeColorWithMain
+            : 'primary';
+
+          const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
+          const mainColor = buttonPalette.main;
+          const darkColor = buttonPalette.dark;
+          const lightColor = buttonPalette.light;
+          const contrastTextColor = buttonPalette.contrastText;
+
+          return {
+            color: mainColor,
+            textShadow: ownerState.variant?.startsWith('h') ? 
+              gothicTextShadow(theme, ownerState.color) : 
+              subtleGothicShadow(theme),
+            ...theme.scrollbarStyles(theme),
+          }
+        },
         h1: ({ theme }) => ({
           textShadow: bloodTextShadow(theme, 'primary'),
           '&::after': {
