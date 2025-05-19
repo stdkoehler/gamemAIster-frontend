@@ -94,18 +94,33 @@ function FieldButtonGroup({
     <Box sx={{ display: "flex", flexDirection: "column" }}>
       {(type === FieldContainerType.PLAYER_OLD ||
         type === FieldContainerType.GAMEMASTER) && (
-        <Button color={color} disabled={disabled} onClick={onEditClick}>
+        <Button
+          color={color}
+          disabled={disabled}
+          onClick={onEditClick}
+          sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
+        >
           {isEditable ? "View" : "Edit"}
         </Button>
       )}
       {(type === FieldContainerType.MAIN_SEND ||
         type === FieldContainerType.PLAYER_OLD) &&
         (isGenerating ? (
-          <Button color={color} disabled={disabled} onClick={onStopClick}>
+          <Button
+            color={color}
+            disabled={disabled}
+            onClick={onStopClick}
+            sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
+          >
             Stop
           </Button>
         ) : (
-          <Button color={color} disabled={disabled} onClick={onSendClick}>
+          <Button
+            color={color}
+            disabled={disabled}
+            onClick={onSendClick}
+            sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
+          >
             Send
           </Button>
         ))}

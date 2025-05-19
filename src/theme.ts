@@ -387,19 +387,19 @@ export const vampireTheme = createTheme({
       light: "#ff6659", // Blood red, slightly brighter
       main: "#c00000",  // Deep blood red
       dark: "#870000",  // Dark dried blood
-      contrastText: "#ffffff", // Pure white for contrast
+      contrastText: "#e6c5c1"//"#e8e6e3", // Off-white, easier on eyes than pure white
     },
     secondary: {
       light: "#c095d5", // Light purple - more vibrant for accents
       main: "#7b1fa2",  // Rich purple (Lasombra/Tremere vibes)
       dark: "#4a0072",  // Deep purple
-      contrastText: "#f5f2f0", // Off-white
+      contrastText: "#d8c1e6"//"#e8e6e3", // Off-white, easier on eyes than pure white
     },
     warning: {
       light: "#ffc947", // Gold (Ventrue)
       main: "#a98f5b",  // Antique gold
       dark: "#6d5a38",  // Tarnished gold
-      contrastText: "#000000",
+      contrastText: "#e6e2c1",
     },
     error: {
       light: "#ff5252", // Brighter red
@@ -424,7 +424,7 @@ export const vampireTheme = createTheme({
       paper: "#1d1515",   // Dark burgundy-black
     },
     text: {
-      primary: "#e8e6e3", // Off-white, easier on eyes than pure white
+      primary: "#e6c5c1",//"#e8e6e3", // Off-white, easier on eyes than pure white
       secondary: "#bdb3ad", // Muted cream
       disabled: "#6c5f5f", // Muted red-gray
     },
@@ -634,76 +634,16 @@ export const vampireTheme = createTheme({
             padding: "8px 20px",
             minHeight: '44px',
             color: contrastTextColor,
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
             position: 'relative',
             overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '1px',
-              background: `linear-gradient(to right, transparent, ${lightColor}77, transparent)`,
-            },
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '1px',
-              background: `linear-gradient(to right, transparent, ${darkColor}77, transparent)`,
-            },
             '&:hover': {
               borderColor: lightColor,
               backgroundColor: `${mainColor}26`, // Converting hex to rgba with 0.15 opacity
               boxShadow: `0 0 10px ${mainColor}55, inset 0 0 8px ${mainColor}33`,
-              textShadow: bloodTextShadow(theme, ownerState.color),
-              letterSpacing: '0.12em',
-              transform: 'translateY(-1px)',
-            },
-            '&:active': {
-              transform: 'translateY(1px)',
-              boxShadow: `0 0 5px ${mainColor}55, inset 0 0 4px ${mainColor}33`,
-            },
-            '&.Mui-disabled': {
-              color: theme.palette.text.disabled,
-              borderColor: `${theme.palette.text.disabled}33`,
-              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-              '&::before, &::after': {
-                background: 'transparent'
-              }
             },
             ...theme.scrollbarStyles(theme),
           };
         },
-        containedPrimary: ({ theme }) => ({
-          background: `linear-gradient(to bottom, ${theme.palette.primary.main}66, ${theme.palette.primary.dark}B3)`,
-          '&:hover': {
-            background: `linear-gradient(to bottom, ${theme.palette.primary.main}99, ${theme.palette.primary.dark}E6)`,
-          }
-        }),
-        outlinedPrimary: ({ theme }) => ({
-          backgroundColor: 'rgba(0, 0, 0, 0.4)',
-          borderColor: `${theme.palette.primary.main}99`,
-          '&:hover': {
-            backgroundColor: `${theme.palette.primary.main}26`,
-            borderColor: theme.palette.primary.light
-          }
-        }),
-        textPrimary: ({ theme }) => ({
-          backgroundColor: 'transparent',
-          border: 'none',
-          boxShadow: 'none',
-          '&::before, &::after': {
-            display: 'none'
-          },
-          '&:hover': {
-            backgroundColor: `${theme.palette.primary.main}14`,
-            boxShadow: 'none'
-          }
-        })
       },
     },
     MuiTypography: {

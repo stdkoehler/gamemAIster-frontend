@@ -175,7 +175,6 @@ export function ActionButtonsBoxStyle() {
 // Individual action button style
 export function ActionButtonStyle() {
   return {
-    width: "20%",
     textAlign: "center",
   };
 }
