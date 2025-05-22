@@ -38,8 +38,8 @@
  *   setMission,
  *   setAdventure: setAdventureName,
  *   // ... other props ...
- *   reset: async () => { /* logic to reset all game state */ },
- *   setGameType: (gameType) => { /* logic to set game type state */ },
+ *   reset: async () => {  logic to reset all game state  },
+ *   setGameType: (gameType) => {  logic to set game type state  },
  * });
  *
  * // Later, you can use the callbacks:

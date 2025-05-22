@@ -508,7 +508,7 @@ export function MissionMenu({
       setActiveModal(ModalNames.LOADING);
       try {
         await newCallback(selectedGame, background);
-      } catch (error)
+      } catch (error) {
         console.error("An error occurred during new mission creation:", error);
       }
       setActiveModal(ModalNames.CLOSED);
