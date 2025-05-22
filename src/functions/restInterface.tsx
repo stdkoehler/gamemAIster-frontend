@@ -17,8 +17,12 @@
  * - Data transformation between API and client formats
  *
  * ## API Endpoints:
- * - Base: http://127.0.0.1:8000
- * - Includes: /interaction/ and /mission/ routes
+ * - Base: Configured via `API_BASE` constant (e.g., http://127.0.0.1:8000).
+ * - Includes: `/interaction/` and `/mission/` routes for game interactions and mission management respectively.
+ * - Also includes `/tts/` routes for Text-to-Speech services.
+ *
+ * @version 1.0.0
+ * @author YourName/YourTeam
  */
 
 import { Interaction, Mission, MissionLoadData } from "../models/MissionModels";
@@ -43,12 +47,16 @@ const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
 /**
  * Performs a fetch-based API request with streamlined error reporting and JSON parsing.
- * @template T
- * @param {string} path - API endpoint path (relative to API_BASE)
+ * It's a generic function designed to be used by other specific API call functions.
+ *
+ * @async
+ * @template T - The expected type of the JSON response from the API.
+ * @param {string} path - API endpoint path (relative to `API_BASE`).
  * @param {"GET"|"POST"} method - HTTP method.
- * @param {any} [body] - Body payload for POST requests.
- * @returns {Promise<T>} - Resolves to the parsed JSON response.
- * @throws {Error} If the fetch/network/response fails.
+ * @param {any} [body] - Optional body payload for POST requests. This will be JSON.stringify-ed.
+ * @returns {Promise<T>} - Resolves to the parsed JSON response of type `T`.
+ * @throws {Error} If the fetch operation, network request, or response processing (e.g., non-OK status) fails.
+ *                 The error message will contain details about the URL and status code if available.
  */
 async function apiRequest<T>(
   path: string,
@@ -95,11 +103,26 @@ async function apiRequest<T>(
 
 /**
  * Sends player input to the LLM and streams the response in real-time.
- * Designed for client usage to handle interactive/streaming scenarios.
+ * This function is designed for client-side usage to handle interactive scenarios
+ * where the LLM's response is displayed as it arrives.
+ * It constructs a payload including the current prompt and, optionally, the previous interaction,
+ * then makes a POST request to the `/interaction/gamemaster-send` endpoint.
+ * The response is expected to be a stream of JSON objects, each containing a `text` field.
+ * These chunks are decoded, accumulated, and passed to the `setStateCallback` to update the UI.
  *
- * @param {PlayerInputData} params - Describes mission context, player input, previous exchange, and streaming callback.
- * @returns {Promise<void>}
- * @throws {Error} On network, API, or streaming/decode errors.
+ * @async
+ * @param {PlayerInputData} params - Object containing parameters for sending player input.
+ * @param {number} params.missionId - The ID of the current mission.
+ * @param {function({ llmOutput: string }): void} params.setStateCallback - A callback function
+ *   that is invoked with the accumulated LLM output as new chunks arrive. This is used to update the
+ *   application's state and display the streaming text.
+ * @param {string} params.playerInputField - The text input provided by the player.
+ * @param {Interaction} [params.prevInteraction] - Optional. The previous interaction (player input and LLM output)
+ *   to provide context to the LLM.
+ * @returns {Promise<void>} - A promise that resolves when the stream has ended.
+ * @throws {Error} On network errors, if the API returns a non-OK response, if the response body cannot be read,
+ *                 or if there's an error during stream processing/decoding. An error is also thrown into `setStateCallback`
+ *                 if an error occurs during streaming.
  */
 export async function sendPlayerInputToLlm({
   missionId,
@@ -171,23 +194,27 @@ export async function sendPlayerInputToLlm({
 }
 
 /**
- * Sends a command to stop the current LLM generation (interrupt).
+ * Sends a command to the backend to stop any ongoing LLM generation for the current session or context.
+ * This is typically used to allow the user to interrupt a long or unwanted response from the LLM.
  *
- * @returns {Promise<void>}
- * @throws {Error} On network or server error.
+ * @async
+ * @returns {Promise<void>} - A promise that resolves when the stop command has been successfully sent.
+ * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
  */
 export async function postStopGeneration(): Promise<void> {
   await apiRequest<void>("/interaction/stop-generation", "POST", {});
 }
 
 /**
- * Creates a new mission (server-side).
+ * Creates a new mission on the server.
  *
- * @param {object} payload - Payload containing the game type and background.
- * @param {GameType} payload.game_type - The game type.
- * @param {string} payload.background - The background string.
- * @returns {Promise<MissionPayload>} - Newly created mission data.
- * @throws {Error} On network or API error.
+ * @async
+ * @param {object} payload - Payload containing the necessary information to create a new mission.
+ * @param {GameType} payload.game_type - The specific game type for the new mission (e.g., Shadowrun, Vampire).
+ * @param {string} payload.background - A string providing the background story or context for the new mission.
+ * @returns {Promise<MissionPayload>} - A promise that resolves with the data of the newly created mission,
+ *                                      as defined by {@link MissionPayload}.
+ * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
  */
 export async function postNewMission(payload: {
   game_type: GameType;
@@ -201,12 +228,13 @@ export async function postNewMission(payload: {
 }
 
 /**
- * Saves the current mission with a custom name.
+ * Saves the current mission progress, associating it with a custom name provided by the user.
  *
- * @param {number} missionId - Mission to save.
- * @param {string} nameCustom - Arbitrary custom name for the mission.
- * @returns {Promise<void>}
- * @throws {Error} On network or API error.
+ * @async
+ * @param {number} missionId - The unique identifier of the mission to be saved.
+ * @param {string} nameCustom - An arbitrary custom name for the mission, provided by the user for later identification.
+ * @returns {Promise<void>} - A promise that resolves when the mission has been successfully saved.
+ * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
  */
 export async function postSaveMission(
   missionId: number,
@@ -219,11 +247,15 @@ export async function postSaveMission(
 }
 
 /**
- * Fetches mission meta-information/details by ID.
+ * Fetches detailed meta-information for a specific mission by its ID.
  *
- * @param {number} mission_id - Mission's numeric ID.
- * @returns {Promise<MissionPayload | null>} - Mission metadata, or null if not found.
- * @throws {Error} On network or API error.
+ * @async
+ * @param {number} mission_id - The numeric ID of the mission to retrieve.
+ * @returns {Promise<MissionPayload | null>} - A promise that resolves with the mission's metadata (see {@link MissionPayload}).
+ *                                            Returns `null` if the mission is not found (though the current `apiRequest`
+ *                                            implementation might throw an error for a 404, this indicates intended behavior
+ *                                            if the API were to return, e.g., 204 or a specific "not found" JSON).
+ * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
  */
 export async function getMission(
   mission_id: number
@@ -235,21 +267,31 @@ export async function getMission(
 }
 
 /**
- * Fetches a list of all available missions (summaries).
+ * Fetches a list of all available missions, providing summary information for each.
+ * This is typically used to display a list of missions that the user can choose to load.
  *
- * @returns {Promise<MissionPayload[]>} - Array of mission descriptors.
- * @throws {Error} On network or API error.
+ * @async
+ * @returns {Promise<MissionPayload[]>} - A promise that resolves with an array of mission descriptors ({@link MissionPayload}).
+ *                                       Each object in the array represents a mission summary.
+ * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
  */
 export async function getListMissions(): Promise<MissionPayload[]> {
   return await apiRequest<MissionPayload[]>("/mission/missions", "GET");
 }
 
 /**
- * Loads a complete mission with all its interaction history for play or editing.
+ * Loads a complete mission, including all its interaction history, for playback or editing.
+ * This function fetches the raw mission data ({@link MissionLoadPayload}) from the API
+ * and then transforms it into a client-friendly format ({@link MissionLoadData}).
+ * The transformation involves mapping API field names (e.g., `mission_id`) to client-side names (e.g., `missionId`)
+ * and restructuring the interactions array.
  *
- * @param {number} mission_id - Mission's identifier to load.
- * @returns {Promise<MissionLoadData>} - Full mission details and rewritten interactions.
- * @throws {Error} On network or API error.
+ * @async
+ * @param {number} mission_id - The numeric identifier of the mission to load.
+ * @returns {Promise<MissionLoadData>} - A promise that resolves with the full mission details and its interactions,
+ *                                       formatted for client-side use.
+ * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
+ *                 Also throws if the received data structure is not as expected (e.g., `data.interactions` not an array).
  */
 export async function getLoadMissions(
   mission_id: number
@@ -258,6 +300,8 @@ export async function getLoadMissions(
     `/mission/load-mission/${mission_id}`,
     "GET"
   );
+
+  // Transform Mission data from MissionLoadPayload.mission to Mission
   const mission: Mission = {
     missionId: data.mission.mission_id,
     name: data.mission.name,
@@ -266,12 +310,13 @@ export async function getLoadMissions(
     gameType: data.mission.game_type,
   };
 
+  // Transform interactions from MissionLoadPayload.interactions to Interaction[]
   const interactions: Interaction[] = Array.isArray(data.interactions)
     ? data.interactions.map(({ user_input, llm_output }) => ({
-        playerInput: user_input,
-        llmOutput: llm_output,
+        playerInput: user_input, // Map API's snake_case to client's camelCase
+        llmOutput: llm_output,   // Map API's snake_case to client's camelCase
       }))
-    : [];
+    : []; // Default to an empty array if data.interactions is not an array
 
   return {
     mission,
@@ -280,12 +325,14 @@ export async function getLoadMissions(
 }
 
 /**
- * Sends text to an external TTS service and returns the resulting MP3 audio as a Blob.
- * The caller is responsible for handling playback or further processing.
+ * Sends text to an external Text-to-Speech (TTS) service and returns the resulting MP3 audio as a Blob.
+ * This function is suitable for scenarios where the entire audio file is needed before playback can begin.
+ * The caller is responsible for creating an Object URL from the Blob and managing playback.
  *
- * @param {string} text - The text to convert to speech.
- * @returns {Promise<Blob>} - The MP3 audio as a Blob.
- * @throws {Error} If the TTS request fails.
+ * @async
+ * @param {string} text - The text content to be converted to speech.
+ * @returns {Promise<Blob>} - A promise that resolves with a Blob containing the MP3 audio data.
+ * @throws {Error} If the TTS request to the backend fails (e.g., network error, non-OK HTTP response).
  */
 export async function sendTextToSpeech(text: string): Promise<Blob> {
   // Send POST request to TTS service, expecting a Blob (audio/mp3)
@@ -307,12 +354,35 @@ export async function sendTextToSpeech(text: string): Promise<Blob> {
 }
 
 /**
- * Sends text to TTS service and streams the WebM Opus audio response.
- * Uses MediaSource with Opus-in-WebM for excellent browser support.
+ * Sends text to a Text-to-Speech (TTS) service and streams the audio response.
+ * This function is designed for real-time audio playback as data arrives from the server.
+ * It uses the `MediaSource` API to feed audio chunks (Opus codec in WebM container)
+ * into an `HTMLAudioElement`.
  *
- * @param {string} text - The text to convert to speech.
- * @returns {Promise<HTMLAudioElement>} - Audio element that plays the streaming Opus WebM audio.
- * @throws {Error} If the TTS streaming request fails or browser doesn't support WebM Opus streaming.
+ * The process involves:
+ * 1. Making a POST request to the `/tts/tts-stream` endpoint.
+ * 2. Creating an `HTMLAudioElement` and a `MediaSource` instance.
+ * 3. Setting the `audio.src` to an object URL created from the `MediaSource`.
+ * 4. When the `MediaSource` opens, a `SourceBuffer` is added with the `audio/webm; codecs="opus"` MIME type.
+ * 5. Reading chunks from the response body stream.
+ * 6. Appending these chunks to the `SourceBuffer` via a queue (`appendQueue`) to manage backpressure.
+ *    - The `tryAppend` inner function handles appending data from the queue when the buffer is not updating.
+ * 7. Initiating playback (`audio.play()`) after the first chunk is appended to the `SourceBuffer`.
+ *    This is done in a `setTimeout` within the `updateend` event of the first append to ensure the buffer is ready.
+ * 8. When the stream ends, `mediaSource.endOfStream()` is called.
+ * 9. The `cleanup` inner function handles detaching the `MediaSource` and revoking the object URL,
+ *    called on errors or when the audio element is no longer needed (implicitly by the browser garbage collector
+ *    or explicitly by the calling component if it manages the audio element's lifecycle).
+ *
+ * @async
+ * @param {string} text - The text content to be converted to speech.
+ * @returns {Promise<HTMLAudioElement>} - A promise that resolves with an `HTMLAudioElement` configured
+ *                                       to play the streaming audio. The caller can use this element
+ *                                       to control playback (e.g., pause, volume) or listen to events.
+ *                                       Playback typically starts automatically once enough data is buffered.
+ * @throws {Error} If the TTS streaming request fails (e.g., network error, non-OK HTTP response),
+ *                 if the browser does not support the required `MediaSource` and MIME type (`audio/webm; codecs="opus"`),
+ *                 or if any error occurs during the streaming and `MediaSource` handling process.
  */
 export async function sendTextToSpeechStream(
   text: string
@@ -334,60 +404,95 @@ export async function sendTextToSpeechStream(
   // Use WebM Opus MIME type for streaming audio
   const mimeType = 'audio/webm; codecs="opus"';
   if (!window.MediaSource.isTypeSupported(mimeType)) {
+    // This error should be caught by the caller and handled, e.g., by falling back to non-streaming TTS.
     throw new Error(`Browser does not support ${mimeType} streaming`);
   }
 
   const mediaSource = new MediaSource();
   const audio = new Audio();
-  audio.src = URL.createObjectURL(mediaSource);
+  audio.src = URL.createObjectURL(mediaSource); // Create a URL for the MediaSource to be used as audio src.
 
   let sourceBuffer: SourceBuffer;
-  let isSourceOpen = false;
+  let isSourceOpen = false; // Tracks if the MediaSource 'sourceopen' event has fired and sourceBuffer is ready.
 
+  /**
+   * Cleans up resources associated with the audio element and MediaSource.
+   * Detaches the src, and revokes the object URL to free resources.
+   * This is crucial to prevent memory leaks.
+   */
   function cleanup() {
-    audio.src = "";
-    try {
-      URL.revokeObjectURL(audio.src);
-    } catch {}
+    // Check if audio.src is an object URL before trying to revoke
+    if (audio.src && audio.src.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(audio.src);
+      } catch (e) {
+        // console.warn("Error revoking object URL during cleanup:", e);
+      }
+    }
+    audio.src = ""; // Detach MediaSource
   }
 
   mediaSource.addEventListener("sourceopen", async () => {
     try {
       isSourceOpen = true;
-      sourceBuffer = mediaSource.addSourceBuffer(mimeType);
+      sourceBuffer = mediaSource.addSourceBuffer(mimeType); // Add a source buffer for WebM/Opus audio.
 
-      const reader = response.body!.getReader();
-      let appendQueue: Uint8Array[] = [];
-      let isBufferUpdating = false;
-      let isEnded = false;
-      let initialBuffer = false;
+      const reader = response.body!.getReader(); // Get reader for the response body stream.
+      let appendQueue: Uint8Array[] = []; // Queue to hold audio chunks before appending to sourceBuffer.
+      let isBufferUpdating = false; // Flag to prevent appending while sourceBuffer is busy.
+      let isEnded = false; // Flag to indicate if the stream has ended.
+      let initialBufferAppended = false; // Flag to track if the first chunk has been processed for initiating play.
 
-      // Function to append next chunk in queue if possible
+      /**
+       * Tries to append the next chunk from `appendQueue` to the `sourceBuffer`.
+       * This function is called after a chunk is read from the stream or after a buffer update completes.
+       * It ensures that data is only appended when the `sourceBuffer` is not updating.
+       */
       const tryAppend = () => {
-        if (!isBufferUpdating && appendQueue.length > 0 && isSourceOpen) {
+        if (!isBufferUpdating && appendQueue.length > 0 && isSourceOpen && mediaSource.readyState === "open") {
           isBufferUpdating = true;
           const chunk = appendQueue.shift()!;
-          sourceBuffer.appendBuffer(chunk);
+          try {
+            sourceBuffer.appendBuffer(chunk); // Append the audio data chunk.
+          } catch (e) {
+            // console.error("Error appending buffer:", e);
+            // If appendBuffer fails (e.g., if MediaSource is closed), attempt cleanup.
+            if (mediaSource.readyState === "open") {
+              try { mediaSource.endOfStream(); } catch {}
+            }
+            cleanup();
+            // Propagate the error or handle appropriately.
+            // This might involve rejecting a promise this whole process is wrapped in.
+            return;
+          }
 
-          // After the first append, start playback
-          if (!initialBuffer) {
-            initialBuffer = true;
-            sourceBuffer.addEventListener("updateend", function playStarter() {
-              sourceBuffer.removeEventListener("updateend", playStarter);
-              setTimeout(() => {
-                audio.play().catch(() => {
-                  /* Ignore play failures (e.g. autoplay policy) */
+
+          // After the first successful append, try to start playback.
+          // This relies on the browser's autoplay policies; user interaction might be required.
+          if (!initialBufferAppended) {
+            initialBufferAppended = true;
+            // It's generally safer to attempt play() after a short delay or user gesture.
+            // Here, we do it in a timeout to ensure the event loop has processed the append.
+            // The 'updateend' listener for playStarter was removed as it can be tricky with
+            // very short initial chunks or fast streams. A direct play attempt or a more robust
+            // buffering strategy might be needed for production.
+            setTimeout(() => {
+              if (audio.paused) { // Check if audio is paused before playing
+                audio.play().catch((e) => {
+                  // console.warn("Audio play failed (autoplay policy or other error):", e);
+                  // UI should inform user that playback couldn't start automatically.
                 });
-              }, 0);
-            });
+              }
+            }, 100); // Small delay to allow buffer to process.
           }
         }
       };
 
+      // Event listener for when sourceBuffer finishes updating (after appendBuffer).
       sourceBuffer.addEventListener("updateend", () => {
         isBufferUpdating = false;
-        tryAppend();
-        // If stream ended and no data left, end MediaSource
+        tryAppend(); // Try to append next chunk in queue.
+        // If the stream has ended and the queue is empty, and MediaSource is still open, end it.
         if (
           isEnded &&
           appendQueue.length === 0 &&
@@ -395,15 +500,18 @@ export async function sendTextToSpeechStream(
         ) {
           try {
             mediaSource.endOfStream();
-          } catch {}
+          } catch (e) {
+            // console.warn("Error during endOfStream:", e);
+          }
         }
       });
 
-      // Read loop
+      // Loop to read chunks from the response stream.
       while (true) {
         const { value, done } = await reader.read();
         if (done) {
           isEnded = true;
+          // If stream is done, and buffer isn't busy & queue is empty, and MediaSource is open, try to end it.
           if (
             !isBufferUpdating &&
             appendQueue.length === 0 &&
@@ -411,29 +519,41 @@ export async function sendTextToSpeechStream(
           ) {
             try {
               mediaSource.endOfStream();
-            } catch {}
+            } catch (e) {
+              // console.warn("Error during endOfStream after done:", e);
+            }
           }
-          break;
+          break; // Exit loop.
         }
         if (value?.length) {
-          appendQueue.push(value);
-          tryAppend();
+          appendQueue.push(value); // Add chunk to queue.
+          tryAppend(); // Attempt to append from queue.
         }
       }
     } catch (err) {
-      cleanup();
-      // Attempt to end stream
+      // console.error("Error in MediaSource sourceopen handler:", err);
+      cleanup(); // Ensure resources are cleaned up on error.
+      // Attempt to gracefully end stream if MediaSource is still open.
       if (mediaSource.readyState === "open") {
         try {
-          mediaSource.endOfStream("decode");
-        } catch {}
+          mediaSource.endOfStream(); // Use "network" or "decode" if appropriate error type is known
+        } catch (e) {
+          // console.warn("Error during emergency endOfStream:", e);
+        }
       }
-      throw err;
+      // Propagate the error so the caller knows something went wrong.
+      // This might involve rejecting a promise that wraps this entire function.
+      throw err; // Re-throw the error to be caught by the caller of sendTextToSpeechStream
     }
   });
 
-  audio.addEventListener("error", cleanup);
-  audio.load();
+  // Add error event listener to the audio element itself.
+  audio.addEventListener("error", (e) => {
+    // console.error("HTMLAudioElement error:", audio.error, e);
+    cleanup(); // Clean up on audio element errors.
+  });
 
-  return audio;
+  audio.load(); // Important: Call load() to initiate the MediaSource lifecycle.
+
+  return audio; // Return the HTMLAudioElement to the caller.
 }

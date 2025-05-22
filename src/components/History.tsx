@@ -17,19 +17,42 @@ import {
 import { Interaction } from "../models/MissionModels";
 import FieldContainer, { FieldContainerType } from "./FieldContainer";
 
+/**
+ * Props for the History component.
+ * Extends MUI Container props.
+ */
 type HistoryProps = ComponentProps<typeof Container> & {
+  /** Optional callback for sending the current player input. */
   sendCallback?: () => Promise<void>;
+  /** Optional callback for stopping any ongoing generation. */
   stopCallback?: () => Promise<void>;
+  /** Optional callback when an old player input is changed. */
   changePlayerInputOldCallback?: (arg: string) => void;
+  /** Optional callback when an LLM output is changed. */
   changeLlmOutputCallback?: (arg: string) => void;
+  /** Array of past interactions (player input and LLM output). */
   interactions: Interaction[];
+  /** The most recent interaction. */
   lastInteraction: Interaction;
+  /** Flag to disable interactions with the component. */
   disabled: boolean;
 };
 
 // Toggle this to switch between legacy Blob method and streaming
 const USE_TTS_STREAM = true;
 
+/**
+ * History component displays the sequence of interactions between the player and the LLM.
+ * It allows editing of the last player input and LLM output via FieldContainer components.
+ * It also provides Text-to-Speech (TTS) functionality for the last LLM output.
+ *
+ * The `USE_TTS_STREAM` constant at the top of the file determines whether to use
+ * streaming TTS (if true) or a legacy Blob-based method (if false).
+ * Streaming can provide faster audio start times.
+ *
+ * @param props - The props for the component. See {@link HistoryProps}.
+ * @returns The History component.
+ */
 export default function History({
   sendCallback,
   stopCallback,
@@ -43,9 +66,13 @@ export default function History({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // State for TTS audio playback
+  /** State variable for the current HTMLAudioElement instance. */
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  /** State variable to track if TTS audio is currently playing. */
   const [isPlaying, setIsPlaying] = useState(false);
+  /** State variable to track if TTS audio is currently loading/synthesizing. */
   const [loadingAudio, setLoadingAudio] = useState(false);
+  /** State variable to store any error messages related to TTS audio. */
   const [audioError, setAudioError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,7 +81,12 @@ export default function History({
     }
   }, [interactions, lastInteraction]);
 
-  // Utility to safely clean up an audio element and its object URL
+  /**
+   * Utility function to safely clean up an HTMLAudioElement and its associated resources.
+   * This includes pausing playback, detaching src, revoking object URLs (for Blob method),
+   * and removing event listeners to prevent memory leaks or errors.
+   * @param audioElem - The HTMLAudioElement to clean up.
+   */
   const cleanupAudioElement = useCallback(
     (audioElem: HTMLAudioElement | null) => {
       if (!audioElem) return;
@@ -89,7 +121,12 @@ export default function History({
     };
   }, [audio, cleanupAudioElement]);
 
-  // Play function supporting streaming as well as fallback
+  /**
+   * Handles the Text-to-Speech (TTS) playback of the last LLM output.
+   * It sets loading and error states, and calls either `sendTextToSpeechStream`
+   * or `sendTextToSpeech` based on the `USE_TTS_STREAM` constant.
+   * Manages the lifecycle of the HTMLAudioElement for playback.
+   */
   const handlePlayTTS = async () => {
     setAudioError(null);
     setLoadingAudio(true);
@@ -138,6 +175,10 @@ export default function History({
     }
   };
 
+  /**
+   * Stops the currently playing TTS audio.
+   * It cleans up the existing audio element and resets playback states.
+   */
   const handleStopTTS = () => {
     if (audio) {
       // Remove event handlers to prevent triggering after cleanup
@@ -149,6 +190,13 @@ export default function History({
     }
   };
 
+  /**
+   * InteractionList is an inline component that renders the list of past interactions.
+   * Each interaction consists of player input and LLM output, displayed using MarkdownRenderer.
+   *
+   * @param interactions - Array of Interaction objects to display.
+   * @returns JSX elements representing the list of interactions.
+   */
   const InteractionList = (interactions: Interaction[]) => {
     return (
       <>
