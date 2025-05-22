@@ -29,8 +29,13 @@ import { CharacterProps } from "../models/CharacterProps";
 // Types
 // =====================
 
+/**
+ * Props for the CharacterManager component.
+ */
 interface CharacterManagerProps {
+  /** Optional callback function to be executed when NPCs are created. */
   onCreateNPCs?: () => void;
+  /** Optional callback function to be executed when characters are cleared. */
   onClear?: () => void;
 }
 
@@ -38,12 +43,25 @@ interface CharacterManagerProps {
 // Components
 // =====================
 
+/**
+ * CharacterManager is a component that manages a list of characters.
+ * It allows creating new NPCs and clearing the list of characters.
+ * Characters are displayed in Accordians, with the CharacterCard component.
+ *
+ * @param props - The props for the component. See {@link CharacterManagerProps}.
+ * @returns The CharacterManager component.
+ */
 export const CharacterManager: React.FC<CharacterManagerProps> = ({
   onCreateNPCs,
   onClear,
 }) => {
+  /** State variable for storing the list of characters. */
   const [characters, setCharacters] = useState<Array<CharacterProps>>([]);
 
+  /**
+   * Handles the creation of new NPCs.
+   * Adds a new character to the list and calls the onCreateNPCs callback.
+   */
   const handleCreateNPCs = useCallback(() => {
     setCharacters((prevCharacters) => [
       ...prevCharacters,
@@ -73,6 +91,10 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
     onCreateNPCs?.();
   }, [onCreateNPCs]);
 
+  /**
+   * Handles clearing the list of characters.
+   * Clears the characters array and calls the onClear callback.
+   */
   const handleClear = useCallback(() => {
     setCharacters([]);
     onClear?.();
@@ -115,13 +137,32 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
   );
 };
 
-const DamageComponent: React.FC<{
+/**
+ * Props for the DamageComponent.
+ */
+interface DamageComponentProps {
+  /** The label for the damage type (e.g., "Physical Damage"). */
   label: string;
+  /** An object containing the current and maximum damage values. */
   damage: {
     current: number;
     max: number;
   };
-}> = ({ label, damage }) => {
+}
+
+/**
+ * DamageComponent displays and manages a specific type of damage (e.g., physical or stun).
+ * It includes a text field for changing the current damage and a circular progress bar
+ * to visually represent the damage level.
+ *
+ * @param props - The props for the component. See {@link DamageComponentProps}.
+ * @returns The DamageComponent.
+ */
+const DamageComponent: React.FC<DamageComponentProps> = ({
+  label,
+  damage,
+}) => {
+  /** State variable for the current damage value. */
   const [currentDamage, setCurrentDamage] = React.useState(damage.current);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -130,6 +171,11 @@ const DamageComponent: React.FC<{
   React.useEffect(() => {
     const inputEl = inputRef.current;
 
+    /**
+     * Handles the wheel event on the damage input field.
+     * This is implemented to prevent the container from scrolling when the wheel is used over the input.
+     * @param e - The wheel event.
+     */
     const handleWheel = (e: WheelEvent) => {
       if (document.activeElement === inputEl) {
         // avoid propagting wheel event -> container scoll
@@ -144,6 +190,11 @@ const DamageComponent: React.FC<{
     };
   }, []);
 
+  /**
+   * Handles the change event of the damage input field.
+   * Updates the current damage value if it's within the valid range (0 to max).
+   * @param event - The input change event.
+   */
   const handleDamageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = parseInt(event.target.value);
     if (inputValue >= 0 && inputValue <= damage.max) {
@@ -182,6 +233,14 @@ const DamageComponent: React.FC<{
     </>
   );
 };
+
+/**
+ * CharacterCard is a component that displays the details of a single character.
+ * It shows information like name, race, role, attributes, skills, armor, weapon, cyberware, and damage.
+ *
+ * @param props - The props for the component, which are defined by {@link CharacterProps}.
+ * @returns The CharacterCard component.
+ */
 export const CharacterCard: React.FC<CharacterProps> = ({
   name,
   race,
