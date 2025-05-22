@@ -1,30 +1,67 @@
-# React + TypeScript + Vite
+# gamemAIster: AI-Powered Tabletop RPG Gamemaster
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+gamemAIster is a web-based, AI-powered Game Master for narrative tabletop RPGs. It supports multiple game systems and provides immersive, theme-rich UI experiences for each. Built with React, TypeScript, Vite, and Material-UI (MUI), it connects to a backend LLM (Large Language Model) server for dynamic storytelling and player interaction.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Multi-System Support:**
+  - Shadowrun
+  - Vampire the Masquerade
+  - Call of Cthulhu
+- **Dynamic Theming:**
+  - Each game system has a unique, highly customized MUI theme (fonts, colors, shadows, scrollbars, etc.)
+- **AI-Driven Gameplay:**
+  - Interact with an LLM backend for mission generation, player input, and story progression
+- **Mission Management:**
+  - Create, save, load, and list missions
+- **History & Regeneration:**
+  - View and regenerate previous interactions
+    (a feature required at the current state of LLMs, this allows you to regenerate the gamemaster's answers or adapt them to your liking, e.g. if only minor issues are present)
+- **Text-to-Speech:**
+  - Optional TTS for LLM responses
+- **Modern UI:**
+  - Responsive layout, split-screen, and accessibility features
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+### Prerequisites
 
-- Configure the top-level `parserOptions` property like this:
+- Node.js (v18+ recommended)
+- Backend LLM server (see below)
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+### Installation
+
+```shell
+# Install dependencies
+npm install
+
+# Start the development server
+npx vite
+
+# Expose the server (e.g. for use with a mobile device)
+npx vite --host
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+The app will be available at `http://localhost:5173` by default.
+
+### Backend Setup
+
+- The frontend expects a backend LLM server running at the address configured in `src/functions/restInterface.tsx` (default: `http://localhost:8000`).
+- The backend will provide `/mission/` and `/interaction/` endpoints compatible with the frontend's API calls.
+
+## Customization
+
+- **Themes:**
+  - Edit `src/theme.ts` to adjust colors, fonts, and effects for each supported game system.
+- **API Endpoint:**
+  - Change the backend address in `src/functions/restInterface.tsx` if needed.
+- **Assets:**
+  - Place custom logos or fonts in `src/assets/` and update theme definitions.
+
+## License
+
+This project is for personal/non-commercial use. See LICENSE for details.
+
+---
+
+_This project uses [Vite](https://vitejs.dev/), [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), and [Material-UI](https://mui.com/)._

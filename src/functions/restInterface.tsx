@@ -39,8 +39,7 @@ import { GameType } from "../models/Types";
  * The base URL for all backend API requests.
  * @constant
  */
-//const API_BASE = "http://127.0.0.1:8000";
-const API_BASE = "http://192.168.0.109:8000";
+const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
 ////////////////////
 // Helper Logic   //
