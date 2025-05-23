@@ -70,7 +70,6 @@ export default function History({
   interactions,
   lastInteraction,
   disabled,
-  ...props
 }: HistoryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<VirtuosoHandle>(null);

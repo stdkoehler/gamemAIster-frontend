@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { ThemeProvider, Box, Container } from "@mui/material";
+import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { shadowrunTheme, vampireTheme, cthulhuTheme } from "./theme";
 

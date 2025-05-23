@@ -89,7 +89,7 @@ function gothicTextShadow(theme: Theme, ownerStateColor?: string): string {
 }
 
 // Enhanced blood text shadow for important elements
-function bloodTextShadow(theme: Theme, ownerStateColor?: string): string {
+function bloodTextShadow(theme: Theme, _ownerStateColor?: string): string {
   const baseColor = theme.palette.primary.main; // Always use primary (blood red) for this effect
   return `0px 0px 1px rgba(0,0,0,0.7), 0 0 3px ${baseColor}99, 0 0 7px ${baseColor}60`;
 }
@@ -512,12 +512,12 @@ export const vampireTheme = createTheme({
           height: '100%',
           scrollBehavior: 'smooth'
         },
-        body: ({ theme }) => ({
+        body: ({ theme }: { theme: Theme }) => ({
           background: `radial-gradient(circle at 50% 50%, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
           backgroundAttachment: 'fixed',
           backgroundSize: 'cover',
         }),
-        'a': ({ theme }) => ({
+        'a': ({ theme }: { theme: Theme }) => ({
           color: theme.palette.primary.main,
           textDecoration: 'none',
           transition: 'all 0.3s ease',
@@ -732,7 +732,7 @@ export const vampireTheme = createTheme({
     },
     MuiCardHeader: {
       styleOverrides: {
-        root: ({ theme }) => ({ // theme is used by bloodTextShadow
+        root: ({ }) => ({ // theme is used by bloodTextShadow
           padding: '16px 16px 0 16px',
         }),
         title: ({ theme }: { theme: Theme }) => ({
@@ -866,7 +866,7 @@ export const vampireTheme = createTheme({
     },
     MuiOutlinedInput: {
       styleOverrides: {
-        notchedOutline: ({ theme }) => ({
+        notchedOutline: ({ }) => ({
           borderColor: 'rgba(255, 255, 255, 0.15)',
           transition: 'all 0.3s ease',
         }),
