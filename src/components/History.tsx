@@ -5,6 +5,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { FixedSizeList } from "react-window";
 import { Typography, Container, Button, CircularProgress } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -64,6 +65,7 @@ export default function History({
   ...props
 }: HistoryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<FixedSizeList>(null);
 
   // State for TTS audio playback
   /** State variable for the current HTMLAudioElement instance. */
@@ -78,6 +80,9 @@ export default function History({
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+    if (listRef.current) {
+      listRef.current.scrollToItem(interactions.length - 1, "end");
     }
   }, [interactions, lastInteraction]);
 
@@ -197,33 +202,23 @@ export default function History({
    * @param interactions - Array of Interaction objects to display.
    * @returns JSX elements representing the list of interactions.
    */
-  const InteractionList = (interactions: Interaction[]) => {
+  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+    const interaction = interactions[index];
     return (
-      <>
-        {interactions.map((interaction, index) => (
-          <div key={index}>
-            <Typography
-              variant="subtitle2"
-              fontStyle="italic"
-              color="secondary"
-            >
-              <br />
-              Player
-              <br />
-            </Typography>
-            <MarkdownRenderer
-              value={interaction.playerInput}
-              color="secondary"
-            />
-            <Typography variant="subtitle2" fontStyle="italic" color="primary">
-              <br />
-              Gamemaster
-              <br />
-            </Typography>
-            <MarkdownRenderer value={interaction.llmOutput} color="primary" />
-          </div>
-        ))}
-      </>
+      <div style={style}>
+        <Typography variant="subtitle2" fontStyle="italic" color="secondary">
+          <br />
+          Player
+          <br />
+        </Typography>
+        <MarkdownRenderer value={interaction.playerInput} color="secondary" />
+        <Typography variant="subtitle2" fontStyle="italic" color="primary">
+          <br />
+          Gamemaster
+          <br />
+        </Typography>
+        <MarkdownRenderer value={interaction.llmOutput} color="primary" />
+      </div>
     );
   };
 
@@ -235,14 +230,24 @@ export default function History({
         display: "flex",
         flexDirection: "column",
         width: "95%" /* Fields take up full width of their container */,
-        maxHeight: "60vh",
-        overflow: "auto",
+        maxHeight: "60vh", // This will be used by FixedSizeList
+        overflow: "hidden", // Changed from "auto" to "hidden" as FixedSizeList handles scrolling
         paddingTop: 0,
         marginLeft: 0,
         marginRight: 0,
       }}
     >
-      {InteractionList(interactions)}
+      <div style={{ flexGrow: 1, width: '100%' }}> {/* Wrapper div for FixedSizeList */}
+        <FixedSizeList
+          ref={listRef}
+          height={containerRef.current?.clientHeight ? containerRef.current.clientHeight * 0.9 : 400} // Adjust height as needed
+          itemCount={interactions.length}
+          itemSize={150} // Adjust itemSize as needed
+          width="100%"
+        >
+          {Row}
+        </FixedSizeList>
+      </div>
       {/* {lastInteraction.playerInput !== "" && ( */}
       <FieldContainer
         sendCallback={sendCallback}
