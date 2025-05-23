@@ -75,12 +75,6 @@ function getSafePaletteColor(theme: Theme, colorPropValue?: string): string {
 
 // --- REVISED TEXT SHADOW FUNCTIONS ---
 
-// Generic text shadow (similar to user's original, but safer color retrieval)
-function commonTextShadow(theme: Theme, ownerStateColor?: string, intensity: string = '4px'): string {
-  const color = getSafePaletteColor(theme, ownerStateColor);
-  return `0 0 ${intensity} ${color}`;
-}
-
 // Specific text shadow style for a more "neon glow" effect (good for Shadowrun)
 function neonTextShadow(theme: Theme, ownerStateColor?: string): string {
   const color = getSafePaletteColor(theme, ownerStateColor);
@@ -90,7 +84,7 @@ function neonTextShadow(theme: Theme, ownerStateColor?: string): string {
 
 // Specific text shadow for a more "gothic/subtle" effect (good for Vampire)
 function gothicTextShadow(theme: Theme, ownerStateColor?: string): string {
-  const baseColor = getSafePaletteColor(theme, ownerStateColor);
+  const baseColor = getSafePaletteColor(theme, ownerStateColor); 
   return `1px 1px 2px ${theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.4)'}, 0 0 6px ${baseColor}99`;
 }
 
@@ -101,7 +95,7 @@ function bloodTextShadow(theme: Theme, ownerStateColor?: string): string {
 }
 
 // Subtle text shadow for body text
-function subtleGothicShadow(theme: Theme): string {
+function subtleGothicShadow(_theme: Theme): string { 
   return `0px 1px 2px rgba(0,0,0,0.5)`;
 }
 
@@ -119,15 +113,15 @@ function antiquarianTextShadow(theme: Theme, ownerStateColor?: string): string {
 // --- FONT DEFINITIONS (as before) ---
 const defaultMonospaceFontFamily = '"Share Tech Mono", "Courier New", monospace';
 
-const vampireFontFamily = '"IM Fell English SC", "Georgia", serif'; // Base font for that classic vampire feel
-const vampireModernFontFamily = '"Cormorant Garamond", "Georgia", serif'; // More modern elegant serif
-const vampireDisplayFontFamily = '"Cinzel Decorative", serif'; // Ornate display font for headings
-const vampireSansFontFamily = '"Trajan Pro", "Trajan", "Optima", sans-serif'; // Clan-like sans font
-const vampireHeadingFontFamily = '"Merlinn", Cinzel Decorative, "IM Fell English SC", "Georgia", serif'; // Use Merlinn as primary heading font
+const vampireFontFamily = '"IM Fell English SC", "Georgia", serif'; 
+const vampireModernFontFamily = '"Cormorant Garamond", "Georgia", serif'; 
+const vampireDisplayFontFamily = '"Cinzel Decorative", serif'; 
+const vampireSansFontFamily = '"Trajan Pro", "Trajan", "Optima", sans-serif'; 
+const vampireHeadingFontFamily = '"Merlinn", Cinzel Decorative, "IM Fell English SC", "Georgia", serif'; 
 
-const cthulhuFontFamily = '"Libre Baskerville", "Times New Roman", serif'; // Classic serif for 1920s feel
-const cthulhuHeadingFontFamily = '"Playfair Display", "Times New Roman", serif'; // Elegant serif for headings
-const cthulhuMonoFontFamily = '"Courier Prime", "Courier New", monospace'; // Typewriter-like font
+const cthulhuFontFamily = '"Libre Baskerville", "Times New Roman", serif'; 
+const cthulhuHeadingFontFamily = '"Playfair Display", "Times New Roman", serif'; 
+const cthulhuMonoFontFamily = '"Courier Prime", "Courier New", monospace'; 
 
 // --- Your Themes with Fixes ---
 
@@ -135,49 +129,49 @@ export const shadowrunTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      light: "#f392ff", // #f392ff
-      main: "#d500f9", // #d500f9
-      dark: "#9e00c5", // #9e00c5
-      contrastText: "#f392ff", // #f392ff
+      light: "#f392ff", 
+      main: "#d500f9", 
+      dark: "#9e00c5", 
+      contrastText: "#f392ff", 
     },
     secondary: {
-      light: "#fff350", // #fff350
-      main: "#ffc400", // #ffc400
-      dark: "#b28900", // #b28900
-      contrastText: "#fff350", // #fff350
+      light: "#fff350", 
+      main: "#ffc400", 
+      dark: "#b28900", 
+      contrastText: "#fff350", 
     },
     warning: {
-      light: "#ffac42", // #ffac42
-      main: "#ff7f00", // #ff7f00 ; Vibrant orange
-      dark: "#c55e00", // #c55e00
-      contrastText: "#000000", // #000000
+      light: "#ffac42", 
+      main: "#ff7f00", 
+      dark: "#c55e00", 
+      contrastText: "#000000", 
     },
     error: {
-      light: "#ff6f6f", // #ff6f6f
-      main: "#ff0000", // #ff0000
-      dark: "#c70000", // #c70000
-      contrastText: "#ffffff", // #ffffff
+      light: "#ff6f6f", 
+      main: "#ff0000", 
+      dark: "#c70000", 
+      contrastText: "#ffffff", 
     },
     info: {
-      light: "#6effff", // #6effff
-      main: "#00e5ff", // #00e5ff
-      dark: "#00b2cc", // #00b2cc
-      contrastText: "#000000", // #000000
+      light: "#6effff", 
+      main: "#00e5ff", 
+      dark: "#00b2cc", 
+      contrastText: "#000000", 
     },
     success: {
-      light: "#76ff03", // #76ff03
-      main: "#4caf50", // #4caf50
-      dark: "#00701a", // #00701a
-      contrastText: "#000000", // #000000
+      light: "#76ff03", 
+      main: "#4caf50", 
+      dark: "#00701a", 
+      contrastText: "#000000", 
     },
     background: {
-      default: "#0c0c0f", // #0c0c0f ; Was #121212 in user theme
-      paper: "#1a1a1f",   // #1a1a1f
+      default: "#0c0c0f", 
+      paper: "#1a1a1f",   
     },
     text: {
-      primary: "#e0e0e0", // #e0e0e0
-      secondary: "#a0a0a0", // #a0a0a0
-      disabled: "#616161", // #616161
+      primary: "#e0e0e0", 
+      secondary: "#a0a0a0", 
+      disabled: "#616161", 
     },
   },
   typography: {
@@ -273,9 +267,9 @@ export const shadowrunTheme = createTheme({
   components: {
     MuiMenuItem: {
       styleOverrides: {
-        root: ({ theme, ownerState }) => ({
+        root: ({ theme, ownerState }: { theme: Theme; ownerState: any }) => ({
           fontFamily: defaultMonospaceFontFamily,
-          textShadow: neonTextShadow(theme, ownerState.color || 'primary'), // ownerState.color is not standard on MenuItem, will use 'primary'
+          textShadow: neonTextShadow(theme, ownerState.color || 'primary'),
           color: theme.palette.text.primary,
           '&:hover': {
             backgroundColor: theme.palette.primary.dark + '66',
@@ -288,36 +282,34 @@ export const shadowrunTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          // Determine the color key safely, defaulting to 'primary'
           const colorKey = (ownerState.color &&
             ['primary', 'secondary', 'error', 'warning', 'info', 'success'].includes(ownerState.color) &&
-            ownerState.color !== 'inherit') // Exclude 'inherit' from direct palette key usage
+            ownerState.color !== 'inherit') 
             ? ownerState.color as ThemeColorWithMain
             : 'primary';
 
           const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = (buttonPalette as any).main || theme.palette.primary.main;
-          const lightColor = (buttonPalette as any).light || theme.palette.primary.light;
-          // For button text color, prioritize contrastText. If not suitable, use the main color itself (might need adjustment based on bg)
-          const textColor = (buttonPalette as any).contrastText && (buttonPalette as any).contrastText !== '#000000' && (buttonPalette as any).contrastText !== '#000'
+          const mainColorUsed = (buttonPalette as any).main || theme.palette.primary.main;
+          const lightColorUsed = (buttonPalette as any).light || theme.palette.primary.light;
+          const textColorUsed = (buttonPalette as any).contrastText && (buttonPalette as any).contrastText !== '#000000' && (buttonPalette as any).contrastText !== '#000'
                             ? (buttonPalette as any).contrastText
-                            : mainColor;
+                            : mainColorUsed;
 
 
           return {
             fontFamily: defaultMonospaceFontFamily,
-            textShadow: neonTextShadow(theme, ownerState.color), // ownerState.color is ButtonProps['color']
+            textShadow: neonTextShadow(theme, ownerState.color), 
             borderWidth: "1px",
             borderStyle: "solid",
-            borderColor: mainColor + '33',
-            boxShadow: `0 0 5px ${mainColor}33`,
+            borderColor: mainColorUsed + '33',
+            boxShadow: `0 0 5px ${mainColorUsed}33`,
             borderRadius: "2px",
             padding: "6px 18px",
-            color: textColor,
+            color: textColorUsed,
             '&:hover': {
-              borderColor: lightColor + '33',
-              backgroundColor: mainColor + '33', // 33 specifies opacity in hex 0x33 = 0.2
-              boxShadow: `0 0 10px ${mainColor}99`, // 99 specifies opacity in hex 0x99 = 0.6
+              borderColor: lightColorUsed + '33',
+              backgroundColor: mainColorUsed + '33', 
+              boxShadow: `0 0 10px ${mainColorUsed}99`, 
             },
             ...theme.scrollbarStyles(theme),
           };
@@ -326,17 +318,11 @@ export const shadowrunTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        // User's original had "primary", my suggestion "textPrimary".
-        // Let's stick to user's original for this part, though "textPrimary" is often better.
         color: "primary",
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
-          // ownerState.color for Typography can be 'primary', 'textPrimary', 'error', etc.
           textShadow: neonTextShadow(theme, ownerState.color),
-          // If defaultProps.color is "primary", ownerState.color will be "primary".
-          // If it's explicitly set e.g. <Typography color="textSecondary">, ownerState.color is "textSecondary".
-          // getSafePaletteColor will handle these.
           ...theme.scrollbarStyles(theme),
         }),
       },
@@ -354,7 +340,7 @@ export const shadowrunTheme = createTheme({
       },
     },
   },
-  spinButtonBackgroundImage: (color) => // `color` here is expected to be a valid CSS color string
+  spinButtonBackgroundImage: (color) => 
     `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
       `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 30 12 36 18 30'></polyline><polyline points='6 18 12 12 18 18'></polyline></svg>`
     )}")`,
@@ -376,7 +362,7 @@ export const shadowrunTheme = createTheme({
       cursor: "default !important",
     },
   }),
-  logo: "/src/assets/shadowrun/sr_00096_.png", // User's original logo
+  logo: "/src/assets/shadowrun/sr_00096_.png", 
 });
 
 
@@ -384,49 +370,49 @@ export const vampireTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
-      light: "#ff6659", // Blood red, slightly brighter
-      main: "#c00000",  // Deep blood red
-      dark: "#870000",  // Dark dried blood
-      contrastText: "#e6c5c1"//"#e8e6e3", // Off-white, easier on eyes than pure white
+      light: "#ff6659", 
+      main: "#c00000",  
+      dark: "#870000",  
+      contrastText: "#e6c5c1"
     },
     secondary: {
-      light: "#c095d5", // Light purple - more vibrant for accents
-      main: "#7b1fa2",  // Rich purple (Lasombra/Tremere vibes)
-      dark: "#4a0072",  // Deep purple
-      contrastText: "#d8c1e6"//"#e8e6e3", // Off-white, easier on eyes than pure white
+      light: "#c095d5", 
+      main: "#7b1fa2",  
+      dark: "#4a0072",  
+      contrastText: "#d8c1e6"
     },
     warning: {
-      light: "#ffc947", // Gold (Ventrue)
-      main: "#a98f5b",  // Antique gold
-      dark: "#6d5a38",  // Tarnished gold
+      light: "#ffc947", 
+      main: "#a98f5b",  
+      dark: "#6d5a38",  
       contrastText: "#e6e2c1",
     },
     error: {
-      light: "#ff5252", // Brighter red
-      main: "#b71c1c",  // Deep crimson
-      dark: "#7f0000",  // Very dark red
-      contrastText: "#ffffff", // White
+      light: "#ff5252", 
+      main: "#b71c1c",  
+      dark: "#7f0000",  
+      contrastText: "#ffffff", 
     },
     info: {
-      light: "#90a4ae", // Blueish gray
-      main: "#546e7a",  // Steel blue-gray (Nosferatu)
-      dark: "#29434e",  // Dark navy
+      light: "#90a4ae", 
+      main: "#546e7a",  
+      dark: "#29434e",  
       contrastText: "#f5f5f5",
     },
     success: {
       light: "#81c784",
-      main: "#3a5741",  // Forest green (Gangrel)
-      dark: "#1b4032",  // Deep green
+      main: "#3a5741",  
+      dark: "#1b4032",  
       contrastText: "#f5f5f5",
     },
     background: {
-      default: "#14100f", // Very dark reddish-black
-      paper: "#1d1515",   // Dark burgundy-black
+      default: "#14100f", 
+      paper: "#1d1515",   
     },
     text: {
-      primary: "#e6c5c1",//"#e8e6e3", // Off-white, easier on eyes than pure white
-      secondary: "#bdb3ad", // Muted cream
-      disabled: "#6c5f5f", // Muted red-gray
+      primary: "#e6c5c1",
+      secondary: "#bdb3ad", 
+      disabled: "#6c5f5f", 
     },
   },
   typography: {
@@ -568,7 +554,7 @@ export const vampireTheme = createTheme({
     },
     MuiMenuItem: {
       styleOverrides: {
-        root: ({ theme, ownerState }) => ({
+        root: ({ theme, ownerState }: { theme: Theme; ownerState: any }) => ({
           fontFamily: vampireSansFontFamily,
           textShadow: subtleGothicShadow(theme),
           color: theme.palette.text.secondary,
@@ -591,7 +577,7 @@ export const vampireTheme = createTheme({
             transition: 'opacity 0.3s ease'
           },
           '&:hover': {
-            backgroundColor: `${theme.palette.primary.main}14`, // rgba(192, 0, 0, 0.08) equivalent
+            backgroundColor: `${theme.palette.primary.main}14`, 
             color: theme.palette.text.primary,
             textShadow: bloodTextShadow(theme, ownerState.color),
             letterSpacing: '0.06em',
@@ -600,10 +586,10 @@ export const vampireTheme = createTheme({
             }
           },
           '&.Mui-selected': {
-            backgroundColor: `${theme.palette.primary.main}26`, // rgba(192, 0, 0, 0.15) equivalent
+            backgroundColor: `${theme.palette.primary.main}26`, 
             color: theme.palette.primary.light,
             '&:hover': {
-              backgroundColor: `${theme.palette.primary.main}40`, // rgba(192, 0, 0, 0.25) equivalent
+              backgroundColor: `${theme.palette.primary.main}40`, 
             }
           },
           ...theme.scrollbarStyles(theme),
@@ -620,26 +606,25 @@ export const vampireTheme = createTheme({
             : 'primary';
 
           const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = buttonPalette.main;
-          const darkColor = buttonPalette.dark;
-          const lightColor = buttonPalette.light;
-          const contrastTextColor = buttonPalette.contrastText;
+          const mainColorUsed = buttonPalette.main;
+          const lightColorUsed = buttonPalette.light;
+          const contrastTextColorUsed = buttonPalette.contrastText;
 
           return {
             fontFamily: vampireSansFontFamily,
             textShadow: subtleGothicShadow(theme),
             letterSpacing: '0.1em',
             borderRadius: theme.shape.borderRadius,
-            border: `1px solid ${mainColor}77`,
+            border: `1px solid ${mainColorUsed}77`,
             padding: "8px 20px",
             minHeight: '44px',
-            color: contrastTextColor,
+            color: contrastTextColorUsed,
             position: 'relative',
             overflow: 'hidden',
             '&:hover': {
-              borderColor: lightColor,
-              backgroundColor: `${mainColor}26`, // Converting hex to rgba with 0.15 opacity
-              boxShadow: `0 0 10px ${mainColor}55, inset 0 0 8px ${mainColor}33`,
+              borderColor: lightColorUsed,
+              backgroundColor: `${mainColorUsed}26`, 
+              boxShadow: `0 0 10px ${mainColorUsed}55, inset 0 0 8px ${mainColorUsed}33`,
             },
             ...theme.scrollbarStyles(theme),
           };
@@ -648,11 +633,10 @@ export const vampireTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary", // Using text.primary for better contrast
+        color: "textPrimary", 
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          // if we don't overwrite color here, if color = "primary" is passed, primary.main will be used.
           const colorKey = (ownerState.color &&
             ['primary', 'secondary', 'error', 'warning', 'info', 'success'].includes(ownerState.color) &&
             ownerState.color !== 'inherit')
@@ -660,13 +644,10 @@ export const vampireTheme = createTheme({
             : 'primary';
 
           const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = buttonPalette.main;
-          const darkColor = buttonPalette.dark;
-          const lightColor = buttonPalette.light;
-          const contrastTextColor = buttonPalette.contrastText;
-
+          const mainColorUsed = buttonPalette.main;
+          
           return {
-            color: mainColor,
+            color: mainColorUsed,
             textShadow: ownerState.variant?.startsWith('h') ? 
               gothicTextShadow(theme, ownerState.color) : 
               subtleGothicShadow(theme),
@@ -712,7 +693,7 @@ export const vampireTheme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: ({ theme }) => ({
-          borderColor: `${theme.palette.primary.main}33`, // rgba(192, 0, 0, 0.2) equivalent
+          borderColor: `${theme.palette.primary.main}33`, 
           '&::before, &::after': {
             borderTop: `thin solid ${theme.palette.primary.main}33`
           },
@@ -751,17 +732,17 @@ export const vampireTheme = createTheme({
     },
     MuiCardHeader: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: ({ theme }) => ({ // theme is used by bloodTextShadow
           padding: '16px 16px 0 16px',
         }),
-        title: ({ theme }) => ({
+        title: ({ theme }: { theme: Theme }) => ({
           fontFamily: vampireSansFontFamily,
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
           fontSize: '1.1rem',
           textShadow: bloodTextShadow(theme, 'primary'),
         }),
-        subheader: ({ theme }) => ({
+        subheader: ({ theme }: { theme: Theme }) => ({
           fontFamily: vampireModernFontFamily,
           fontStyle: 'italic',
           fontSize: '0.9rem',
@@ -771,7 +752,7 @@ export const vampireTheme = createTheme({
     },
     MuiCardContent: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: () => ({ // theme removed
           padding: '16px',
           '&:last-child': {
             paddingBottom: '16px',
@@ -781,7 +762,7 @@ export const vampireTheme = createTheme({
     },
     MuiCardActions: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: () => ({ // theme removed
           padding: '8px 16px 16px 16px',
           justifyContent: 'flex-end',
         }),
@@ -790,7 +771,7 @@ export const vampireTheme = createTheme({
     MuiAccordion: {
       styleOverrides: {
         root: ({ theme }) => ({
-          background: `${theme.palette.background.default}CC`, // rgba(20, 12, 12, 0.8) equivalent
+          background: `${theme.palette.background.default}CC`, 
           boxShadow: 'none',
           '&:before': {
             display: 'none',
@@ -799,20 +780,20 @@ export const vampireTheme = createTheme({
             margin: '16px 0',
             boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
           },
-          borderLeft: `1px solid ${theme.palette.primary.main}33`, // rgba(192, 0, 0, 0.2) equivalent
+          borderLeft: `1px solid ${theme.palette.primary.main}33`, 
         }),
       },
     },
     MuiAccordionSummary: {
       styleOverrides: {
         root: ({ theme }) => ({
-          borderBottom: `1px solid ${theme.palette.primary.main}26`, // rgba(192, 0, 0, 0.15) equivalent
+          borderBottom: `1px solid ${theme.palette.primary.main}26`, 
           '&.Mui-expanded': {
             minHeight: 48,
-            background: `${theme.palette.primary.main}14`, // rgba(192, 0, 0, 0.08) equivalent
+            background: `${theme.palette.primary.main}14`, 
           }
         }),
-        content: ({ theme }) => ({
+        content: () => ({ // theme removed
           '&.Mui-expanded': {
             margin: '12px 0',
           }
@@ -823,7 +804,7 @@ export const vampireTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           position: 'relative',
-          borderBottom: `1px solid ${theme.palette.primary.main}1A`, // rgba(192, 0, 0, 0.1) equivalent
+          borderBottom: `1px solid ${theme.palette.primary.main}1A`, 
           '&::before': {
             content: '"•"',
             color: theme.palette.primary.main,
@@ -854,7 +835,7 @@ export const vampireTheme = createTheme({
           fontSize: '0.9rem',
           fontWeight: 500,
           textShadow: bloodTextShadow(theme, 'primary'),
-          background: `${theme.palette.primary.dark}1A`, // rgba(135, 0, 0, 0.1) equivalent
+          background: `${theme.palette.primary.dark}1A`, 
         })
       },
     },
@@ -874,7 +855,7 @@ export const vampireTheme = createTheme({
             borderColor: `${theme.palette.primary.main}44`,
           }
         }),
-        input: ({ theme }) => ({
+        input: ({ theme }: { theme: Theme }) => ({
           padding: '10px 14px',
           '&::placeholder': {
             color: theme.palette.text.disabled,
@@ -891,7 +872,7 @@ export const vampireTheme = createTheme({
         }),
         root: ({ theme }) => ({
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: `${theme.palette.primary.main}66`, // rgba(192, 0, 0, 0.4) equivalent
+            borderColor: `${theme.palette.primary.main}66`, 
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
             borderColor: `${theme.palette.primary.main}77`,
@@ -902,7 +883,7 @@ export const vampireTheme = createTheme({
     MuiTabs: {
       styleOverrides: {
         root: ({ theme }) => ({
-          borderBottom: `1px solid ${theme.palette.primary.main}33`, // rgba(192, 0, 0, 0.2) equivalent
+          borderBottom: `1px solid ${theme.palette.primary.main}33`, 
         }),
         indicator: ({ theme }) => ({
           backgroundColor: theme.palette.primary.main,
@@ -941,17 +922,17 @@ export const vampireTheme = createTheme({
           borderRadius: theme.shape.borderRadius,
           border: '1px solid rgba(255, 255, 255, 0.1)',
           '&.MuiChip-colorPrimary': {
-            backgroundColor: `${theme.palette.primary.main}26`, // rgba(192, 0, 0, 0.15) equivalent
-            borderColor: `${theme.palette.primary.main}4D`, // rgba(192, 0, 0, 0.3) equivalent
+            backgroundColor: `${theme.palette.primary.main}26`, 
+            borderColor: `${theme.palette.primary.main}4D`, 
             color: theme.palette.primary.light,
           },
           '&.MuiChip-colorSecondary': {
-            backgroundColor: `${theme.palette.secondary.main}26`, // rgba(123, 31, 162, 0.15) equivalent
-            borderColor: `${theme.palette.secondary.main}4D`, // rgba(123, 31, 162, 0.3) equivalent
+            backgroundColor: `${theme.palette.secondary.main}26`, 
+            borderColor: `${theme.palette.secondary.main}4D`, 
             color: theme.palette.secondary.light,
           },
         }),
-        label: ({ theme }) => ({
+        label: () => ({ // theme removed
           paddingLeft: 12,
           paddingRight: 12,
         }),
@@ -973,8 +954,8 @@ export const vampireTheme = createTheme({
     },
     "&::-webkit-scrollbar-thumb": {
       backgroundColor: theme.palette.mode === 'light' 
-        ? theme.palette.primary.main + '40'  // Lighter for light mode
-        : theme.palette.primary.dark + '80', // Darker for dark mode
+        ? theme.palette.primary.main + '40'  
+        : theme.palette.primary.dark + '80', 
       border: theme.palette.mode === 'light' 
         ? `1px solid ${theme.palette.primary.light + '30'}`
         : `1px solid ${theme.palette.primary.dark + '60'}`,
@@ -993,49 +974,49 @@ export const cthulhuTheme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      light: "#6b705c", // #6b705c Muted sage green
-      main: "#3a3a3a", // #3a3a3a Nearly black - for text
-      dark: "#1f1f1f", // #1f1f1f Deep black - for emphasis
-      contrastText: "#f0eee4", // #f0eee4 Off-white parchment
+      light: "#6b705c", 
+      main: "#3a3a3a", 
+      dark: "#1f1f1f", 
+      contrastText: "#f0eee4", 
     },
     secondary: {
-      light: "#b56576", // #b56576 Dusty rose
-      main: "#6d597a", // #6d597a Muted purple
-      dark: "#355070", // #355070 Deep navy blue
-      contrastText: "#f0eee4", // #f0eee4 Off-white parchment
+      light: "#b56576", 
+      main: "#6d597a", 
+      dark: "#355070", 
+      contrastText: "#f0eee4", 
     },
     warning: {
-      light: "#cb997e", // #cb997e Faded terracotta
-      main: "#a07855", // #a07855 Aged leather brown
-      dark: "#774936", // #774936 Deep mahogany
-      contrastText: "#f0eee4", // #f0eee4 Off-white
+      light: "#cb997e", 
+      main: "#a07855", 
+      dark: "#774936", 
+      contrastText: "#f0eee4", 
     },
     error: {
-      light: "#bc4749", // #bc4749 Faded crimson
-      main: "#9a031e", // #9a031e Dark blood red
-      dark: "#540b0e", // #540b0e Deep maroon
-      contrastText: "#f0eee4", // #f0eee4 Off-white parchment
+      light: "#bc4749", 
+      main: "#9a031e", 
+      dark: "#540b0e", 
+      contrastText: "#f0eee4", 
     },
     info: {
-      light: "#829399", // #829399 Slate blue-gray
-      main: "#5f6f78", // #5f6f78 Darker blue-gray
-      dark: "#2e4756", // #2e4756 Deep blue-gray
-      contrastText: "#f0eee4", // #f0eee4 Off-white parchment
+      light: "#829399", 
+      main: "#5f6f78", 
+      dark: "#2e4756", 
+      contrastText: "#f0eee4", 
     },
     success: {
-      light: "#84a98c", // #84a98c Sage green
-      main: "#52796f", // #52796f Darker green
-      dark: "#354f52", // #354f52 Deep forest green
-      contrastText: "#f0eee4", // #f0eee4 Off-white parchment
+      light: "#84a98c", 
+      main: "#52796f", 
+      dark: "#354f52", 
+      contrastText: "#f0eee4", 
     },
     background: {
-      default: "#e9e7de", // #e9e7de Aged parchment
-      paper: "#f5f3e9", // #f5f3e9 Lighter parchment/paper
+      default: "#e9e7de", 
+      paper: "#f5f3e9", 
     },
     text: {
-      primary: "#2e2e2e", // #2e2e2e Nearly black
-      secondary: "#5a5a58", // #5a5a58 Dark gray
-      disabled: "#a5a5a2", // #a5a5a2 Medium gray
+      primary: "#2e2e2e", 
+      secondary: "#5a5a58", 
+      disabled: "#a5a5a2", 
     },
   },
   typography: {
@@ -1105,7 +1086,7 @@ export const cthulhuTheme = createTheme({
     }
   },
   shape: {
-    borderRadius: 2, // Slightly rounded corners for a vintage feel
+    borderRadius: 2, 
   },
   components: {
     MuiPaper: {
@@ -1123,7 +1104,7 @@ export const cthulhuTheme = createTheme({
     },
     MuiMenuItem: {
       styleOverrides: {
-        root: ({ theme, ownerState }) => ({
+        root: ({ theme, ownerState }: { theme: Theme, ownerState: any}) => ({
           fontFamily: cthulhuFontFamily,
           textShadow: antiquarianTextShadow(theme, ownerState.color || 'primary'),
           color: theme.palette.text.primary,
@@ -1156,25 +1137,24 @@ export const cthulhuTheme = createTheme({
             : 'primary';
 
           const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = (buttonPalette as any).main || theme.palette.primary.main;
-          const darkColor = (buttonPalette as any).dark || theme.palette.primary.dark;
-          const contrastTextColor = (buttonPalette as any).contrastText || theme.palette.primary.contrastText;
+          const darkColorUsed = (buttonPalette as any).dark || theme.palette.primary.dark;
+          const contrastTextColorUsed = (buttonPalette as any).contrastText || theme.palette.primary.contrastText;
 
           return {
             fontFamily: cthulhuFontFamily,
             textShadow: theme.palette.mode === 'light' ? 'none' : antiquarianTextShadow(theme, ownerState.color),
             borderRadius: "2px",
-            border: `1px solid ${darkColor}66`,
+            border: `1px solid ${darkColorUsed}66`,
             padding: "8px 16px",
-            color: theme.palette.mode === 'light' ? darkColor : contrastTextColor,
+            color: theme.palette.mode === 'light' ? darkColorUsed : contrastTextColorUsed,
             backgroundColor: theme.palette.mode === 'light' ? theme.palette.background.paper : 'transparent',
             boxShadow: theme.palette.mode === 'light' 
               ? '0 2px 4px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.1)'
               : 'none',
             transition: 'all 0.2s ease',
             '&:hover': {
-              borderColor: darkColor,
-              backgroundColor: theme.palette.mode === 'light' ? theme.palette.background.default : darkColor + '33',
+              borderColor: darkColorUsed,
+              backgroundColor: theme.palette.mode === 'light' ? theme.palette.background.default : darkColorUsed + '33',
               boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
               transform: 'translateY(-1px)',
             },
@@ -1189,7 +1169,7 @@ export const cthulhuTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary", // Using text.primary instead of primary.main
+        color: "textPrimary", 
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
@@ -1204,7 +1184,7 @@ export const cthulhuTheme = createTheme({
           color: theme.palette.text.primary,
           fontFamily: cthulhuFontFamily,
           [theme.breakpoints.up("lg")]: {
-            maxWidth: "1400px", // Slightly narrower for readability
+            maxWidth: "1400px", 
           },
           '& a': {
             color: theme.palette.secondary.dark,
@@ -1240,7 +1220,6 @@ export const cthulhuTheme = createTheme({
             : 'none',
           boxShadow: '0 3px 10px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05)',
           border: `1px solid ${theme.palette.text.secondary}11`,
-          // Slightly yellowish border for aged paper look
           borderColor: theme.palette.mode === 'light' ? 'rgba(98, 74, 46, 0.15)' : 'transparent'
         }),
       },
@@ -1282,7 +1261,6 @@ export const cthulhuTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           borderBottom: `1px solid ${theme.palette.text.secondary}22`,
-          // Very subtle texture for tables
           backgroundImage: theme.palette.mode === 'light' 
             ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'4\' height=\'4\' viewBox=\'0 0 4 4\'%3E%3Cpath fill=\'%23a9a9a9\' fill-opacity=\'0.03\' d=\'M1 3h1v1H1V3zm2-2h1v1H3V1z\'%3E%3C/path%3E%3C/svg%3E")'
             : 'none',
@@ -1330,8 +1308,8 @@ export const cthulhuTheme = createTheme({
     },
     "&::-webkit-scrollbar-thumb": {
       backgroundColor: theme.palette.mode === 'light' 
-        ? theme.palette.primary.main + '40'  // Lighter for light mode
-        : theme.palette.primary.dark + '80', // Darker for dark mode
+        ? theme.palette.primary.main + '40'  
+        : theme.palette.primary.dark + '80', 
       border: theme.palette.mode === 'light' 
         ? `1px solid ${theme.palette.primary.light + '30'}`
         : `1px solid ${theme.palette.primary.dark + '60'}`,

@@ -478,8 +478,8 @@ export async function sendTextToSpeechStream(
             // buffering strategy might be needed for production.
             setTimeout(() => {
               if (audio.paused) { // Check if audio is paused before playing
-                audio.play().catch((e) => {
-                  // console.warn("Audio play failed (autoplay policy or other error):", e);
+                audio.play().catch((_playError) => {
+                  // console.warn("Audio play failed (autoplay policy or other error):", _playError);
                   // UI should inform user that playback couldn't start automatically.
                 });
               }
@@ -548,8 +548,8 @@ export async function sendTextToSpeechStream(
   });
 
   // Add error event listener to the audio element itself.
-  audio.addEventListener("error", (e) => {
-    // console.error("HTMLAudioElement error:", audio.error, e);
+  audio.addEventListener("error", () => {
+    // console.error("HTMLAudioElement error:", audio.error);
     cleanup(); // Clean up on audio element errors.
   });
 
