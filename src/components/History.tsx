@@ -4,7 +4,11 @@ import {
   useEffect,
   useState,
   useCallback,
+  useCallback,
+  useMemo,
 } from "react";
+import { FixedSizeList } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { Typography, Container, Button, CircularProgress } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -38,6 +42,15 @@ type HistoryProps = ComponentProps<typeof Container> & {
   disabled: boolean;
 };
 
+/**
+ * Defines the structure of items for the virtualized list.
+ * Each item has a type and corresponding data.
+ */
+type VirtualItem =
+  | { type: "history"; data: Interaction; id: string }
+  | { type: "playerInputOld"; data: string; id: string }
+  | { type: "llmOutput"; data: string; id: string };
+
 // Toggle this to switch between legacy Blob method and streaming
 const USE_TTS_STREAM = true;
 
@@ -64,6 +77,30 @@ export default function History({
   ...props
 }: HistoryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<FixedSizeList>(null);
+
+  const virtualizedItems: VirtualItem[] = useMemo(() => {
+    const items: VirtualItem[] = interactions.map((interaction, index) => ({
+      type: "history",
+      data: interaction,
+      id: `hist-${index}`,
+    }));
+    if (lastInteraction.playerInput !== "" || changePlayerInputOldCallback) { // Ensure we add if editable or has content
+      items.push({
+        type: "playerInputOld",
+        data: lastInteraction.playerInput,
+        id: "playerInputOld",
+      });
+    }
+    if (lastInteraction.llmOutput !== "" || changeLlmOutputCallback) { // Ensure we add if editable or has content
+      items.push({
+        type: "llmOutput",
+        data: lastInteraction.llmOutput,
+        id: "llmOutput",
+      });
+    }
+    return items;
+  }, [interactions, lastInteraction, changePlayerInputOldCallback, changeLlmOutputCallback]);
 
   // State for TTS audio playback
   /** State variable for the current HTMLAudioElement instance. */
@@ -76,10 +113,13 @@ export default function History({
   const [audioError, setAudioError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    if (listRef.current) {
+      listRef.current.scrollToItem({
+        align: "end",
+        index: virtualizedItems.length - 1,
+      });
     }
-  }, [interactions, lastInteraction]);
+  }, [virtualizedItems]); // Depends on virtualizedItems to scroll when they change
 
   /**
    * Utility function to safely clean up an HTMLAudioElement and its associated resources.
@@ -227,6 +267,70 @@ export default function History({
     );
   };
 
+  // Row component now receives `data` (which is virtualizedItems) and `index` from FixedSizeList
+  const Row = ({ index, data, style }: { index: number; data: VirtualItem[]; style: React.CSSProperties }) => {
+    const item = data[index];
+    // Apply the style to the root element of the Row for react-window.
+    // This is crucial for react-window to position items correctly.
+    switch (item.type) {
+      case "history":
+        return (
+          <div style={style}>
+            <Typography
+              variant="subtitle2"
+              fontStyle="italic"
+              color="secondary"
+            >
+              <br />
+              Player
+              <br />
+            </Typography>
+            <MarkdownRenderer
+              value={item.data.playerInput}
+              color="secondary"
+            />
+            <Typography variant="subtitle2" fontStyle="italic" color="primary">
+              <br />
+              Gamemaster
+              <br />
+            </Typography>
+            <MarkdownRenderer value={item.data.llmOutput} color="primary" />
+          </div>
+        );
+      case "playerInputOld":
+        return (
+          <div style={style}>
+            <FieldContainer
+              sendCallback={sendCallback}
+              stopCallback={stopCallback}
+              changeCallback={changePlayerInputOldCallback}
+              value={item.data}
+              instance="Player"
+              color="secondary"
+              type={FieldContainerType.PLAYER_OLD}
+              disabled={disabled}
+            />
+          </div>
+        );
+      case "llmOutput":
+        return (
+          <div style={style}>
+            <FieldContainer
+              changeCallback={changeLlmOutputCallback}
+              value={item.data}
+              instance="Gamemaster"
+              color="primary"
+              type={FieldContainerType.GAMEMASTER}
+              disabled={disabled}
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+
   return (
     <Container
       ref={containerRef}
@@ -235,36 +339,31 @@ export default function History({
         display: "flex",
         flexDirection: "column",
         width: "95%" /* Fields take up full width of their container */,
-        maxHeight: "60vh",
-        overflow: "auto",
+        maxHeight: "60vh", // This will constrain the AutoSizer
+        // overflow: "auto", // Removed, AutoSizer/FixedSizeList handle internal scrolling
         paddingTop: 0,
         marginLeft: 0,
         marginRight: 0,
       }}
     >
-      {InteractionList(interactions)}
-      {/* {lastInteraction.playerInput !== "" && ( */}
-      <FieldContainer
-        sendCallback={sendCallback}
-        stopCallback={stopCallback}
-        changeCallback={changePlayerInputOldCallback}
-        value={lastInteraction.playerInput}
-        instance="Player"
-        color="secondary"
-        type={FieldContainerType.PLAYER_OLD}
-        disabled={disabled}
-      />
-      {/* )} */}
-      {/* {lastInteraction.llmOutput !== "" && ( */}
-      <FieldContainer
-        changeCallback={changeLlmOutputCallback}
-        value={lastInteraction.llmOutput}
-        instance="Gamemaster"
-        color="primary"
-        type={FieldContainerType.GAMEMASTER}
-        disabled={disabled}
-      />
-      {/* )} */}
+      {/* Wrapper div for AutoSizer to work correctly within a flex container */}
+      <div style={{ flexGrow: 1, minHeight: 0, width: "100%" }}>
+        <AutoSizer>
+          {({ height, width }) => (
+            <FixedSizeList
+              ref={listRef}
+              height={height}
+              itemCount={virtualizedItems.length}
+              itemSize={150} // Adjust as needed
+              itemData={virtualizedItems}
+              width={width}
+            >
+              {Row}
+            </FixedSizeList>
+          )}
+        </AutoSizer>
+      </div>
+      {/* TTS Buttons and Error Message Area */}
       <div
         style={{
           width: "100%",

@@ -112,6 +112,21 @@ type UseGameCallbacksProps = {
  * @property {function(value: string): void} changeCallbackPlayerInput - Callback to update the state of the 'current player input' field.
  * @property {function(value: string): void} changeCallbackLlmOutput - Callback to update the state of the 'LLM output' field.
  */
+export type GamemasterCallbacks = {
+  sendNewMissionGenerate: (
+    gameType: GameType,
+    background: string
+  ) => Promise<void>;
+  saveMission: (nameCustom: string) => Promise<void>;
+  listMissions: () => Promise<Mission[]>;
+  loadMission: (missionId: number) => Promise<void>;
+  sendRegenerate: () => Promise<void>;
+  sendPlayerInput: () => Promise<void>;
+  stopGeneration: () => Promise<void>;
+  changeCallbackPlayerInputOld: (value: string) => void;
+  changeCallbackPlayerInput: (value: string) => void;
+  changeCallbackLlmOutput: (value: string) => void;
+};
 
 /**
  * Implementation of the `useGamemasterCallbacks` hook.
