@@ -40,6 +40,8 @@ type FieldContainerProps = {
   disabled?: boolean;
   /** Optional placeholder text for the input field. */
   placeholder?: string;
+  /** Optional callback function to handle speech-to-text transcription from audio. */
+  speechToTextCallback?: (audioBlob: Blob) => Promise<void>;
 };
 
 // --- Subcomponents ---
@@ -220,6 +222,7 @@ const FieldContainer: React.FC<FieldContainerProps> = ({
   type,
   disabled = false,
   placeholder = "",
+  speechToTextCallback,
 }) => {
   /** State variable to control if the field is in edit mode or display mode.
    *  Initialized to `true` if the type is `MAIN_SEND`, `false` otherwise.
@@ -229,8 +232,14 @@ const FieldContainer: React.FC<FieldContainerProps> = ({
   );
   /** State variable to track if content is currently being generated (e.g., waiting for an API response). */
   const [isGenerating, setIsGenerating] = useState(false);
+  /** State variable to track if audio is currently being recorded. */
+  const [isRecording, setIsRecording] = useState(false);
   /** Ref to the underlying TextField component to manage focus and scroll. */
   const textFieldRef = useRef<HTMLDivElement>(null);
+  /** Ref to the MediaRecorder instance for audio recording. */
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  /** Ref to store audio chunks during recording. */
+  const audioChunksRef = useRef<Blob[]>([]);
 
   /**
    * Handles the send action.
@@ -291,6 +300,49 @@ const FieldContainer: React.FC<FieldContainerProps> = ({
     [changeCallback]
   );
 
+  /**
+   * Handles the microphone button click.
+   * Toggles audio recording on and off using the MediaRecorder API.
+   */
+  const handleMicClick = useCallback(async () => {
+    if (!isRecording) {
+      // Start recording
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        const mediaRecorder = new window.MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+        mediaRecorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        alert("Microphone access denied or not available.");
+      }
+    } else {
+      // Stop recording
+      const mediaRecorder = mediaRecorderRef.current;
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        mediaRecorder.onstop = async () => {
+          setIsRecording(false);
+          // Combine audio chunks into a single blob
+          const audioBlob = new Blob(audioChunksRef.current, {
+            type: "audio/webm",
+          });
+          if (typeof speechToTextCallback === "function") {
+            await speechToTextCallback(audioBlob);
+          }
+        };
+      }
+    }
+  }, [isRecording, speechToTextCallback]);
+
   return (
     <>
       <Typography
@@ -336,6 +388,23 @@ const FieldContainer: React.FC<FieldContainerProps> = ({
           onStopClick={handleStop}
         />
       </Container>
+      {type === FieldContainerType.MAIN_SEND && (
+        <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 1 }}>
+          <Button
+            variant={isRecording ? "contained" : "outlined"}
+            color={isRecording ? "error" : color}
+            onClick={handleMicClick}
+            disabled={disabled}
+            startIcon={
+              <span role="img" aria-label="microphone">
+                {isRecording ? "🔴" : "🎤"}
+              </span>
+            }
+          >
+            {isRecording ? "Stop Recording" : "Record"}
+          </Button>
+        </Box>
+      )}
     </>
   );
 };

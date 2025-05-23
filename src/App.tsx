@@ -142,6 +142,7 @@ const App: React.FC = () => {
     changeCallbackPlayerInputOld,
     changeCallbackPlayerInput,
     changeCallbackLlmOutput,
+    speechToTextCallback,
   } = useGamemasterCallbacks({
     mission,
     setMission,
@@ -230,6 +231,7 @@ const App: React.FC = () => {
                   type={FieldContainerType.MAIN_SEND}
                   disabled={mission === null}
                   placeholder="Begin by describing your character and what he's currently doing."
+                  speechToTextCallback={speechToTextCallback}
                 />
               </Container>
             </AppGrid>
