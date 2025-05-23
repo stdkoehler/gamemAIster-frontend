@@ -241,32 +241,21 @@ const App: React.FC = () => {
                   minHeight: 0,
                   display: "flex",
                   flexDirection: "column",
+                  alignItems: "flex-start", // This ensures left alignment
+                  textAlign: "left", // This ensures text is left-aligned
                 }}
               >
-                <Container
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    alignItems: "left",
-                    width: "95%",
-                    flexShrink: 0,
-                    paddingTop: 0,
-                    paddingBottom: 0,
-                  }}
-                >
-                  <FieldContainer
-                    sendCallback={sendPlayerInput}
-                    changeCallback={changeCallbackPlayerInput}
-                    stopCallback={stopGeneration}
-                    value={playerInput}
-                    instance="Player"
-                    color="secondary"
-                    type={FieldContainerType.MAIN_SEND}
-                    disabled={mission === null}
-                    placeholder="Begin by describing your character and what he's currently doing."
-                  />
-                </Container>
+                <FieldContainer
+                  sendCallback={sendPlayerInput}
+                  changeCallback={changeCallbackPlayerInput}
+                  stopCallback={stopGeneration}
+                  value={playerInput}
+                  instance="Player"
+                  color="secondary"
+                  type={FieldContainerType.MAIN_SEND}
+                  disabled={mission === null}
+                  placeholder="Begin by describing your character and what he's currently doing."
+                />
               </AppGrid>
             </AppGrid>
           </SplitScreen>
