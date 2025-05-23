@@ -5,7 +5,7 @@ import {
   useState,
   useCallback,
 } from "react";
-import { FixedSizeList } from "react-window";
+import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 import { Typography, Container, Button, CircularProgress } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -65,7 +65,7 @@ export default function History({
   ...props
 }: HistoryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<FixedSizeList>(null);
+  const listRef = useRef<VirtuosoHandle>(null);
 
   // State for TTS audio playback
   /** State variable for the current HTMLAudioElement instance. */
@@ -82,7 +82,10 @@ export default function History({
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
     if (listRef.current) {
-      listRef.current.scrollToItem(interactions.length - 1, "end");
+      listRef.current.scrollToIndex({
+        index: interactions.length - 1,
+        align: "end",
+      });
     }
   }, [interactions, lastInteraction]);
 
@@ -196,124 +199,141 @@ export default function History({
   };
 
   /**
-   * InteractionList is an inline component that renders the list of past interactions.
-   * Each interaction consists of player input and LLM output, displayed using MarkdownRenderer.
-   *
-   * @param interactions - Array of Interaction objects to display.
-   * @returns JSX elements representing the list of interactions.
+   * Renders a row in the virtualized list. Includes all interactions and the two FieldContainers at the end.
    */
-  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const interaction = interactions[index];
-    return (
-      <div style={style}>
-        <Typography variant="subtitle2" fontStyle="italic" color="secondary">
-          <br />
-          Player
-          <br />
-        </Typography>
-        <MarkdownRenderer value={interaction.playerInput} color="secondary" />
-        <Typography variant="subtitle2" fontStyle="italic" color="primary">
-          <br />
-          Gamemaster
-          <br />
-        </Typography>
-        <MarkdownRenderer value={interaction.llmOutput} color="primary" />
-      </div>
-    );
+  const Row = ({
+    index,
+    style,
+  }: {
+    index: number;
+    style: React.CSSProperties;
+  }) => {
+    if (index < interactions.length) {
+      const interaction = interactions[index];
+      return (
+        <div style={style}>
+          <Typography variant="subtitle2" fontStyle="italic" color="secondary">
+            <br />
+            Player
+            <br />
+          </Typography>
+          <MarkdownRenderer value={interaction.playerInput} color="secondary" />
+          <Typography variant="subtitle2" fontStyle="italic" color="primary">
+            <br />
+            Gamemaster
+            <br />
+          </Typography>
+          <MarkdownRenderer value={interaction.llmOutput} color="primary" />
+        </div>
+      );
+    } else if (index === interactions.length) {
+      // First FieldContainer (Player)
+      return (
+        <div style={style}>
+          <FieldContainer
+            sendCallback={sendCallback}
+            stopCallback={stopCallback}
+            changeCallback={changePlayerInputOldCallback}
+            value={lastInteraction.playerInput}
+            instance="Player"
+            color="secondary"
+            type={FieldContainerType.PLAYER_OLD}
+            disabled={disabled}
+          />
+        </div>
+      );
+    } else if (index === interactions.length + 1) {
+      // Second FieldContainer (Gamemaster) + TTS controls
+      return (
+        <div style={style}>
+          <FieldContainer
+            changeCallback={changeLlmOutputCallback}
+            value={lastInteraction.llmOutput}
+            instance="Gamemaster"
+            color="primary"
+            type={FieldContainerType.GAMEMASTER}
+            disabled={disabled}
+          />
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              marginTop: 4,
+            }}
+          >
+            {isPlaying ? (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<StopIcon />}
+                onClick={handleStopTTS}
+                disabled={disabled || !audio}
+                sx={{ mt: 1, mb: 1 }}
+              >
+                Stop
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={
+                  loadingAudio ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <PlayArrowIcon />
+                  )
+                }
+                onClick={handlePlayTTS}
+                disabled={
+                  disabled ||
+                  loadingAudio ||
+                  !lastInteraction.llmOutput ||
+                  isPlaying
+                }
+                sx={{ mt: 1, mb: 1 }}
+              >
+                {loadingAudio ? "Synthesizing..." : "Play"}
+              </Button>
+            )}
+            {audioError && (
+              <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+                {audioError}
+              </Typography>
+            )}
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
     <Container
-      ref={containerRef}
       {...props}
       sx={{
         display: "flex",
         flexDirection: "column",
-        width: "95%" /* Fields take up full width of their container */,
-        maxHeight: "60vh", // This will be used by FixedSizeList
-        overflow: "hidden", // Changed from "auto" to "hidden" as FixedSizeList handles scrolling
+        width: "95%",
+        height: "60vh",
+        maxHeight: "60vh",
+        overflow: "hidden",
         paddingTop: 0,
         marginLeft: 0,
         marginRight: 0,
       }}
     >
-      <div style={{ flexGrow: 1, width: '100%' }}> {/* Wrapper div for FixedSizeList */}
-        <FixedSizeList
+      <div style={{ flexGrow: 1, width: "100%", height: "100%" }}>
+        <Virtuoso
           ref={listRef}
-          height={containerRef.current?.clientHeight ? containerRef.current.clientHeight * 0.9 : 400} // Adjust height as needed
-          itemCount={interactions.length}
-          itemSize={150} // Adjust itemSize as needed
-          width="100%"
-        >
-          {Row}
-        </FixedSizeList>
-      </div>
-      {/* {lastInteraction.playerInput !== "" && ( */}
-      <FieldContainer
-        sendCallback={sendCallback}
-        stopCallback={stopCallback}
-        changeCallback={changePlayerInputOldCallback}
-        value={lastInteraction.playerInput}
-        instance="Player"
-        color="secondary"
-        type={FieldContainerType.PLAYER_OLD}
-        disabled={disabled}
-      />
-      {/* )} */}
-      {/* {lastInteraction.llmOutput !== "" && ( */}
-      <FieldContainer
-        changeCallback={changeLlmOutputCallback}
-        value={lastInteraction.llmOutput}
-        instance="Gamemaster"
-        color="primary"
-        type={FieldContainerType.GAMEMASTER}
-        disabled={disabled}
-      />
-      {/* )} */}
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          marginTop: 4,
-        }}
-      >
-        {isPlaying ? (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<StopIcon />}
-            onClick={handleStopTTS}
-            disabled={disabled || !audio}
-            sx={{ mt: 1, mb: 1 }}
-          >
-            Stop
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={
-              loadingAudio ? <CircularProgress size={20} /> : <PlayArrowIcon />
-            }
-            onClick={handlePlayTTS}
-            disabled={
-              disabled ||
-              loadingAudio ||
-              !lastInteraction.llmOutput ||
-              isPlaying
-            }
-            sx={{ mt: 1, mb: 1 }}
-          >
-            {loadingAudio ? "Synthesizing..." : "Play"}
-          </Button>
-        )}
-        {audioError && (
-          <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
-            {audioError}
-          </Typography>
-        )}
+          style={{
+            height: "100%",
+            width: "100%",
+          }}
+          totalCount={interactions.length + 2}
+          itemContent={(index) => Row({ index, style: {} })}
+        />
       </div>
     </Container>
   );
