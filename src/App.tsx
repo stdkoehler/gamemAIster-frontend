@@ -164,77 +164,113 @@ const App: React.FC = () => {
       <CssBaseline />
       <Box
         sx={{
-          height: "100%",
+          height: "100vh", // changed from "100%" to "100vh"
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
         }}
       >
         <ImageContainer src={currentTheme.logo} />
-        <SplitScreen
-          leftWeight={1}
-          rightWeight={4}
-          color={"primary"}
-          scrollable
+        <Box
+          sx={{
+            flexGrow: 1,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
-          <AppGrid container spacing={2}>
-            <MissionMenu
-              newCallback={async (
-                selectedGameType: GameType,
-                background: string
-              ) => {
-                setGameType(selectedGameType);
-                await sendNewMissionGenerate(selectedGameType, background);
-              }}
-              saveCallback={saveMission}
-              listCallback={listMissions}
-              loadCallback={loadMission}
-            />
-            <CharacterManager />
-          </AppGrid>
-          <AppGrid container spacing={2}>
-            <AppGrid>
-              <AdventureHeading>{adventure}</AdventureHeading>
-            </AppGrid>
-            <AppGrid>
-              <History
-                sendCallback={sendRegenerate}
-                stopCallback={stopGeneration}
-                changePlayerInputOldCallback={changeCallbackPlayerInputOld}
-                changeLlmOutputCallback={changeCallbackLlmOutput}
-                interactions={interactions}
-                lastInteraction={{
-                  playerInput: playerInputOld,
-                  llmOutput: llmOutput,
+          <SplitScreen
+            leftWeight={1}
+            rightWeight={4}
+            color={"primary"}
+            scrollable
+          >
+            <AppGrid container spacing={2}>
+              <MissionMenu
+                newCallback={async (
+                  selectedGameType: GameType,
+                  background: string
+                ) => {
+                  setGameType(selectedGameType);
+                  await sendNewMissionGenerate(selectedGameType, background);
                 }}
-                disabled={mission === null}
+                saveCallback={saveMission}
+                listCallback={listMissions}
+                loadCallback={loadMission}
               />
+              <CharacterManager />
             </AppGrid>
-            <AppGrid>
-              <Container
+            <AppGrid
+              container
+              spacing={2}
+              direction="column"
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flexGrow: 1,
+                minHeight: 0,
+              }}
+            >
+              <AppGrid>
+                <AdventureHeading>{adventure}</AdventureHeading>
+              </AppGrid>
+              <AppGrid
                 sx={{
+                  flexGrow: 1,
+                  minHeight: 0,
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "space-between",
-                  alignItems: "left",
-                  width: "95%",
                 }}
               >
-                <FieldContainer
-                  sendCallback={sendPlayerInput}
-                  changeCallback={changeCallbackPlayerInput}
+                <History
+                  sendCallback={sendRegenerate}
                   stopCallback={stopGeneration}
-                  value={playerInput}
-                  instance="Player"
-                  color="secondary"
-                  type={FieldContainerType.MAIN_SEND}
+                  changePlayerInputOldCallback={changeCallbackPlayerInputOld}
+                  changeLlmOutputCallback={changeCallbackLlmOutput}
+                  interactions={interactions}
+                  lastInteraction={{
+                    playerInput: playerInputOld,
+                    llmOutput: llmOutput,
+                  }}
                   disabled={mission === null}
-                  placeholder="Begin by describing your character and what he's currently doing."
                 />
-              </Container>
+              </AppGrid>
+              <AppGrid
+                sx={{
+                  //flexGrow: 1,
+                  minHeight: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Container
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "left",
+                    width: "95%",
+                    flexShrink: 0,
+                    paddingTop: 0,
+                    paddingBottom: 0,
+                  }}
+                >
+                  <FieldContainer
+                    sendCallback={sendPlayerInput}
+                    changeCallback={changeCallbackPlayerInput}
+                    stopCallback={stopGeneration}
+                    value={playerInput}
+                    instance="Player"
+                    color="secondary"
+                    type={FieldContainerType.MAIN_SEND}
+                    disabled={mission === null}
+                    placeholder="Begin by describing your character and what he's currently doing."
+                  />
+                </Container>
+              </AppGrid>
             </AppGrid>
-          </AppGrid>
-        </SplitScreen>
+          </SplitScreen>
+        </Box>
       </Box>
     </ThemeProvider>
   );

@@ -6,7 +6,15 @@ import {
   useCallback,
 } from "react";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
-import { Typography, Container, Button, CircularProgress } from "@mui/material";
+import {
+  Typography,
+  Container,
+  Button,
+  CircularProgress,
+  Box,
+  styled,
+  useTheme,
+} from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
@@ -66,6 +74,12 @@ export default function History({
 }: HistoryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<VirtuosoHandle>(null);
+  const theme = useTheme();
+
+  // Create a styled scroller component for Virtuoso
+  const StyledScroller = styled("div")(({ theme }) => ({
+    ...theme.scrollbarStyles(theme),
+  }));
 
   // State for TTS audio playback
   /** State variable for the current HTMLAudioElement instance. */
@@ -310,31 +324,31 @@ export default function History({
   };
 
   return (
-    <Container
-      {...props}
+    <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        width: "95%",
-        height: "60vh",
-        maxHeight: "60vh",
+        flex: 1,
+        minHeight: 0,
         overflow: "hidden",
-        paddingTop: 0,
-        marginLeft: 0,
-        marginRight: 0,
+        width: "100%",
+        "& .virtuoso-scroller": {
+          ...theme.scrollbarStyles(theme),
+        },
       }}
     >
-      <div style={{ flexGrow: 1, width: "100%", height: "100%" }}>
-        <Virtuoso
-          ref={listRef}
-          style={{
-            height: "100%",
-            width: "100%",
-          }}
-          totalCount={interactions.length + 2}
-          itemContent={(index) => Row({ index, style: {} })}
-        />
-      </div>
-    </Container>
+      <Virtuoso
+        ref={listRef}
+        style={{
+          height: "100%",
+          width: "100%",
+        }}
+        components={{
+          Scroller: StyledScroller,
+        }}
+        totalCount={interactions.length + 2}
+        itemContent={(index) => Row({ index, style: {} })}
+      />
+    </Box>
   );
 }

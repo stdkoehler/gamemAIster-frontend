@@ -44,13 +44,24 @@ export default function SplitScreen({
   const [left, right] = children;
   const theme = useTheme();
   return (
-    <Box sx={{ display: "flex", flexDirection: "row" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        height: "100%",
+        minHeight: 0,
+        flex: 1,
+      }}
+    >
       <Box
         sx={{
           flex: leftWeight,
           maxHeight: "80vh",
           overflowY: scrollable ? "auto" : "visible",
           padding: "8px",
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column", // Changed from "row" to "column"
           ...theme.scrollbarStyles(theme), // Apply custom scrollbar styles
         }}
       >
@@ -60,9 +71,9 @@ export default function SplitScreen({
         sx={{
           display: "flex",
           flex: rightWeight,
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
+          flexDirection: "row",
+          minHeight: 0,
+          padding: "8px", // Add consistent padding
         }}
       >
         {right}
