@@ -347,7 +347,7 @@ export default function History({
           Scroller: StyledScroller,
         }}
         totalCount={interactions.length + 2}
-        itemContent={(index) => Row({ index, style: {} })}
+        itemContent={(index) => Row({ index, style: { paddingRight: "8px" } })}
       />
     </Box>
   );
