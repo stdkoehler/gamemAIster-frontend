@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  memo,
 } from "react";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 import {
@@ -62,7 +63,7 @@ const USE_TTS_STREAM = true;
  * @param props - The props for the component. See {@link HistoryProps}.
  * @returns The History component.
  */
-export default function History({
+const HistoryComponent = ({
   sendCallback,
   stopCallback,
   changePlayerInputOldCallback,
@@ -352,4 +353,6 @@ export default function History({
       />
     </Box>
   );
-}
+};
+
+export default memo(HistoryComponent);

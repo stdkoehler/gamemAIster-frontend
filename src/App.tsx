@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { shadowrunTheme, vampireTheme, cthulhuTheme } from "./theme";
@@ -159,6 +159,13 @@ const App: React.FC = () => {
     setGameType,
   });
 
+  const memoizedLastInteraction = useMemo(() => {
+    return {
+      playerInput: playerInputOld,
+      llmOutput: llmOutput,
+    };
+  }, [playerInputOld, llmOutput]);
+
   // --- UI ---
   return (
     <ThemeProvider theme={currentTheme}>
@@ -229,10 +236,7 @@ const App: React.FC = () => {
                   changePlayerInputOldCallback={changeCallbackPlayerInputOld}
                   changeLlmOutputCallback={changeCallbackLlmOutput}
                   interactions={interactions}
-                  lastInteraction={{
-                    playerInput: playerInputOld,
-                    llmOutput: llmOutput,
-                  }}
+                  lastInteraction={memoizedLastInteraction}
                   disabled={mission === null}
                 />
               </AppGrid>
