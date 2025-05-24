@@ -71,6 +71,7 @@ export default function History({
   lastInteraction,
   disabled,
 }: HistoryProps) {
+  console.log('History component rendering');
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<VirtuosoHandle>(null);
   const theme = useTheme();
@@ -221,6 +222,7 @@ export default function History({
     index: number;
     style: React.CSSProperties;
   }) => {
+    console.log('Row component rendering, index:', index);
     if (index < interactions.length) {
       const interaction = interactions[index];
       return (
