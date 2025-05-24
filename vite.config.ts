@@ -7,10 +7,10 @@ import fs from 'fs'
 export default defineConfig({
   plugins: [react()],
   server: {
-    https: {
-      key: fs.readFileSync('cert/key.pem'),
-      cert: fs.readFileSync('cert/cert.pem'),
-    },
-    host: true, // allows LAN access
+    // https: {
+    //   key: fs.readFileSync('cert/key.pem'),
+    //   cert: fs.readFileSync('cert/cert.pem'),
+    // },
+    // host: true, // allows LAN access
   },
 })
