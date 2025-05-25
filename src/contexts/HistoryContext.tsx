@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   ReactNode,
+  useMemo,
 } from "react";
 import { Interaction } from "../models/MissionModels";
 
@@ -115,21 +116,37 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({
     setPlayerInput(localStorage.getItem("playerInput") || "");
   }, []);
 
-  const contextValue: HistoryContextType = {
-    // State
-    interactions,
-    playerInputOld,
-    llmOutput,
-    playerInput,
-    // Actions
-    setInteractions,
-    setPlayerInputOld,
-    setLlmOutput,
-    setPlayerInput,
-    loadHistoryData,
-    clearHistory,
-    hydrateFromStorage,
-  };
+  // Memoize the context value to prevent unnecessary rerenders
+  const contextValue: HistoryContextType = useMemo(
+    () => ({
+      // State
+      interactions,
+      playerInputOld,
+      llmOutput,
+      playerInput,
+      // Actions
+      setInteractions,
+      setPlayerInputOld,
+      setLlmOutput,
+      setPlayerInput,
+      loadHistoryData,
+      clearHistory,
+      hydrateFromStorage,
+    }),
+    [
+      interactions,
+      playerInputOld,
+      llmOutput,
+      playerInput,
+      setInteractions,
+      setPlayerInputOld,
+      setLlmOutput,
+      setPlayerInput,
+      loadHistoryData,
+      clearHistory,
+      hydrateFromStorage,
+    ]
+  );
 
   return (
     <HistoryContext.Provider value={contextValue}>

@@ -21,7 +21,8 @@ const arePropsEqual = (
   prevProps: MemoizedFieldContainerProps,
   nextProps: MemoizedFieldContainerProps
 ): boolean => {
-  // Only re-render if value, disabled state, or type changes
+  // Only re-render if essential props change
+  // Note: We don't compare callbacks as they should be stable from useCallback
   return (
     prevProps.value === nextProps.value &&
     prevProps.disabled === nextProps.disabled &&

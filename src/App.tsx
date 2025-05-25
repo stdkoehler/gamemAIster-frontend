@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, memo } from "react";
 import { ThemeProvider, Box, Container } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { shadowrunTheme, vampireTheme, cthulhuTheme } from "./theme";
@@ -23,7 +23,7 @@ import { HistoryProvider, useHistoryContext } from "./contexts/HistoryContext";
 const placeholder = "GamemAIster";
 
 // Inner component that uses the history context
-const AppContent: React.FC = () => {
+const AppContent: React.FC = memo(() => {
   console.log("App component rendered");
 
   const historyContext = useHistoryContext();
@@ -209,7 +209,7 @@ const AppContent: React.FC = () => {
       </Box>
     </ThemeProvider>
   );
-};
+});
 
 // Main App component wrapped with HistoryProvider
 const App: React.FC = () => {

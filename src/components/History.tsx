@@ -6,6 +6,7 @@ import {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  memo,
 } from "react";
 import { Typography, Container, Button, CircularProgress } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -330,4 +331,5 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
   }
 );
 
-export default History;
+// Memoize the History component to prevent unnecessary rerenders
+export default memo(History);
