@@ -314,7 +314,7 @@ export async function getLoadMissions(
   const interactions: Interaction[] = Array.isArray(data.interactions)
     ? data.interactions.map(({ user_input, llm_output }) => ({
         playerInput: user_input, // Map API's snake_case to client's camelCase
-        llmOutput: llm_output,   // Map API's snake_case to client's camelCase
+        llmOutput: llm_output, // Map API's snake_case to client's camelCase
       }))
     : []; // Default to an empty array if data.interactions is not an array
 
@@ -449,7 +449,12 @@ export async function sendTextToSpeechStream(
        * It ensures that data is only appended when the `sourceBuffer` is not updating.
        */
       const tryAppend = () => {
-        if (!isBufferUpdating && appendQueue.length > 0 && isSourceOpen && mediaSource.readyState === "open") {
+        if (
+          !isBufferUpdating &&
+          appendQueue.length > 0 &&
+          isSourceOpen &&
+          mediaSource.readyState === "open"
+        ) {
           isBufferUpdating = true;
           const chunk = appendQueue.shift()!;
           try {
@@ -458,14 +463,15 @@ export async function sendTextToSpeechStream(
             // console.error("Error appending buffer:", e);
             // If appendBuffer fails (e.g., if MediaSource is closed), attempt cleanup.
             if (mediaSource.readyState === "open") {
-              try { mediaSource.endOfStream(); } catch {}
+              try {
+                mediaSource.endOfStream();
+              } catch {}
             }
             cleanup();
             // Propagate the error or handle appropriately.
             // This might involve rejecting a promise this whole process is wrapped in.
             return;
           }
-
 
           // After the first successful append, try to start playback.
           // This relies on the browser's autoplay policies; user interaction might be required.
@@ -477,9 +483,10 @@ export async function sendTextToSpeechStream(
             // very short initial chunks or fast streams. A direct play attempt or a more robust
             // buffering strategy might be needed for production.
             setTimeout(() => {
-              if (audio.paused) { // Check if audio is paused before playing
-                audio.play().catch((e) => {
-                  // console.warn("Audio play failed (autoplay policy or other error):", e);
+              if (audio.paused) {
+                // Check if audio is paused before playing
+                audio.play().catch((_playError) => {
+                  // console.warn("Audio play failed (autoplay policy or other error):", _playError);
                   // UI should inform user that playback couldn't start automatically.
                 });
               }
@@ -556,4 +563,34 @@ export async function sendTextToSpeechStream(
   audio.load(); // Important: Call load() to initiate the MediaSource lifecycle.
 
   return audio; // Return the HTMLAudioElement to the caller.
+}
+
+/**
+ * Sends an audio blob to the backend for speech-to-text transcription.
+ * @async
+ * @param {Blob} audioBlob - The audio data to transcribe (should be audio/webm or audio/wav).
+ * @returns {Promise<string>} - The transcribed text from the backend.
+ * @throws {Error} If the request fails or the backend returns an error.
+ */
+export async function sendSpeechToText(audioBlob: Blob): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", audioBlob, "audio.webm");
+
+  const response = await fetch(`${API_BASE}/tts/stt-upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Speech-to-text request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+  // Expecting { text: "..." }
+  if (typeof data.text !== "string") {
+    throw new Error("Invalid response from speech-to-text endpoint.");
+  }
+  return data.text;
 }

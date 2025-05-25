@@ -56,6 +56,7 @@ import {
   postSaveMission,
   getListMissions,
   getLoadMissions,
+  sendSpeechToText,
 } from "../functions/restInterface";
 import { Mission, Interaction } from "../models/MissionModels";
 import { MissionPayload } from "../models/RestInterface";
@@ -111,7 +112,26 @@ type UseGameCallbacksProps = {
  * @property {function(value: string): void} changeCallbackPlayerInputOld - Callback to update the state of the 'previous player input' field.
  * @property {function(value: string): void} changeCallbackPlayerInput - Callback to update the state of the 'current player input' field.
  * @property {function(value: string): void} changeCallbackLlmOutput - Callback to update the state of the 'LLM output' field.
+ * @property {function(audioBlob: Blob): Promise<void>} speechToTextCallback - Callback to handle speech-to-text transcription from audio.
  */
+
+export type GamemasterCallbacks = {
+  sendNewMissionGenerate: (
+    gameType: GameType,
+    background: string
+  ) => Promise<void>;
+  saveMission: (nameCustom: string) => Promise<void>;
+  listMissions: () => Promise<Mission[]>;
+  loadMission: (missionId: number) => Promise<void>;
+  sendRegenerate: () => Promise<void>;
+  sendPlayerInput: () => Promise<void>;
+  stopGeneration: () => Promise<void>;
+  changeCallbackPlayerInputOld: (value: string) => void;
+  changeCallbackPlayerInput: (value: string) => void;
+  changeCallbackLlmOutput: (value: string) => void;
+  /** Callback to handle speech-to-text transcription from audio. */
+  speechToTextCallback: (audioBlob: Blob) => Promise<void>;
+};
 
 /**
  * Implementation of the `useGamemasterCallbacks` hook.
@@ -437,6 +457,24 @@ export function useGamemasterCallbacks({
     [setLlmOutput] // Dependency: the setter for llmOutput.
   );
 
+  /**
+   * Handles sending audio to backend for speech-to-text and updating player input.
+   */
+  const speechToTextCallback = useCallback(
+    async (audioBlob: Blob) => {
+      try {
+        const transcript = await sendSpeechToText(audioBlob);
+        setPlayerInput(transcript);
+      } catch (err) {
+        alert(
+          "Speech-to-text failed: " +
+            (err instanceof Error ? err.message : String(err))
+        );
+      }
+    },
+    [setPlayerInput]
+  );
+
   return {
     sendNewMissionGenerate,
     saveMission,
@@ -448,6 +486,7 @@ export function useGamemasterCallbacks({
     changeCallbackPlayerInputOld,
     changeCallbackPlayerInput,
     changeCallbackLlmOutput,
+    speechToTextCallback,
   };
 }
 
