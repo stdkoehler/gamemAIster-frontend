@@ -19,7 +19,7 @@ import {
   sendPlayerInputToLlm,
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
-import { HistoryHandle, LoadedHistoryData } from "../models/HistoryTypes";
+import { HistoryHandle } from "../models/HistoryTypes";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import { useHistoryCallbacks } from "../hooks/historyCallbacks";
