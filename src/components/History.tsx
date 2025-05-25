@@ -123,7 +123,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
             // Complete the stream and commit to context
             if (llmOutputFieldRef.current) {
-              // The final content will be committed via onStreamComplete
+              llmOutputFieldRef.current.completeStream(llmOutput);
             }
           } catch (error) {
             // Rollback on error
@@ -173,7 +173,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
           // Complete the stream and commit to context
           if (llmOutputFieldRef.current) {
-            // The final content will be committed via onStreamComplete
+            llmOutputFieldRef.current.completeStream(llmOutput);
           }
         } catch (error) {
           console.error("Failed to regenerate:", error);
