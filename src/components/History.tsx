@@ -150,7 +150,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     const sendRegenerateWithStreaming = useCallback(async (): Promise<void> => {
       if (mission !== null && playerInputOld !== "") {
         const prevInteraction =
-          playerInputOld !== "" && llmOutput !== ""
+          playerInputOld !== ""
             ? { playerInput: playerInputOld, llmOutput: llmOutput }
             : undefined;
 
