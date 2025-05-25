@@ -63,7 +63,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
     // History callbacks - now only needs mission
     const {
-      sendRegenerate,
       stopGeneration,
       changeCallbackPlayerInputOld,
       changeCallbackPlayerInput,
@@ -146,6 +145,41 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
         setPlayerInput,
         setInteractions,
       ]);
+
+    // Enhanced sendRegenerate with direct streaming
+    const sendRegenerateWithStreaming = useCallback(async (): Promise<void> => {
+      if (mission !== null && playerInputOld !== "") {
+        const prevInteraction =
+          playerInputOld !== "" && llmOutput !== ""
+            ? { playerInput: playerInputOld, llmOutput: llmOutput }
+            : undefined;
+
+        // Start streaming mode on the LLM output field
+        if (llmOutputFieldRef.current) {
+          llmOutputFieldRef.current.startStream();
+        }
+
+        try {
+          await sendPlayerInputToLlm({
+            missionId: mission,
+            setStateCallback: ({ llmOutput }) => {
+              // Stream directly to the field instead of context
+              if (llmOutputFieldRef.current) {
+                llmOutputFieldRef.current.updateStream(llmOutput);
+              }
+            },
+            prevInteraction: prevInteraction,
+          });
+
+          // Complete the stream and commit to context
+          if (llmOutputFieldRef.current) {
+            // The final content will be committed via onStreamComplete
+          }
+        } catch (error) {
+          console.error("Failed to regenerate:", error);
+        }
+      }
+    }, [mission, playerInputOld, llmOutput]);
 
     // Handle stream completion - commit final value to context
     const handleStreamComplete = useCallback(
@@ -320,7 +354,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
           {InteractionList(interactions)}
           {/* Player Input Old Field */}
           <MemoizedFieldContainer
-            sendCallback={sendRegenerate}
+            sendCallback={sendRegenerateWithStreaming}
             stopCallback={stopGeneration}
             onCommit={changeCallbackPlayerInputOld}
             value={lastInteraction.playerInput}
@@ -373,12 +407,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
                   )
                 }
                 onClick={handlePlayTTS}
-                disabled={
-                  disabled ||
-                  loadingAudio ||
-                  !lastInteraction.llmOutput ||
-                  isPlaying
-                }
+                disabled={disabled || loadingAudio || isPlaying}
                 sx={{ mt: 1, mb: 1 }}
               >
                 {loadingAudio ? "Synthesizing..." : "Play"}
@@ -404,7 +433,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
         >
           <MemoizedFieldContainer
             sendCallback={sendPlayerInputWithStreaming}
-            changeCallback={changeCallbackPlayerInput}
+            onCommit={changeCallbackPlayerInput}
             stopCallback={stopGeneration}
             value={playerInput}
             instance="Player"

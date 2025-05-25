@@ -53,8 +53,6 @@ type FieldContainerProps = {
   speechToTextCallback?: (audioBlob: Blob) => Promise<void>;
   /** Optional flag to use local state for typing performance. Defaults to `true`. */
   useLocalState?: boolean;
-  /** Optional flag indicating if this field is currently receiving a stream. */
-  isStreaming?: boolean;
   /** Optional callback to commit the final streamed value to context. */
   onStreamComplete?: (value: string) => void;
 };

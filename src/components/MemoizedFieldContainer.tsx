@@ -19,7 +19,6 @@ interface MemoizedFieldContainerProps {
   placeholder?: string;
   speechToTextCallback?: (audioBlob: Blob) => Promise<void>;
   useLocalState?: boolean;
-  isStreaming?: boolean;
   onStreamComplete?: (value: string) => void;
 }
 
@@ -37,8 +36,7 @@ const arePropsEqual = (
     prevProps.instance === nextProps.instance &&
     prevProps.color === nextProps.color &&
     prevProps.placeholder === nextProps.placeholder &&
-    prevProps.useLocalState === nextProps.useLocalState &&
-    prevProps.isStreaming === nextProps.isStreaming
+    prevProps.useLocalState === nextProps.useLocalState
   );
 };
 
@@ -59,7 +57,6 @@ const MemoizedFieldContainer = React.memo(
         placeholder = "",
         speechToTextCallback,
         useLocalState = true,
-        isStreaming = false,
         onStreamComplete,
       },
       ref
@@ -79,7 +76,6 @@ const MemoizedFieldContainer = React.memo(
           placeholder={placeholder}
           speechToTextCallback={speechToTextCallback}
           useLocalState={useLocalState}
-          isStreaming={isStreaming}
           onStreamComplete={onStreamComplete}
         />
       );
