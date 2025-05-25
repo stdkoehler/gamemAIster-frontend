@@ -79,11 +79,11 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     );
 
     // Auto-scroll to bottom
-    useEffect(() => {
-      if (containerRef.current) {
-        containerRef.current.scrollTop = containerRef.current.scrollHeight;
-      }
-    }, [interactions, playerInputOld, llmOutput]);
+    // useEffect(() => {
+    //   if (containerRef.current) {
+    //     containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    //   }
+    // }, [interactions, playerInputOld, llmOutput]);
 
     const cleanupAudioElement = useCallback(
       (audioElem: HTMLAudioElement | null) => {
