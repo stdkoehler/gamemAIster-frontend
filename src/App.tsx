@@ -18,11 +18,15 @@ import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
+import { HistoryProvider, useHistoryContext } from "./contexts/HistoryContext";
 
 const placeholder = "GamemAIster";
 
-const App: React.FC = () => {
+// Inner component that uses the history context
+const AppContent: React.FC = () => {
   console.log("App component rendered");
+
+  const historyContext = useHistoryContext();
 
   // Core mission state - stays in App
   const [mission, setMission] = useState<number | null>(() => {
@@ -87,9 +91,9 @@ const App: React.FC = () => {
   const reset = React.useCallback(async () => {
     setMission(null);
     setAdventure(placeholder);
-    // Use imperative handle to clear history instead of localStorage
-    historyRef.current?.clearHistory();
-  }, []);
+    // Use context method to clear history
+    historyContext.clearHistory();
+  }, [historyContext]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -107,7 +111,7 @@ const App: React.FC = () => {
               ) {
                 // Give History component time to mount, then hydrate
                 setTimeout(() => {
-                  historyRef.current?.hydrateFromStorage();
+                  historyContext.hydrateFromStorage();
                 }, 0);
               }
             }
@@ -116,7 +120,7 @@ const App: React.FC = () => {
       }
       isFirstRender.current = false;
     }
-  }, [reset, mission]);
+  }, [reset, mission, historyContext]);
 
   // Mission control callbacks - only for mission management
   const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
@@ -192,7 +196,7 @@ const App: React.FC = () => {
                   flexDirection: "column",
                 }}
               >
-                {/* History now manages its own interaction state and player input */}
+                {/* History now uses context for state management */}
                 <History
                   ref={historyRef}
                   mission={mission}
@@ -204,6 +208,15 @@ const App: React.FC = () => {
         </Box>
       </Box>
     </ThemeProvider>
+  );
+};
+
+// Main App component wrapped with HistoryProvider
+const App: React.FC = () => {
+  return (
+    <HistoryProvider>
+      <AppContent />
+    </HistoryProvider>
   );
 };
 

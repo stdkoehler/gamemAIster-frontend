@@ -4,18 +4,10 @@ import {
   postStopGeneration,
   sendSpeechToText,
 } from "../functions/restInterface";
-import { Interaction } from "../models/MissionModels";
+import { useHistoryContext } from "../contexts/HistoryContext";
 
 type UseHistoryCallbacksProps = {
   mission: number | null;
-  interactions: Interaction[];
-  setInteractions: (ints: Interaction[]) => void;
-  playerInputOld: string;
-  setPlayerInputOld: (val: string) => void;
-  llmOutput: string;
-  setLlmOutput: (val: string) => void;
-  playerInput: string;
-  setPlayerInput: (val: string) => void;
 };
 
 export type HistoryCallbacks = {
@@ -30,15 +22,18 @@ export type HistoryCallbacks = {
 
 export function useHistoryCallbacks({
   mission,
-  interactions,
-  setInteractions,
-  playerInputOld,
-  setPlayerInputOld,
-  llmOutput,
-  setLlmOutput,
-  playerInput,
-  setPlayerInput,
 }: UseHistoryCallbacksProps): HistoryCallbacks {
+  const {
+    interactions,
+    setInteractions,
+    playerInputOld,
+    setPlayerInputOld,
+    llmOutput,
+    setLlmOutput,
+    playerInput,
+    setPlayerInput,
+  } = useHistoryContext();
+
   function stripOutput(llmOutput: string): string {
     const regexPattern =
       /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;

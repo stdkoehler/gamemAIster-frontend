@@ -18,8 +18,10 @@ import {
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
 import { HistoryHandle, LoadedHistoryData } from "../models/HistoryTypes";
-import FieldContainer, { FieldContainerType } from "./FieldContainer";
+import MemoizedFieldContainer from "./MemoizedFieldContainer";
+import { FieldContainerType } from "./FieldContainer";
 import { useHistoryCallbacks } from "../hooks/historyCallbacks";
+import { useHistoryContext } from "../contexts/HistoryContext";
 import AppGrid from "./AppGrid";
 
 type HistoryProps = ComponentProps<typeof Container> & {
@@ -35,27 +37,24 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Local state for interactions and current conversation
-    const [interactions, setInteractions] = useState<Interaction[]>(() => {
-      return JSON.parse(localStorage.getItem("interactions") || "[]");
-    });
-    const [playerInputOld, setPlayerInputOld] = useState<string>(() => {
-      return localStorage.getItem("playerInputOld") || "";
-    });
-    const [llmOutput, setLlmOutput] = useState<string>(() => {
-      return localStorage.getItem("llmOutput") || "";
-    });
-    const [playerInput, setPlayerInput] = useState<string>(() => {
-      return localStorage.getItem("playerInput") || "";
-    });
+    // Get state from context instead of local state
+    const {
+      interactions,
+      playerInputOld,
+      llmOutput,
+      playerInput,
+      loadHistoryData,
+      clearHistory,
+      hydrateFromStorage,
+    } = useHistoryContext();
 
-    // Audio state
+    // Audio state - keep local as it's UI-specific
     const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [loadingAudio, setLoadingAudio] = useState(false);
     const [audioError, setAudioError] = useState<string | null>(null);
 
-    // History callbacks
+    // History callbacks - now only needs mission
     const {
       sendRegenerate,
       sendPlayerInput: sendPlayerInputCallback,
@@ -66,52 +65,18 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       speechToTextCallback,
     } = useHistoryCallbacks({
       mission,
-      interactions,
-      setInteractions,
-      playerInputOld,
-      setPlayerInputOld,
-      llmOutput,
-      setLlmOutput,
-      playerInput,
-      setPlayerInput,
     });
 
-    // Imperative handle for external control
+    // Imperative handle for external control - now uses context methods
     useImperativeHandle(
       ref,
       () => ({
-        loadHistoryData: (data: LoadedHistoryData) => {
-          setInteractions(data.interactions);
-          setPlayerInputOld(data.lastPlayerInput);
-          setLlmOutput(data.lastLlmOutput);
-          setPlayerInput("");
-        },
-        clearHistory: () => {
-          setInteractions([]);
-          setPlayerInputOld("");
-          setLlmOutput("");
-          setPlayerInput("");
-        },
-        hydrateFromStorage: () => {
-          // Force re-read from localStorage (useful for page refresh scenarios)
-          setInteractions(
-            JSON.parse(localStorage.getItem("interactions") || "[]")
-          );
-          setPlayerInputOld(localStorage.getItem("playerInputOld") || "");
-          setLlmOutput(localStorage.getItem("llmOutput") || "");
-          setPlayerInput(localStorage.getItem("playerInput") || "");
-        },
+        loadHistoryData,
+        clearHistory,
+        hydrateFromStorage,
       }),
-      []
+      [loadHistoryData, clearHistory, hydrateFromStorage]
     );
-
-    // Local storage persistence
-    useEffect(() => {
-      localStorage.setItem("interactions", JSON.stringify(interactions));
-      localStorage.setItem("playerInputOld", playerInputOld);
-      localStorage.setItem("llmOutput", llmOutput);
-      localStorage.setItem("playerInput", playerInput);
-    }, [interactions, playerInputOld, llmOutput, playerInput]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -266,7 +231,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
         >
           {InteractionList(interactions)}
           {/* Player Input Old Field */}
-          <FieldContainer
+          <MemoizedFieldContainer
             sendCallback={sendRegenerate}
             stopCallback={stopGeneration}
             changeCallback={changeCallbackPlayerInputOld}
@@ -277,7 +242,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
             disabled={disabled}
           />
           {/* Gamemaster Output Field */}
-          <FieldContainer
+          <MemoizedFieldContainer
             changeCallback={changeCallbackLlmOutput}
             value={lastInteraction.llmOutput}
             instance="Gamemaster"
@@ -347,7 +312,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
             textAlign: "left",
           }}
         >
-          <FieldContainer
+          <MemoizedFieldContainer
             sendCallback={sendPlayerInputCallback}
             changeCallback={changeCallbackPlayerInput}
             stopCallback={stopGeneration}
