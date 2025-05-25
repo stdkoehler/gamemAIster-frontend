@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, RefObject } from "react";
 import {
   postNewMission,
   postSaveMission,
@@ -7,6 +7,7 @@ import {
 } from "../functions/restInterface";
 import { Mission } from "../models/MissionModels";
 import { MissionPayload } from "../models/RestInterface";
+import { HistoryHandle } from "../models/HistoryTypes";
 import { GameType } from "../models/Types";
 
 type UseMissionControlCallbacksProps = {
@@ -15,6 +16,7 @@ type UseMissionControlCallbacksProps = {
   setAdventure: (val: string) => void;
   reset: () => Promise<void>;
   setGameType: (val: GameType) => void;
+  historyRef: RefObject<HistoryHandle>;
 };
 
 export type MissionControlCallbacks = {
@@ -33,6 +35,7 @@ export function useMissionControlCallbacks({
   setAdventure,
   reset,
   setGameType,
+  historyRef,
 }: UseMissionControlCallbacksProps): MissionControlCallbacks {
   const sendNewMissionGenerate = useCallback(
     async (gameType: GameType, background: string): Promise<void> => {
@@ -77,33 +80,26 @@ export function useMissionControlCallbacks({
       setAdventure(loaded.mission.nameCustom || loaded.mission.name);
       setGameType(loaded.mission.gameType);
 
-      // Clear existing interaction state and set up loaded data
+      // Use imperative handle to load history data directly
       const loadedInteractions = loaded.interactions;
-
-      // Store interactions in localStorage for History component to pick up
-      localStorage.setItem(
-        "interactions",
-        JSON.stringify(loadedInteractions.slice(0, -1) || [])
-      );
 
       if (loadedInteractions.length > 0) {
         const lastInteraction =
           loadedInteractions[loadedInteractions.length - 1];
-        localStorage.setItem(
-          "playerInputOld",
-          lastInteraction?.playerInput ?? ""
-        );
-        localStorage.setItem("llmOutput", lastInteraction?.llmOutput ?? "");
+        historyRef.current?.loadHistoryData({
+          interactions: loadedInteractions.slice(0, -1) || [],
+          lastPlayerInput: lastInteraction?.playerInput ?? "",
+          lastLlmOutput: lastInteraction?.llmOutput ?? "",
+        });
       } else {
-        localStorage.setItem("playerInputOld", "");
-        localStorage.setItem("llmOutput", "");
+        historyRef.current?.loadHistoryData({
+          interactions: [],
+          lastPlayerInput: "",
+          lastLlmOutput: "",
+        });
       }
-      localStorage.setItem("playerInput", "");
-
-      // Trigger a page refresh or custom event to notify History component
-      window.dispatchEvent(new CustomEvent("missionLoaded"));
     },
-    [setMission, setAdventure, setGameType]
+    [setMission, setAdventure, setGameType, historyRef]
   );
 
   return {

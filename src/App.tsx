@@ -14,6 +14,7 @@ import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { getMission } from "./functions/restInterface";
 import { Interaction } from "./models/MissionModels";
+import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
@@ -52,6 +53,7 @@ const App: React.FC = () => {
   });
 
   const isFirstRender = useRef(true);
+  const historyRef = useRef<HistoryHandle>(null);
 
   const handleThemeChange = (gameType: GameType) => {
     switch (gameType) {
@@ -85,11 +87,8 @@ const App: React.FC = () => {
   const reset = React.useCallback(async () => {
     setMission(null);
     setAdventure(placeholder);
-    // Clear localStorage items that History component manages
-    localStorage.removeItem("interactions");
-    localStorage.removeItem("playerInputOld");
-    localStorage.removeItem("llmOutput");
-    localStorage.removeItem("playerInput");
+    // Use imperative handle to clear history instead of localStorage
+    historyRef.current?.clearHistory();
   }, []);
 
   useEffect(() => {
@@ -115,6 +114,7 @@ const App: React.FC = () => {
       setAdventure,
       reset,
       setGameType,
+      historyRef,
     });
 
   return (
@@ -181,7 +181,11 @@ const App: React.FC = () => {
                 }}
               >
                 {/* History now manages its own interaction state and player input */}
-                <History mission={mission} disabled={mission === null} />
+                <History
+                  ref={historyRef}
+                  mission={mission}
+                  disabled={mission === null}
+                />
               </AppGrid>
             </AppGrid>
           </SplitScreen>
