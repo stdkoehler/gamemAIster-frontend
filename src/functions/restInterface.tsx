@@ -555,7 +555,7 @@ export async function sendTextToSpeechStream(
   });
 
   // Add error event listener to the audio element itself.
-  audio.addEventListener("error", (e) => {
+  audio.addEventListener("error", (_) => {
     // console.error("HTMLAudioElement error:", audio.error, e);
     cleanup(); // Clean up on audio element errors.
   });

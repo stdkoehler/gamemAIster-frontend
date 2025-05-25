@@ -76,10 +76,10 @@ function getSafePaletteColor(theme: Theme, colorPropValue?: string): string {
 // --- REVISED TEXT SHADOW FUNCTIONS ---
 
 // Generic text shadow (similar to user's original, but safer color retrieval)
-function commonTextShadow(theme: Theme, ownerStateColor?: string, intensity: string = '4px'): string {
-  const color = getSafePaletteColor(theme, ownerStateColor);
-  return `0 0 ${intensity} ${color}`;
-}
+// function commonTextShadow(theme: Theme, ownerStateColor?: string, intensity: string = '4px'): string {
+//   const color = getSafePaletteColor(theme, ownerStateColor);
+//   return `0 0 ${intensity} ${color}`;
+// }
 
 // Specific text shadow style for a more "neon glow" effect (good for Shadowrun)
 function neonTextShadow(theme: Theme, ownerStateColor?: string): string {
@@ -95,13 +95,13 @@ function gothicTextShadow(theme: Theme, ownerStateColor?: string): string {
 }
 
 // Enhanced blood text shadow for important elements
-function bloodTextShadow(theme: Theme, ownerStateColor?: string): string {
+function bloodTextShadow(theme: Theme, _?: string): string {
   const baseColor = theme.palette.primary.main; // Always use primary (blood red) for this effect
   return `0px 0px 1px rgba(0,0,0,0.7), 0 0 3px ${baseColor}99, 0 0 7px ${baseColor}60`;
 }
 
 // Subtle text shadow for body text
-function subtleGothicShadow(theme: Theme): string {
+function subtleGothicShadow(_: Theme): string {
   return `0px 1px 2px rgba(0,0,0,0.5)`;
 }
 
@@ -526,12 +526,12 @@ export const vampireTheme = createTheme({
           height: '100%',
           scrollBehavior: 'smooth'
         },
-        body: ({ theme }) => ({
+        body: ({ theme }: { theme: Theme }) => ({
           background: `radial-gradient(circle at 50% 50%, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
           backgroundAttachment: 'fixed',
           backgroundSize: 'cover',
         }),
-        'a': ({ theme }) => ({
+        'a': ({ theme }: { theme: Theme }) => ({
           color: theme.palette.primary.main,
           textDecoration: 'none',
           transition: 'all 0.3s ease',
@@ -621,7 +621,6 @@ export const vampireTheme = createTheme({
 
           const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
           const mainColor = buttonPalette.main;
-          const darkColor = buttonPalette.dark;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
 
@@ -661,9 +660,6 @@ export const vampireTheme = createTheme({
 
           const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
           const mainColor = buttonPalette.main;
-          const darkColor = buttonPalette.dark;
-          const lightColor = buttonPalette.light;
-          const contrastTextColor = buttonPalette.contrastText;
 
           return {
             color: mainColor,
@@ -751,7 +747,7 @@ export const vampireTheme = createTheme({
     },
     MuiCardHeader: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: ({ }) => ({
           padding: '16px 16px 0 16px',
         }),
         title: ({ theme }) => ({
@@ -771,7 +767,7 @@ export const vampireTheme = createTheme({
     },
     MuiCardContent: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: ({  }) => ({
           padding: '16px',
           '&:last-child': {
             paddingBottom: '16px',
@@ -781,7 +777,7 @@ export const vampireTheme = createTheme({
     },
     MuiCardActions: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: ({  }) => ({
           padding: '8px 16px 16px 16px',
           justifyContent: 'flex-end',
         }),
@@ -812,7 +808,7 @@ export const vampireTheme = createTheme({
             background: `${theme.palette.primary.main}14`, // rgba(192, 0, 0, 0.08) equivalent
           }
         }),
-        content: ({ theme }) => ({
+        content: ({  }) => ({
           '&.Mui-expanded': {
             margin: '12px 0',
           }
@@ -885,7 +881,7 @@ export const vampireTheme = createTheme({
     },
     MuiOutlinedInput: {
       styleOverrides: {
-        notchedOutline: ({ theme }) => ({
+        notchedOutline: ({  }) => ({
           borderColor: 'rgba(255, 255, 255, 0.15)',
           transition: 'all 0.3s ease',
         }),
@@ -951,7 +947,7 @@ export const vampireTheme = createTheme({
             color: theme.palette.secondary.light,
           },
         }),
-        label: ({ theme }) => ({
+        label: ({  }) => ({
           paddingLeft: 12,
           paddingRight: 12,
         }),
@@ -1156,7 +1152,6 @@ export const cthulhuTheme = createTheme({
             : 'primary';
 
           const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = (buttonPalette as any).main || theme.palette.primary.main;
           const darkColor = (buttonPalette as any).dark || theme.palette.primary.dark;
           const contrastTextColor = (buttonPalette as any).contrastText || theme.palette.primary.contrastText;
 
