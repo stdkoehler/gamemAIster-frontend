@@ -348,7 +348,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
             display: "flex",
             flexDirection: "column",
             width: "95%",
-            maxHeight: "60vh",
             overflow: "auto",
             paddingTop: 0,
             marginLeft: 0,
@@ -423,18 +422,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
               </Typography>
             )}
           </div>
-        </Container>
-
-        {/* Player Input Field - Now part of History */}
-        <AppGrid
-          sx={{
-            minHeight: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            textAlign: "left",
-          }}
-        >
+          {/* Player Input Field - Now part of History */}
           <MemoizedFieldContainer
             sendCallback={sendPlayerInputWithStreaming}
             onCommit={changeCallbackPlayerInput}
@@ -447,7 +435,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
             placeholder="Begin by describing your character and what he's currently doing."
             speechToTextCallback={speechToTextCallback}
           />
-        </AppGrid>
+        </Container>
       </>
     );
   }

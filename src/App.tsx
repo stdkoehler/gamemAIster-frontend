@@ -184,9 +184,6 @@ const AppContent: React.FC = memo(() => {
                 minHeight: 0,
               }}
             >
-              <AppGrid>
-                <AdventureHeading>{adventure}</AdventureHeading>
-              </AppGrid>
               <AppGrid
                 sx={{
                   flexGrow: 1,
@@ -195,6 +192,7 @@ const AppContent: React.FC = memo(() => {
                   flexDirection: "column",
                 }}
               >
+                <AdventureHeading>{adventure}</AdventureHeading>
                 {/* History now uses context for state management */}
                 <History
                   ref={historyRef}
