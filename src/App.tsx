@@ -190,6 +190,7 @@ const AppContent: React.FC = memo(() => {
                   minHeight: 0,
                   display: "flex",
                   flexDirection: "column",
+                  justifyContent: "flext-start",
                 }}
               >
                 <AdventureHeading>{adventure}</AdventureHeading>
