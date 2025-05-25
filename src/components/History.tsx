@@ -108,11 +108,13 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
             llmOutputFieldRef.current.startStream();
           }
 
+          let streamedContent = "";
           try {
             await sendPlayerInputToLlm({
               missionId: mission,
               setStateCallback: ({ llmOutput }) => {
                 // Stream directly to the field instead of context
+                streamedContent = llmOutput;
                 if (llmOutputFieldRef.current) {
                   llmOutputFieldRef.current.updateStream(llmOutput);
                 }
@@ -123,7 +125,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
             // Complete the stream and commit to context
             if (llmOutputFieldRef.current) {
-              llmOutputFieldRef.current.completeStream(llmOutput);
+              llmOutputFieldRef.current.completeStream(streamedContent);
             }
           } catch (error) {
             // Rollback on error
@@ -159,10 +161,12 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
           llmOutputFieldRef.current.startStream();
         }
 
+        let streamedContent = "";
         try {
           await sendPlayerInputToLlm({
             missionId: mission,
             setStateCallback: ({ llmOutput }) => {
+              streamedContent = llmOutput;
               // Stream directly to the field instead of context
               if (llmOutputFieldRef.current) {
                 llmOutputFieldRef.current.updateStream(llmOutput);
@@ -173,7 +177,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
           // Complete the stream and commit to context
           if (llmOutputFieldRef.current) {
-            llmOutputFieldRef.current.completeStream(llmOutput);
+            llmOutputFieldRef.current.completeStream(streamedContent);
           }
         } catch (error) {
           console.error("Failed to regenerate:", error);
