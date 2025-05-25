@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, memo } from "react";
-import { ThemeProvider, Box, Container } from "@mui/material";
+import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { shadowrunTheme, vampireTheme, cthulhuTheme } from "./theme";
 
@@ -13,7 +13,6 @@ import History from "./components/History";
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { getMission } from "./functions/restInterface";
-import { Interaction } from "./models/MissionModels";
 import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
@@ -26,7 +25,7 @@ const placeholder = "GamemAIster";
 const AppContent: React.FC = memo(() => {
   console.log("App component rendered");
 
-  const historyContext = useHistoryContext();
+  const { clearHistory, hydrateFromStorage } = useHistoryContext();
 
   // Core mission state - stays in App
   const [mission, setMission] = useState<number | null>(() => {
@@ -92,8 +91,8 @@ const AppContent: React.FC = memo(() => {
     setMission(null);
     setAdventure(placeholder);
     // Use context method to clear history
-    historyContext.clearHistory();
-  }, [historyContext]);
+    clearHistory();
+  }, [clearHistory, setMission, setAdventure]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -111,7 +110,7 @@ const AppContent: React.FC = memo(() => {
               ) {
                 // Give History component time to mount, then hydrate
                 setTimeout(() => {
-                  historyContext.hydrateFromStorage();
+                  hydrateFromStorage();
                 }, 0);
               }
             }
@@ -120,7 +119,7 @@ const AppContent: React.FC = memo(() => {
       }
       isFirstRender.current = false;
     }
-  }, [reset, mission, historyContext]);
+  }, [reset, mission, hydrateFromStorage]);
 
   // Mission control callbacks - only for mission management
   const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
