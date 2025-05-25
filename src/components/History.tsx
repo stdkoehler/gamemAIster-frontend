@@ -16,11 +16,12 @@ import MarkdownRenderer from "./MarkdownRenderer.tsx";
 import {
   sendTextToSpeech,
   sendTextToSpeechStream,
+  sendPlayerInputToLlm,
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
 import { HistoryHandle, LoadedHistoryData } from "../models/HistoryTypes";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
-import { FieldContainerType } from "./FieldContainer";
+import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import { useHistoryCallbacks } from "../hooks/historyCallbacks";
 import { useHistoryContext } from "../contexts/HistoryContext";
 import AppGrid from "./AppGrid";
@@ -37,6 +38,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     console.log("History component rendered");
 
     const containerRef = useRef<HTMLDivElement>(null);
+    const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
 
     // Get state from context instead of local state
     const {
@@ -47,6 +49,10 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       loadHistoryData,
       clearHistory,
       hydrateFromStorage,
+      setLlmOutput,
+      setPlayerInputOld,
+      setPlayerInput,
+      setInteractions,
     } = useHistoryContext();
 
     // Audio state - keep local as it's UI-specific
@@ -58,7 +64,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     // History callbacks - now only needs mission
     const {
       sendRegenerate,
-      sendPlayerInput: sendPlayerInputCallback,
       stopGeneration,
       changeCallbackPlayerInputOld,
       changeCallbackPlayerInput,
@@ -67,6 +72,88 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     } = useHistoryCallbacks({
       mission,
     });
+
+    // Strip output function
+    function stripOutput(llmOutput: string): string {
+      const regexPattern =
+        /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;
+      return llmOutput.replace(regexPattern, "");
+    }
+
+    // Enhanced sendPlayerInput with direct streaming
+    const sendPlayerInputWithStreaming =
+      useCallback(async (): Promise<void> => {
+        if (mission !== null && playerInput !== "") {
+          const strippedLlmOutput = stripOutput(llmOutput);
+
+          const prevInteractionContext =
+            playerInputOld !== "" && strippedLlmOutput !== ""
+              ? { playerInput: playerInputOld, llmOutput: strippedLlmOutput }
+              : undefined;
+
+          const originalPlayerInput = playerInput;
+          const originalPlayerInputOld = playerInputOld;
+          const originalLlmOutput = llmOutput;
+          const originalInteractions = [...interactions];
+
+          if (prevInteractionContext) {
+            setInteractions([...interactions, prevInteractionContext]);
+          }
+
+          setPlayerInputOld(originalPlayerInput);
+          setLlmOutput("");
+          setPlayerInput("");
+
+          // Start streaming mode on the LLM output field
+          if (llmOutputFieldRef.current) {
+            llmOutputFieldRef.current.startStream();
+          }
+
+          try {
+            await sendPlayerInputToLlm({
+              missionId: mission,
+              setStateCallback: ({ llmOutput }) => {
+                // Stream directly to the field instead of context
+                if (llmOutputFieldRef.current) {
+                  llmOutputFieldRef.current.updateStream(llmOutput);
+                }
+              },
+              playerInputField: originalPlayerInput,
+              prevInteraction: prevInteractionContext,
+            });
+
+            // Complete the stream and commit to context
+            if (llmOutputFieldRef.current) {
+              // The final content will be committed via onStreamComplete
+            }
+          } catch (error) {
+            // Rollback on error
+            setPlayerInputOld(originalPlayerInputOld);
+            setLlmOutput(originalLlmOutput);
+            setPlayerInput(originalPlayerInput);
+            setInteractions(originalInteractions);
+            console.error("Failed to send player input:", error);
+          }
+        }
+      }, [
+        mission,
+        interactions,
+        llmOutput,
+        playerInput,
+        playerInputOld,
+        setPlayerInputOld,
+        setLlmOutput,
+        setPlayerInput,
+        setInteractions,
+      ]);
+
+    // Handle stream completion - commit final value to context
+    const handleStreamComplete = useCallback(
+      (finalContent: string) => {
+        setLlmOutput(finalContent);
+      },
+      [setLlmOutput]
+    );
 
     // Imperative handle for external control - now uses context methods
     useImperativeHandle(
@@ -235,16 +322,18 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
           <MemoizedFieldContainer
             sendCallback={sendRegenerate}
             stopCallback={stopGeneration}
-            changeCallback={changeCallbackPlayerInputOld}
+            onCommit={changeCallbackPlayerInputOld}
             value={lastInteraction.playerInput}
             instance="Player"
             color="secondary"
             type={FieldContainerType.PLAYER_OLD}
             disabled={disabled}
           />
-          {/* Gamemaster Output Field */}
+          {/* Gamemaster Output Field - Now with streaming support */}
           <MemoizedFieldContainer
-            changeCallback={changeCallbackLlmOutput}
+            ref={llmOutputFieldRef}
+            onCommit={changeCallbackLlmOutput}
+            onStreamComplete={handleStreamComplete}
             value={lastInteraction.llmOutput}
             instance="Gamemaster"
             color="primary"
@@ -314,7 +403,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
           }}
         >
           <MemoizedFieldContainer
-            sendCallback={sendPlayerInputCallback}
+            sendCallback={sendPlayerInputWithStreaming}
             changeCallback={changeCallbackPlayerInput}
             stopCallback={stopGeneration}
             value={playerInput}
