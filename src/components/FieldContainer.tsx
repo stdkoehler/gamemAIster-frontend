@@ -258,7 +258,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
       placeholder = "",
       speechToTextCallback,
       useLocalState = true,
-      isStreaming = false,
       onStreamComplete,
     },
     ref
