@@ -16,117 +16,124 @@ import {
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
 import FieldContainer, { FieldContainerType } from "./FieldContainer";
+import { useHistoryCallbacks } from "../hooks/historyCallbacks";
+import AppGrid from "./AppGrid";
 
-/**
- * Props for the History component.
- * Extends MUI Container props.
- */
 type HistoryProps = ComponentProps<typeof Container> & {
-  /** Optional callback for sending the current player input. */
-  sendCallback?: () => Promise<void>;
-  /** Optional callback for stopping any ongoing generation. */
-  stopCallback?: () => Promise<void>;
-  /** Optional callback when an old player input is changed. */
-  changePlayerInputOldCallback?: (arg: string) => void;
-  /** Optional callback when an LLM output is changed. */
-  changeLlmOutputCallback?: (arg: string) => void;
-  /** Array of past interactions (player input and LLM output). */
-  interactions: Interaction[];
-  /** The most recent interaction. */
-  lastInteraction: Interaction;
-  /** Flag to disable interactions with the component. */
+  mission: number | null;
   disabled: boolean;
 };
 
-// Toggle this to switch between legacy Blob method and streaming
 const USE_TTS_STREAM = true;
 
-/**
- * History component displays the sequence of interactions between the player and the LLM.
- * It allows editing of the last player input and LLM output via FieldContainer components.
- * It also provides Text-to-Speech (TTS) functionality for the last LLM output.
- *
- * The `USE_TTS_STREAM` constant at the top of the file determines whether to use
- * streaming TTS (if true) or a legacy Blob-based method (if false).
- * Streaming can provide faster audio start times.
- *
- * @param props - The props for the component. See {@link HistoryProps}.
- * @returns The History component.
- */
-export default function History({
-  sendCallback,
-  stopCallback,
-  changePlayerInputOldCallback,
-  changeLlmOutputCallback,
-  interactions,
-  lastInteraction,
-  disabled,
-  ...props
-}: HistoryProps) {
+export default function History({ mission, disabled, ...props }: HistoryProps) {
+  console.log("History component rendered");
+
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // State for TTS audio playback
-  /** State variable for the current HTMLAudioElement instance. */
+  // Local state for interactions and current conversation
+  const [interactions, setInteractions] = useState<Interaction[]>(() => {
+    return JSON.parse(localStorage.getItem("interactions") || "[]");
+  });
+  const [playerInputOld, setPlayerInputOld] = useState<string>(() => {
+    return localStorage.getItem("playerInputOld") || "";
+  });
+  const [llmOutput, setLlmOutput] = useState<string>(() => {
+    return localStorage.getItem("llmOutput") || "";
+  });
+  const [playerInput, setPlayerInput] = useState<string>(() => {
+    return localStorage.getItem("playerInput") || "";
+  });
+
+  // Audio state
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-  /** State variable to track if TTS audio is currently playing. */
   const [isPlaying, setIsPlaying] = useState(false);
-  /** State variable to track if TTS audio is currently loading/synthesizing. */
   const [loadingAudio, setLoadingAudio] = useState(false);
-  /** State variable to store any error messages related to TTS audio. */
   const [audioError, setAudioError] = useState<string | null>(null);
 
+  // History callbacks
+  const {
+    sendRegenerate,
+    sendPlayerInput: sendPlayerInputCallback,
+    stopGeneration,
+    changeCallbackPlayerInputOld,
+    changeCallbackPlayerInput,
+    changeCallbackLlmOutput,
+    speechToTextCallback,
+  } = useHistoryCallbacks({
+    mission,
+    interactions,
+    setInteractions,
+    playerInputOld,
+    setPlayerInputOld,
+    llmOutput,
+    setLlmOutput,
+    playerInput,
+    setPlayerInput,
+  });
+
+  // Local storage persistence
+  useEffect(() => {
+    localStorage.setItem("interactions", JSON.stringify(interactions));
+    localStorage.setItem("playerInputOld", playerInputOld);
+    localStorage.setItem("llmOutput", llmOutput);
+    localStorage.setItem("playerInput", playerInput);
+  }, [interactions, playerInputOld, llmOutput, playerInput]);
+
+  // Listen for mission load events from App
+  useEffect(() => {
+    const handleMissionLoaded = () => {
+      // Reload state from localStorage after mission load
+      setInteractions(JSON.parse(localStorage.getItem("interactions") || "[]"));
+      setPlayerInputOld(localStorage.getItem("playerInputOld") || "");
+      setLlmOutput(localStorage.getItem("llmOutput") || "");
+      setPlayerInput(localStorage.getItem("playerInput") || "");
+    };
+
+    window.addEventListener("missionLoaded", handleMissionLoaded);
+    return () =>
+      window.removeEventListener("missionLoaded", handleMissionLoaded);
+  }, []);
+
+  // Auto-scroll to bottom
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [interactions, lastInteraction]);
+  }, [interactions, playerInputOld, llmOutput]);
 
-  /**
-   * Utility function to safely clean up an HTMLAudioElement and its associated resources.
-   * This includes pausing playback, detaching src, revoking object URLs (for Blob method),
-   * and removing event listeners to prevent memory leaks or errors.
-   * @param audioElem - The HTMLAudioElement to clean up.
-   */
   const cleanupAudioElement = useCallback(
     (audioElem: HTMLAudioElement | null) => {
       if (!audioElem) return;
       try {
-        // Remove event handlers to avoid firing during cleanup
         audioElem.onerror = null;
         audioElem.onended = null;
         audioElem.pause();
         audioElem.currentTime = 0;
         const url = audioElem.src;
         if (url && url.startsWith("blob:")) {
-          audioElem.src = ""; // Detach before revoking
+          audioElem.src = "";
           try {
             URL.revokeObjectURL(url);
           } catch (e) {
-            // harmless if already revoked
+            // Ignore cleanup errors
           }
         } else {
-          audioElem.src = ""; // Detach anyway
+          audioElem.src = "";
         }
       } catch (e) {
-        // Ignore any errors during cleanup
+        // Ignore cleanup errors
       }
     },
     []
   );
 
-  // Clean up audio object on unmount or new playback
   useEffect(() => {
     return () => {
       cleanupAudioElement(audio);
     };
   }, [audio, cleanupAudioElement]);
 
-  /**
-   * Handles the Text-to-Speech (TTS) playback of the last LLM output.
-   * It sets loading and error states, and calls either `sendTextToSpeechStream`
-   * or `sendTextToSpeech` based on the `USE_TTS_STREAM` constant.
-   * Manages the lifecycle of the HTMLAudioElement for playback.
-   */
   const handlePlayTTS = async () => {
     setAudioError(null);
     setLoadingAudio(true);
@@ -135,14 +142,13 @@ export default function History({
       let audioElem: HTMLAudioElement;
 
       if (USE_TTS_STREAM) {
-        audioElem = await sendTextToSpeechStream(lastInteraction.llmOutput);
+        audioElem = await sendTextToSpeechStream(llmOutput);
       } else {
-        const blob = await sendTextToSpeech(lastInteraction.llmOutput);
+        const blob = await sendTextToSpeech(llmOutput);
         const url = URL.createObjectURL(blob);
         audioElem = new Audio(url);
       }
 
-      // Clean up previous audio instance
       if (audio) {
         cleanupAudioElement(audio);
       }
@@ -154,7 +160,7 @@ export default function History({
       };
       setAudio(audioElem);
       setIsPlaying(true);
-      // We use .play() here even for the MediaSource-based audio
+
       try {
         await audioElem.play();
       } catch (err) {
@@ -175,13 +181,8 @@ export default function History({
     }
   };
 
-  /**
-   * Stops the currently playing TTS audio.
-   * It cleans up the existing audio element and resets playback states.
-   */
   const handleStopTTS = () => {
     if (audio) {
-      // Remove event handlers to prevent triggering after cleanup
       audio.onerror = null;
       audio.onended = null;
       cleanupAudioElement(audio);
@@ -190,13 +191,6 @@ export default function History({
     }
   };
 
-  /**
-   * InteractionList is an inline component that renders the list of past interactions.
-   * Each interaction consists of player input and LLM output, displayed using MarkdownRenderer.
-   *
-   * @param interactions - Array of Interaction objects to display.
-   * @returns JSX elements representing the list of interactions.
-   */
   const InteractionList = (interactions: Interaction[]) => {
     return (
       <>
@@ -227,89 +221,123 @@ export default function History({
     );
   };
 
+  const lastInteraction = {
+    playerInput: playerInputOld,
+    llmOutput: llmOutput,
+  };
+
   return (
-    <Container
-      ref={containerRef}
-      {...props}
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        width: "95%" /* Fields take up full width of their container */,
-        maxHeight: "60vh",
-        overflow: "auto",
-        paddingTop: 0,
-        marginLeft: 0,
-        marginRight: 0,
-      }}
-    >
-      {InteractionList(interactions)}
-      {/* {lastInteraction.playerInput !== "" && ( */}
-      <FieldContainer
-        sendCallback={sendCallback}
-        stopCallback={stopCallback}
-        changeCallback={changePlayerInputOldCallback}
-        value={lastInteraction.playerInput}
-        instance="Player"
-        color="secondary"
-        type={FieldContainerType.PLAYER_OLD}
-        disabled={disabled}
-      />
-      {/* )} */}
-      {/* {lastInteraction.llmOutput !== "" && ( */}
-      <FieldContainer
-        changeCallback={changeLlmOutputCallback}
-        value={lastInteraction.llmOutput}
-        instance="Gamemaster"
-        color="primary"
-        type={FieldContainerType.GAMEMASTER}
-        disabled={disabled}
-      />
-      {/* )} */}
-      <div
-        style={{
-          width: "100%",
+    <>
+      <Container
+        ref={containerRef}
+        {...props}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "95%",
+          maxHeight: "60vh",
+          overflow: "auto",
+          paddingTop: 0,
+          marginLeft: 0,
+          marginRight: 0,
+        }}
+      >
+        {InteractionList(interactions)}
+        {/* Player Input Old Field */}
+        <FieldContainer
+          sendCallback={sendRegenerate}
+          stopCallback={stopGeneration}
+          changeCallback={changeCallbackPlayerInputOld}
+          value={lastInteraction.playerInput}
+          instance="Player"
+          color="secondary"
+          type={FieldContainerType.PLAYER_OLD}
+          disabled={disabled}
+        />
+        {/* Gamemaster Output Field */}
+        <FieldContainer
+          changeCallback={changeCallbackLlmOutput}
+          value={lastInteraction.llmOutput}
+          instance="Gamemaster"
+          color="primary"
+          type={FieldContainerType.GAMEMASTER}
+          disabled={disabled}
+        />
+        {/* TTS Controls */}
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            marginTop: 4,
+          }}
+        >
+          {isPlaying ? (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<StopIcon />}
+              onClick={handleStopTTS}
+              disabled={disabled || !audio}
+              sx={{ mt: 1, mb: 1 }}
+            >
+              Stop
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={
+                loadingAudio ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <PlayArrowIcon />
+                )
+              }
+              onClick={handlePlayTTS}
+              disabled={
+                disabled ||
+                loadingAudio ||
+                !lastInteraction.llmOutput ||
+                isPlaying
+              }
+              sx={{ mt: 1, mb: 1 }}
+            >
+              {loadingAudio ? "Synthesizing..." : "Play"}
+            </Button>
+          )}
+          {audioError && (
+            <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+              {audioError}
+            </Typography>
+          )}
+        </div>
+      </Container>
+
+      {/* Player Input Field - Now part of History */}
+      <AppGrid
+        sx={{
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
           alignItems: "flex-start",
-          marginTop: 4,
+          textAlign: "left",
         }}
       >
-        {isPlaying ? (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<StopIcon />}
-            onClick={handleStopTTS}
-            disabled={disabled || !audio}
-            sx={{ mt: 1, mb: 1 }}
-          >
-            Stop
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={
-              loadingAudio ? <CircularProgress size={20} /> : <PlayArrowIcon />
-            }
-            onClick={handlePlayTTS}
-            disabled={
-              disabled ||
-              loadingAudio ||
-              !lastInteraction.llmOutput ||
-              isPlaying
-            }
-            sx={{ mt: 1, mb: 1 }}
-          >
-            {loadingAudio ? "Synthesizing..." : "Play"}
-          </Button>
-        )}
-        {audioError && (
-          <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
-            {audioError}
-          </Typography>
-        )}
-      </div>
-    </Container>
+        <FieldContainer
+          sendCallback={sendPlayerInputCallback}
+          changeCallback={changeCallbackPlayerInput}
+          stopCallback={stopGeneration}
+          value={playerInput}
+          instance="Player"
+          color="secondary"
+          type={FieldContainerType.MAIN_SEND}
+          disabled={disabled}
+          placeholder="Begin by describing your character and what he's currently doing."
+          speechToTextCallback={speechToTextCallback}
+        />
+      </AppGrid>
+    </>
   );
 }
