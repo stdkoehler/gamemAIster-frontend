@@ -9,4 +9,5 @@ export interface LoadedHistoryData {
 export interface HistoryHandle {
   loadHistoryData: (data: LoadedHistoryData) => void;
   clearHistory: () => void;
+  hydrateFromStorage: () => void;
 }

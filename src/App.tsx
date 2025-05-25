@@ -98,6 +98,18 @@ const App: React.FC = () => {
           .then((result) => {
             if (result === null) {
               reset();
+            } else {
+              // Check if we need to hydrate History from localStorage after page refresh
+              const storedInteractions = localStorage.getItem("interactions");
+              if (
+                storedInteractions &&
+                JSON.parse(storedInteractions).length > 0
+              ) {
+                // Give History component time to mount, then hydrate
+                setTimeout(() => {
+                  historyRef.current?.hydrateFromStorage();
+                }, 0);
+              }
             }
           })
           .catch(() => {});

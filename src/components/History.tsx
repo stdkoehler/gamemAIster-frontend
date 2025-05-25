@@ -36,10 +36,18 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Local state for interactions and current conversation
-    const [interactions, setInteractions] = useState<Interaction[]>([]);
-    const [playerInputOld, setPlayerInputOld] = useState<string>("");
-    const [llmOutput, setLlmOutput] = useState<string>("");
-    const [playerInput, setPlayerInput] = useState<string>("");
+    const [interactions, setInteractions] = useState<Interaction[]>(() => {
+      return JSON.parse(localStorage.getItem("interactions") || "[]");
+    });
+    const [playerInputOld, setPlayerInputOld] = useState<string>(() => {
+      return localStorage.getItem("playerInputOld") || "";
+    });
+    const [llmOutput, setLlmOutput] = useState<string>(() => {
+      return localStorage.getItem("llmOutput") || "";
+    });
+    const [playerInput, setPlayerInput] = useState<string>(() => {
+      return localStorage.getItem("playerInput") || "";
+    });
 
     // Audio state
     const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -83,6 +91,15 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
           setPlayerInputOld("");
           setLlmOutput("");
           setPlayerInput("");
+        },
+        hydrateFromStorage: () => {
+          // Force re-read from localStorage (useful for page refresh scenarios)
+          setInteractions(
+            JSON.parse(localStorage.getItem("interactions") || "[]")
+          );
+          setPlayerInputOld(localStorage.getItem("playerInputOld") || "");
+          setLlmOutput(localStorage.getItem("llmOutput") || "");
+          setPlayerInput(localStorage.getItem("playerInput") || "");
         },
       }),
       []
