@@ -4,7 +4,7 @@ import {
   postStopGeneration,
   sendSpeechToText,
 } from "../functions/restInterface";
-import { useHistoryContext } from "../contexts/HistoryContext";
+import useHistoryStore from "../stores/historyStore"; // Import the new store
 
 type UseHistoryCallbacksProps = {
   mission: number | null;
@@ -32,7 +32,7 @@ export function useHistoryCallbacks({
     setLlmOutput,
     playerInput,
     setPlayerInput,
-  } = useHistoryContext();
+  } = useHistoryStore(); // Use the new store
 
   function stripOutput(llmOutput: string): string {
     const regexPattern =

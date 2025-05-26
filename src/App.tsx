@@ -17,7 +17,7 @@ import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
-import { HistoryProvider, useHistoryContext } from "./contexts/HistoryContext";
+import useHistoryStore from "./stores/historyStore"; // Import the new store
 
 const placeholder = "GamemAIster";
 
@@ -25,7 +25,7 @@ const placeholder = "GamemAIster";
 const AppContent: React.FC = memo(() => {
   console.log("App component rendered");
 
-  const { clearHistory, hydrateFromStorage } = useHistoryContext();
+  const { clearHistory } = useHistoryStore(); // Use the new store, hydrateFromStorage removed
 
   // Core mission state - stays in App
   const [mission, setMission] = useState<number | null>(() => {
@@ -103,23 +103,23 @@ const AppContent: React.FC = memo(() => {
               reset();
             } else {
               // Check if we need to hydrate History from localStorage after page refresh
-              const storedInteractions = localStorage.getItem("interactions");
-              if (
-                storedInteractions &&
-                JSON.parse(storedInteractions).length > 0
-              ) {
-                // Give History component time to mount, then hydrate
-                setTimeout(() => {
-                  hydrateFromStorage();
-                }, 0);
-              }
+              // const storedInteractions = localStorage.getItem("interactions"); // Zustand persist handles this
+              // if (
+              //   storedInteractions &&
+              //   JSON.parse(storedInteractions).length > 0
+              // ) {
+              //   // Give History component time to mount, then hydrate
+              //   setTimeout(() => {
+              //     hydrateFromStorage(); // Zustand persist handles this
+              //   }, 0);
+              // }
             }
           })
           .catch(() => {});
       }
       isFirstRender.current = false;
     }
-  }, [reset, mission, hydrateFromStorage]);
+  }, [reset, mission]); // hydrateFromStorage removed from dependencies
 
   // Mission control callbacks - only for mission management
   const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
@@ -211,9 +211,9 @@ const AppContent: React.FC = memo(() => {
 // Main App component wrapped with HistoryProvider
 const App: React.FC = () => {
   return (
-    <HistoryProvider>
-      <AppContent />
-    </HistoryProvider>
+    // <HistoryProvider> // No longer needed
+    <AppContent />
+    // </HistoryProvider>
   );
 };
 

@@ -9,5 +9,5 @@ export interface LoadedHistoryData {
 export interface HistoryHandle {
   loadHistoryData: (data: LoadedHistoryData) => void;
   clearHistory: () => void;
-  hydrateFromStorage: () => void;
+  // hydrateFromStorage: () => void; // Removed as Zustand persist handles this
 }
