@@ -5,6 +5,7 @@ import {
   sendSpeechToText,
 } from "../functions/restInterface";
 import useHistoryStore from "../stores/historyStore";
+import useAppStore from "../stores/appStore";
 
 type UseHistoryCallbacksProps = {
   mission: number | null;
@@ -23,17 +24,6 @@ export type HistoryCallbacks = {
 export function useHistoryCallbacks({
   mission,
 }: UseHistoryCallbacksProps): HistoryCallbacks {
-  const {
-    interactions,
-    setInteractions,
-    playerInputOld,
-    setPlayerInputOld,
-    llmOutput,
-    setLlmOutput,
-    playerInput,
-    setPlayerInput,
-  } = useHistoryStore();
-
   function stripOutput(llmOutput: string): string {
     const regexPattern =
       /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;
@@ -41,6 +31,10 @@ export function useHistoryCallbacks({
   }
 
   const sendRegenerate = useCallback(async (): Promise<void> => {
+    const { mission } = useAppStore.getState();
+    const { playerInputOld, llmOutput, setLlmOutput } =
+      useHistoryStore.getState();
+
     if (mission !== null && playerInputOld !== "") {
       const prevInteraction =
         playerInputOld !== "" && llmOutput !== ""
@@ -53,9 +47,21 @@ export function useHistoryCallbacks({
         prevInteraction: prevInteraction,
       });
     }
-  }, [mission, playerInputOld, llmOutput, setLlmOutput]);
+  }, []);
 
   const sendPlayerInput = useCallback(async (): Promise<void> => {
+    const { mission } = useAppStore.getState();
+    const {
+      interactions,
+      playerInput,
+      playerInputOld,
+      llmOutput,
+      setInteractions,
+      setPlayerInputOld,
+      setLlmOutput,
+      setPlayerInput,
+    } = useHistoryStore.getState();
+
     if (mission !== null && playerInput !== "") {
       const strippedLlmOutput = stripOutput(llmOutput);
 
@@ -93,17 +99,7 @@ export function useHistoryCallbacks({
         console.error("Failed to send player input:", error);
       }
     }
-  }, [
-    mission,
-    interactions,
-    llmOutput,
-    playerInput,
-    playerInputOld,
-    setPlayerInputOld,
-    setLlmOutput,
-    setPlayerInput,
-    setInteractions,
-  ]);
+  }, []);
 
   const stopGeneration = useCallback(async (): Promise<void> => {
     try {
@@ -113,41 +109,29 @@ export function useHistoryCallbacks({
     }
   }, []);
 
-  const changeCallbackPlayerInputOld = useCallback(
-    (value: string) => {
-      setPlayerInputOld(value);
-    },
-    [setPlayerInputOld]
-  );
+  const changeCallbackPlayerInputOld = useCallback((value: string) => {
+    useHistoryStore.getState().setPlayerInputOld(value);
+  }, []);
 
-  const changeCallbackPlayerInput = useCallback(
-    (value: string) => {
-      setPlayerInput(value);
-    },
-    [setPlayerInput]
-  );
+  const changeCallbackPlayerInput = useCallback((value: string) => {
+    useHistoryStore.getState().setPlayerInput(value);
+  }, []);
 
-  const changeCallbackLlmOutput = useCallback(
-    (value: string) => {
-      setLlmOutput(value);
-    },
-    [setLlmOutput]
-  );
+  const changeCallbackLlmOutput = useCallback((value: string) => {
+    useHistoryStore.getState().setLlmOutput(value);
+  }, []);
 
-  const speechToTextCallback = useCallback(
-    async (audioBlob: Blob) => {
-      try {
-        const transcript = await sendSpeechToText(audioBlob);
-        setPlayerInput(transcript);
-      } catch (err) {
-        alert(
-          "Speech-to-text failed: " +
-            (err instanceof Error ? err.message : String(err))
-        );
-      }
-    },
-    [setPlayerInput]
-  );
+  const speechToTextCallback = useCallback(async (audioBlob: Blob) => {
+    try {
+      const transcript = await sendSpeechToText(audioBlob);
+      useHistoryStore.getState().setPlayerInput(transcript);
+    } catch (err) {
+      alert(
+        "Speech-to-text failed: " +
+          (err instanceof Error ? err.message : String(err))
+      );
+    }
+  }, []);
 
   return {
     sendRegenerate,

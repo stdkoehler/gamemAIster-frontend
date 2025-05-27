@@ -1,7 +1,7 @@
-import React, { useRef, useState, useEffect, memo } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
-import { shadowrunTheme, vampireTheme, cthulhuTheme } from "./theme";
+import { getThemeForGameType } from "./theme";
 
 import AdventureHeading from "./components/AdventureHeading";
 import AppGrid from "./components/AppGrid";
@@ -17,83 +17,21 @@ import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
-import useHistoryStore from "./stores/historyStore";
+import useAppStore from "./stores/appStore";
 
-const placeholder = "GamemAIster";
-
-// Inner component that uses the history context
-const App: React.FC = memo(() => {
+const App: React.FC = () => {
   console.log("App component rendered");
 
-  const { clearHistory } = useHistoryStore();
+  // Get state from consolidated app store
+  const { mission, adventure, gameType, setGameType, reset } = useAppStore();
 
-  // Core mission state - stays in App
-  const [mission, setMission] = useState<number | null>(() => {
-    const missionValue = localStorage.getItem("mission");
-    return missionValue ? parseInt(missionValue) : null;
-  });
-
-  const [adventure, setAdventure] = useState<string>(() => {
-    return localStorage.getItem("adventure") || placeholder;
-  });
-
-  // Theme and game type state
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    const storedGameType = localStorage.getItem("gameType");
-    switch (storedGameType) {
-      case GameType.VAMPIRE_THE_MASQUERADE:
-        return vampireTheme;
-      case GameType.CALL_OF_CTHULHU:
-        return cthulhuTheme;
-      default:
-        return shadowrunTheme;
-    }
-  });
-
-  const [gameType, setGameType] = useState<GameType>(() => {
-    const storedGameType = localStorage.getItem("gameType");
-    return storedGameType ? (storedGameType as GameType) : GameType.SHADOWRUN;
-  });
+  // Memoized theme calculation - only recalculates when gameType changes
+  const currentTheme = useMemo(() => getThemeForGameType(gameType), [gameType]);
 
   const isFirstRender = useRef(true);
   const historyRef = useRef<HistoryHandle>(null);
 
-  const handleThemeChange = (gameType: GameType) => {
-    switch (gameType) {
-      case GameType.SHADOWRUN:
-        setCurrentTheme(shadowrunTheme);
-        break;
-      case GameType.VAMPIRE_THE_MASQUERADE:
-        setCurrentTheme(vampireTheme);
-        break;
-      case GameType.CALL_OF_CTHULHU:
-        setCurrentTheme(cthulhuTheme);
-        break;
-      default:
-        setCurrentTheme(shadowrunTheme);
-    }
-  };
-
-  // Local storage for mission and adventure
-  useEffect(() => {
-    mission === null
-      ? localStorage.removeItem("mission")
-      : localStorage.setItem("mission", mission.toString());
-    localStorage.setItem("adventure", adventure);
-  }, [mission, adventure]);
-
-  useEffect(() => {
-    localStorage.setItem("gameType", gameType);
-    handleThemeChange(gameType);
-  }, [gameType]);
-
-  const reset = React.useCallback(async () => {
-    setMission(null);
-    setAdventure(placeholder);
-    // Use context method to clear history
-    clearHistory();
-  }, [clearHistory, setMission, setAdventure]);
-
+  // Initial mission validation on first render
   useEffect(() => {
     if (isFirstRender.current) {
       if (mission !== null) {
@@ -101,14 +39,6 @@ const App: React.FC = memo(() => {
           .then((result) => {
             if (result === null) {
               reset();
-            } else {
-              // Check if we need to hydrate History from localStorage after page refresh
-              const storedInteractions = localStorage.getItem("interactions");
-              if (
-                storedInteractions &&
-                JSON.parse(storedInteractions).length > 0
-              ) {
-              }
             }
           })
           .catch(() => {});
@@ -117,14 +47,9 @@ const App: React.FC = memo(() => {
     }
   }, [reset, mission]);
 
-  // Mission control callbacks - only for mission management
+  // Mission control callbacks - simplified with new store
   const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
     useMissionControlCallbacks({
-      mission,
-      setMission,
-      setAdventure,
-      reset,
-      setGameType,
       historyRef,
     });
 
@@ -203,6 +128,6 @@ const App: React.FC = memo(() => {
       </Box>
     </ThemeProvider>
   );
-});
+};
 
 export default App;
