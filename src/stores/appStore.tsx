@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { GameType } from "../models/Types";
-import useHistoryStore from "./historyStore";
 
 interface AppState {
   // Mission state
@@ -13,7 +12,7 @@ interface AppState {
   setMission: (mission: number | null) => void;
   setAdventure: (adventure: string) => void;
   setGameType: (gameType: GameType) => void;
-  reset: () => Promise<void>;
+  reset: () => void;
 }
 
 const useAppStore = create<AppState>()(
@@ -29,13 +28,12 @@ const useAppStore = create<AppState>()(
       setAdventure: (adventure) => set({ adventure }),
       setGameType: (gameType) => set({ gameType }),
 
-      reset: async () => {
+      // Simplified reset - let components handle their own cleanup
+      reset: () => {
         set({
           mission: null,
           adventure: "GamemAIster",
         });
-        // Also clear history when resetting
-        useHistoryStore.getState().clearHistory();
       },
     }),
     {

@@ -10,6 +10,7 @@ import { MissionPayload } from "../models/RestInterface";
 import { HistoryHandle } from "../models/HistoryTypes";
 import { GameType } from "../models/Types";
 import useAppStore from "../stores/appStore";
+import useHistoryStore from "../stores/historyStore";
 
 type UseMissionControlCallbacksProps = {
   historyRef: RefObject<HistoryHandle>;
@@ -31,7 +32,12 @@ export function useMissionControlCallbacks({
   const sendNewMissionGenerate = useCallback(
     async (gameType: GameType, background: string): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
-      await reset();
+      const { clearHistory } = useHistoryStore.getState();
+
+      // Reset both app state and history
+      reset();
+      clearHistory();
+
       const response = await postNewMission({
         game_type: gameType,
         background,

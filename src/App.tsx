@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { getThemeForGameType } from "./theme";
@@ -53,6 +53,15 @@ const App: React.FC = () => {
       historyRef,
     });
 
+  // Memoize callbacks to prevent child rerenders
+  const handleNewMission = useCallback(
+    async (selectedGameType: GameType, background: string) => {
+      setGameType(selectedGameType);
+      await sendNewMissionGenerate(selectedGameType, background);
+    },
+    [setGameType, sendNewMissionGenerate]
+  );
+
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
@@ -81,13 +90,7 @@ const App: React.FC = () => {
           >
             <AppGrid container spacing={2}>
               <MissionMenu
-                newCallback={async (
-                  selectedGameType: GameType,
-                  background: string
-                ) => {
-                  setGameType(selectedGameType);
-                  await sendNewMissionGenerate(selectedGameType, background);
-                }}
+                newCallback={handleNewMission}
                 saveCallback={saveMission}
                 listCallback={listMissions}
                 loadCallback={loadMission}

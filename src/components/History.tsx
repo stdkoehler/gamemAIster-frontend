@@ -36,10 +36,8 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
   ({ mission, disabled, ...props }, ref) => {
     console.log("History component rendered");
 
-    const containerRef = useRef<HTMLDivElement>(null);
     const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
 
-    // Get state from context instead of local state
     const {
       interactions,
       playerInputOld,
@@ -59,7 +57,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     const [loadingAudio, setLoadingAudio] = useState(false);
     const [audioError, setAudioError] = useState<string | null>(null);
 
-    // History callbacks - now only needs mission
     const {
       stopGeneration,
       changeCallbackPlayerInputOld,
@@ -68,128 +65,104 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       speechToTextCallback,
     } = useHistoryCallbacks();
 
-    // Strip output function
-    function stripOutput(llmOutput: string): string {
+    // Simplified strip output function
+    const stripOutput = useCallback((llmOutput: string): string => {
       const regexPattern =
         /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;
       return llmOutput.replace(regexPattern, "");
-    }
+    }, []);
 
-    // Enhanced sendPlayerInput with direct streaming
+    // Simplified player input handler
     const sendPlayerInputWithStreaming =
       useCallback(async (): Promise<void> => {
-        if (mission !== null && playerInput !== "") {
-          const strippedLlmOutput = stripOutput(llmOutput);
+        if (mission === null || playerInput === "") return;
 
-          const prevInteractionContext =
-            playerInputOld !== "" && strippedLlmOutput !== ""
-              ? { playerInput: playerInputOld, llmOutput: strippedLlmOutput }
-              : undefined;
-
-          const originalPlayerInput = playerInput;
-          const originalPlayerInputOld = playerInputOld;
-          const originalLlmOutput = llmOutput;
-          const originalInteractions = [...interactions];
-
-          if (prevInteractionContext) {
-            setInteractions([...interactions, prevInteractionContext]);
-          }
-
-          setPlayerInputOld(originalPlayerInput);
-          setLlmOutput("");
-          setPlayerInput("");
-
-          // Start streaming mode on the LLM output field
-          if (llmOutputFieldRef.current) {
-            llmOutputFieldRef.current.startStream();
-          }
-
-          let streamedContent = "";
-          try {
-            await sendPlayerInputToLlm({
-              missionId: mission,
-              setStateCallback: ({ llmOutput }) => {
-                // Stream directly to the field instead of context
-                streamedContent = llmOutput;
-                if (llmOutputFieldRef.current) {
-                  llmOutputFieldRef.current.updateStream(llmOutput);
-                }
-              },
-              playerInputField: originalPlayerInput,
-              prevInteraction: prevInteractionContext,
-            });
-
-            // Complete the stream and commit to context
-            if (llmOutputFieldRef.current) {
-              llmOutputFieldRef.current.completeStream(streamedContent);
-            }
-          } catch (error) {
-            // Rollback on error
-            setPlayerInputOld(originalPlayerInputOld);
-            setLlmOutput(originalLlmOutput);
-            setPlayerInput(originalPlayerInput);
-            setInteractions(originalInteractions);
-            console.error("Failed to send player input:", error);
-          }
-        }
-      }, [
-        mission,
-        interactions,
-        llmOutput,
-        playerInput,
-        playerInputOld,
-        setPlayerInputOld,
-        setLlmOutput,
-        setPlayerInput,
-        setInteractions,
-      ]);
-
-    // Enhanced sendRegenerate with direct streaming
-    const sendRegenerateWithStreaming = useCallback(async (): Promise<void> => {
-      if (mission !== null && playerInputOld !== "") {
-        const prevInteraction =
-          playerInputOld !== ""
-            ? { playerInput: playerInputOld, llmOutput: llmOutput }
+        const strippedLlmOutput = stripOutput(llmOutput);
+        const prevInteractionContext =
+          playerInputOld !== "" && strippedLlmOutput !== ""
+            ? { playerInput: playerInputOld, llmOutput: strippedLlmOutput }
             : undefined;
 
-        // Start streaming mode on the LLM output field
-        if (llmOutputFieldRef.current) {
-          llmOutputFieldRef.current.startStream();
-        }
+        // Save current state for rollback
+        const originalState = {
+          playerInput,
+          playerInputOld,
+          llmOutput,
+          interactions: [...interactions],
+        };
 
-        let streamedContent = "";
+        // Update state optimistically
+        if (prevInteractionContext) {
+          setInteractions([...interactions, prevInteractionContext]);
+        }
+        setPlayerInputOld(playerInput);
+        setLlmOutput("");
+        setPlayerInput("");
+
+        // Start streaming
+        llmOutputFieldRef.current?.startStream();
+
         try {
+          let streamedContent = "";
           await sendPlayerInputToLlm({
             missionId: mission,
             setStateCallback: ({ llmOutput }) => {
               streamedContent = llmOutput;
-              // Stream directly to the field instead of context
-              if (llmOutputFieldRef.current) {
-                llmOutputFieldRef.current.updateStream(llmOutput);
-              }
+              llmOutputFieldRef.current?.updateStream(llmOutput);
             },
-            prevInteraction: prevInteraction,
+            playerInputField: playerInput,
+            prevInteraction: prevInteractionContext,
           });
 
-          // Complete the stream and commit to context
-          if (llmOutputFieldRef.current) {
-            llmOutputFieldRef.current.completeStream(streamedContent);
-          }
+          llmOutputFieldRef.current?.completeStream(streamedContent);
+          setLlmOutput(streamedContent);
         } catch (error) {
-          console.error("Failed to regenerate:", error);
+          // Rollback on error
+          setPlayerInputOld(originalState.playerInputOld);
+          setLlmOutput(originalState.llmOutput);
+          setPlayerInput(originalState.playerInput);
+          setInteractions(originalState.interactions);
+          console.error("Failed to send player input:", error);
         }
+      }, [
+        mission,
+        playerInput,
+        playerInputOld,
+        llmOutput,
+        interactions,
+        stripOutput,
+        setInteractions,
+        setPlayerInputOld,
+        setLlmOutput,
+        setPlayerInput,
+      ]);
+
+    // Simplified regenerate handler
+    const sendRegenerateWithStreaming = useCallback(async (): Promise<void> => {
+      if (mission === null || playerInputOld === "") return;
+
+      const prevInteraction = { playerInput: playerInputOld, llmOutput };
+
+      llmOutputFieldRef.current?.startStream();
+
+      try {
+        let streamedContent = "";
+        await sendPlayerInputToLlm({
+          missionId: mission,
+          setStateCallback: ({ llmOutput }) => {
+            streamedContent = llmOutput;
+            llmOutputFieldRef.current?.updateStream(llmOutput);
+          },
+          prevInteraction,
+        });
+
+        llmOutputFieldRef.current?.completeStream(streamedContent);
+        setLlmOutput(streamedContent);
+      } catch (error) {
+        console.error("Failed to regenerate:", error);
       }
-    }, [mission, playerInputOld, llmOutput]);
+    }, [mission, playerInputOld, llmOutput, setLlmOutput]);
 
-    // Handle stream completion - commit final value to context
-    const handleStreamComplete = useCallback(
-      (finalContent: string) => {
-        setLlmOutput(finalContent);
-      },
-      [setLlmOutput]
-    );
-
-    // Imperative handle for external control
     useImperativeHandle(
       ref,
       () => ({
@@ -199,82 +172,68 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       [loadHistoryData, clearHistory]
     );
 
-    // Auto-scroll to bottom
-    // useEffect(() => {
-    //   if (containerRef.current) {
-    //     containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    //   }
-    // }, [interactions, playerInputOld, llmOutput]);
+    // Enhanced audio cleanup with proper MediaSource handling
+    const cleanupAudio = useCallback(() => {
+      if (audio) {
+        // Remove event listeners to prevent memory leaks
+        audio.onended = null;
+        audio.onerror = null;
 
-    const cleanupAudioElement = useCallback(
-      (audioElem: HTMLAudioElement | null) => {
-        if (!audioElem) return;
-        try {
-          audioElem.onerror = null;
-          audioElem.onended = null;
-          audioElem.pause();
-          audioElem.currentTime = 0;
-          const url = audioElem.src;
-          if (url && url.startsWith("blob:")) {
-            audioElem.src = "";
-            try {
-              URL.revokeObjectURL(url);
-            } catch (e) {
-              // Ignore cleanup errors
-            }
-          } else {
-            audioElem.src = "";
+        // Pause and reset the audio
+        audio.pause();
+        audio.currentTime = 0;
+
+        // Store the src before clearing it
+        const src = audio.src;
+
+        // Clear the src to detach MediaSource
+        audio.src = "";
+
+        // Revoke the object URL if it's a blob URL
+        if (src && src.startsWith("blob:")) {
+          try {
+            URL.revokeObjectURL(src);
+          } catch (e) {
+            console.warn("Error revoking object URL:", e);
           }
-        } catch (e) {
-          // Ignore cleanup errors
         }
-      },
-      []
-    );
+
+        // Force load to ensure the MediaSource is properly detached
+        audio.load();
+
+        setAudio(null);
+        setIsPlaying(false);
+      }
+    }, [audio]);
 
     useEffect(() => {
-      return () => {
-        cleanupAudioElement(audio);
-      };
-    }, [audio, cleanupAudioElement]);
+      return cleanupAudio;
+    }, [cleanupAudio]);
 
-    const handlePlayTTS = async () => {
+    const handlePlayTTS = useCallback(async () => {
       setAudioError(null);
       setLoadingAudio(true);
 
       try {
-        let audioElem: HTMLAudioElement;
+        // Always cleanup previous audio before creating new one
+        cleanupAudio();
 
-        if (USE_TTS_STREAM) {
-          audioElem = await sendTextToSpeechStream(llmOutput);
-        } else {
-          const blob = await sendTextToSpeech(llmOutput);
-          const url = URL.createObjectURL(blob);
-          audioElem = new Audio(url);
-        }
-
-        if (audio) {
-          cleanupAudioElement(audio);
-        }
+        const audioElem = USE_TTS_STREAM
+          ? await sendTextToSpeechStream(llmOutput)
+          : new Audio(URL.createObjectURL(await sendTextToSpeech(llmOutput)));
 
         audioElem.onended = () => setIsPlaying(false);
-        audioElem.onerror = () => {
+        audioElem.onerror = (e) => {
+          console.error("Audio error:", e);
           setAudioError("Audio playback error.");
           setIsPlaying(false);
         };
+
         setAudio(audioElem);
         setIsPlaying(true);
-
-        try {
-          await audioElem.play();
-        } catch (err) {
-          setAudioError(
-            "❌ Could not start audio playback: " +
-              (err instanceof Error ? err.message : String(err))
-          );
-          setIsPlaying(false);
-        }
+        await audioElem.play();
       } catch (err) {
+        console.error("TTS Error:", err);
         setAudioError(
           "❌ Could not synthesize or play audio: " +
             (err instanceof Error ? err.message : String(err))
@@ -283,20 +242,15 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       } finally {
         setLoadingAudio(false);
       }
-    };
+    }, [llmOutput, cleanupAudio]);
 
-    const handleStopTTS = () => {
-      if (audio) {
-        audio.onerror = null;
-        audio.onended = null;
-        cleanupAudioElement(audio);
-        setIsPlaying(false);
-        setAudio(null);
-      }
-    };
+    const handleStopTTS = useCallback(() => {
+      cleanupAudio();
+    }, [cleanupAudio]);
 
-    const InteractionList = (interactions: Interaction[]) => {
-      return (
+    // Memoized interaction list
+    const InteractionList = useCallback(
+      (interactions: Interaction[]) => (
         <>
           {interactions.map((interaction, index) => (
             <div key={index}>
@@ -326,8 +280,9 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
             </div>
           ))}
         </>
-      );
-    };
+      ),
+      []
+    );
 
     const lastInteraction = {
       playerInput: playerInputOld,
@@ -335,106 +290,103 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     };
 
     return (
-      <>
-        <Container
-          ref={containerRef}
-          {...props}
-          sx={{
+      <Container
+        {...props}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "95%",
+          overflow: "auto",
+          paddingTop: 0,
+          marginLeft: 0,
+          marginRight: 0,
+        }}
+      >
+        {InteractionList(interactions)}
+
+        <MemoizedFieldContainer
+          sendCallback={sendRegenerateWithStreaming}
+          stopCallback={stopGeneration}
+          onCommit={changeCallbackPlayerInputOld}
+          value={lastInteraction.playerInput}
+          instance="Player"
+          color="secondary"
+          type={FieldContainerType.PLAYER_OLD}
+          disabled={disabled}
+        />
+
+        <MemoizedFieldContainer
+          ref={llmOutputFieldRef}
+          onCommit={changeCallbackLlmOutput}
+          onStreamComplete={setLlmOutput}
+          value={lastInteraction.llmOutput}
+          instance="Gamemaster"
+          color="primary"
+          type={FieldContainerType.GAMEMASTER}
+          disabled={disabled}
+        />
+
+        {/* Simplified TTS Controls */}
+        <div
+          style={{
+            width: "100%",
             display: "flex",
             flexDirection: "column",
-            width: "95%",
-            overflow: "auto",
-            paddingTop: 0,
-            marginLeft: 0,
-            marginRight: 0,
+            alignItems: "flex-start",
+            marginTop: 4,
           }}
         >
-          {InteractionList(interactions)}
-          {/* Player Input Old Field */}
-          <MemoizedFieldContainer
-            sendCallback={sendRegenerateWithStreaming}
-            stopCallback={stopGeneration}
-            onCommit={changeCallbackPlayerInputOld}
-            value={lastInteraction.playerInput}
-            instance="Player"
-            color="secondary"
-            type={FieldContainerType.PLAYER_OLD}
-            disabled={disabled}
-          />
-          {/* Gamemaster Output Field - Now with streaming support */}
-          <MemoizedFieldContainer
-            ref={llmOutputFieldRef}
-            onCommit={changeCallbackLlmOutput}
-            onStreamComplete={handleStreamComplete}
-            value={lastInteraction.llmOutput}
-            instance="Gamemaster"
-            color="primary"
-            type={FieldContainerType.GAMEMASTER}
-            disabled={disabled}
-          />
-          {/* TTS Controls */}
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              marginTop: 4,
-            }}
-          >
-            {isPlaying ? (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<StopIcon />}
-                onClick={handleStopTTS}
-                disabled={disabled || !audio}
-                sx={{ mt: 1, mb: 1 }}
-              >
-                Stop
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={
-                  loadingAudio ? (
-                    <CircularProgress size={20} />
-                  ) : (
-                    <PlayArrowIcon />
-                  )
-                }
-                onClick={handlePlayTTS}
-                disabled={disabled || loadingAudio || isPlaying}
-                sx={{ mt: 1, mb: 1 }}
-              >
-                {loadingAudio ? "Synthesizing..." : "Play"}
-              </Button>
-            )}
-            {audioError && (
-              <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
-                {audioError}
-              </Typography>
-            )}
-          </div>
-          {/* Player Input Field - Now part of History */}
-          <MemoizedFieldContainer
-            sendCallback={sendPlayerInputWithStreaming}
-            onCommit={changeCallbackPlayerInput}
-            stopCallback={stopGeneration}
-            value={playerInput}
-            instance="Player"
-            color="secondary"
-            type={FieldContainerType.MAIN_SEND}
-            disabled={disabled}
-            placeholder="Begin by describing your character and what he's currently doing."
-            speechToTextCallback={speechToTextCallback}
-          />
-        </Container>
-      </>
+          {isPlaying ? (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<StopIcon />}
+              onClick={handleStopTTS}
+              disabled={disabled}
+              sx={{ mt: 1, mb: 1 }}
+            >
+              Stop
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={
+                loadingAudio ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <PlayArrowIcon />
+                )
+              }
+              onClick={handlePlayTTS}
+              disabled={disabled || loadingAudio || isPlaying}
+              sx={{ mt: 1, mb: 1 }}
+            >
+              {loadingAudio ? "Synthesizing..." : "Play"}
+            </Button>
+          )}
+          {audioError && (
+            <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+              {audioError}
+            </Typography>
+          )}
+        </div>
+
+        <MemoizedFieldContainer
+          sendCallback={sendPlayerInputWithStreaming}
+          onCommit={changeCallbackPlayerInput}
+          stopCallback={stopGeneration}
+          value={playerInput}
+          instance="Player"
+          color="secondary"
+          type={FieldContainerType.MAIN_SEND}
+          disabled={disabled}
+          placeholder="Begin by describing your character and what he's currently doing."
+          speechToTextCallback={speechToTextCallback}
+        />
+      </Container>
     );
   }
 );
 
-// Memoize the History component to prevent unnecessary rerenders
 export default memo(History);
