@@ -14,6 +14,8 @@ import StopIcon from "@mui/icons-material/Stop";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
 
 import {
+  postStopGeneration,
+  sendSpeechToText,
   sendTextToSpeech,
   sendTextToSpeechStream,
   sendPlayerInputToLlm,
@@ -22,7 +24,6 @@ import { Interaction } from "../models/MissionModels";
 import { HistoryHandle } from "../models/HistoryTypes";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
-import { useHistoryCallbacks } from "../hooks/historyCallbacks";
 import useHistoryStore from "../stores/historyStore";
 
 type HistoryProps = ComponentProps<typeof Container> & {
@@ -51,19 +52,36 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       setInteractions,
     } = useHistoryStore();
 
-    // Audio state - keep local as it's UI-specific
+    // Audio state - local to component
     const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [loadingAudio, setLoadingAudio] = useState(false);
     const [audioError, setAudioError] = useState<string | null>(null);
 
-    const {
-      stopGeneration,
-      changeCallbackPlayerInputOld,
-      changeCallbackPlayerInput,
-      changeCallbackLlmOutput,
-      speechToTextCallback,
-    } = useHistoryCallbacks();
+    // Direct API call - no need for callback wrapper
+    const stopGeneration = useCallback(async (): Promise<void> => {
+      try {
+        await postStopGeneration();
+      } catch (error) {
+        console.error("Error stopping LLM generation:", error);
+      }
+    }, []);
+
+    // Speech-to-text - handled locally like TTS
+    const speechToTextCallback = useCallback(
+      async (audioBlob: Blob) => {
+        try {
+          const transcript = await sendSpeechToText(audioBlob);
+          setPlayerInput(transcript);
+        } catch (err) {
+          alert(
+            "Speech-to-text failed: " +
+              (err instanceof Error ? err.message : String(err))
+          );
+        }
+      },
+      [setPlayerInput]
+    );
 
     // Simplified strip output function
     const stripOutput = useCallback((llmOutput: string): string => {
@@ -307,7 +325,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
         <MemoizedFieldContainer
           sendCallback={sendRegenerateWithStreaming}
           stopCallback={stopGeneration}
-          onCommit={changeCallbackPlayerInputOld}
+          onCommit={setPlayerInputOld}
           value={lastInteraction.playerInput}
           instance="Player"
           color="secondary"
@@ -317,7 +335,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
         <MemoizedFieldContainer
           ref={llmOutputFieldRef}
-          onCommit={changeCallbackLlmOutput}
+          onCommit={setLlmOutput}
           onStreamComplete={setLlmOutput}
           value={lastInteraction.llmOutput}
           instance="Gamemaster"
@@ -374,7 +392,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
 
         <MemoizedFieldContainer
           sendCallback={sendPlayerInputWithStreaming}
-          onCommit={changeCallbackPlayerInput}
+          onCommit={setPlayerInput}
           stopCallback={stopGeneration}
           value={playerInput}
           instance="Player"
