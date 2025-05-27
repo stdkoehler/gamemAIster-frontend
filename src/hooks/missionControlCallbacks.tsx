@@ -9,13 +9,9 @@ import { Mission } from "../models/MissionModels";
 import { MissionPayload } from "../models/RestInterface";
 import { HistoryHandle } from "../models/HistoryTypes";
 import { GameType } from "../models/Types";
+import useAppStore from "../stores/appStore";
 
 type UseMissionControlCallbacksProps = {
-  mission: number | null;
-  setMission: (val: number | null) => void;
-  setAdventure: (val: string) => void;
-  reset: () => Promise<void>;
-  setGameType: (val: GameType) => void;
   historyRef: RefObject<HistoryHandle>;
 };
 
@@ -30,15 +26,11 @@ export type MissionControlCallbacks = {
 };
 
 export function useMissionControlCallbacks({
-  mission,
-  setMission,
-  setAdventure,
-  reset,
-  setGameType,
   historyRef,
 }: UseMissionControlCallbacksProps): MissionControlCallbacks {
   const sendNewMissionGenerate = useCallback(
     async (gameType: GameType, background: string): Promise<void> => {
+      const { reset, setMission, setAdventure } = useAppStore.getState();
       await reset();
       const response = await postNewMission({
         game_type: gameType,
@@ -49,17 +41,15 @@ export function useMissionControlCallbacks({
         setAdventure(response.name);
       }
     },
-    [reset, setMission, setAdventure]
+    []
   );
 
-  const saveMission = useCallback(
-    async (nameCustom: string): Promise<void> => {
-      if (mission !== null) {
-        await postSaveMission(mission, nameCustom);
-      }
-    },
-    [mission]
-  );
+  const saveMission = useCallback(async (nameCustom: string): Promise<void> => {
+    const { mission } = useAppStore.getState();
+    if (mission !== null) {
+      await postSaveMission(mission, nameCustom);
+    }
+  }, []);
 
   const listMissions = useCallback(async (): Promise<Mission[]> => {
     const missionPayloads = await getListMissions();
@@ -75,6 +65,7 @@ export function useMissionControlCallbacks({
 
   const loadMission = useCallback(
     async (missionId: number): Promise<void> => {
+      const { setMission, setAdventure, setGameType } = useAppStore.getState();
       const loaded = await getLoadMissions(missionId);
       setMission(loaded.mission.missionId);
       setAdventure(loaded.mission.nameCustom || loaded.mission.name);
@@ -99,7 +90,7 @@ export function useMissionControlCallbacks({
         });
       }
     },
-    [setMission, setAdventure, setGameType, historyRef]
+    [historyRef]
   );
 
   return {

@@ -1,4 +1,5 @@
 import { createTheme, Theme } from "@mui/material/styles";
+import { GameType } from "./models/Types";
 
 // Declare custom theme properties
 declare module "@mui/material/styles" {
@@ -1341,3 +1342,20 @@ export const cthulhuTheme = createTheme({
   }),
   logo: "/src/assets/callofcthulhu/coc_00354_.png",
 });
+
+/**
+ * Helper function to get the appropriate theme for a game type
+ * @param gameType The game type to get the theme for
+ * @returns The corresponding theme object
+ */
+export function getThemeForGameType(gameType: GameType): Theme {
+  switch (gameType) {
+    case GameType.VAMPIRE_THE_MASQUERADE:
+      return vampireTheme;
+    case GameType.CALL_OF_CTHULHU:
+      return cthulhuTheme;
+    case GameType.SHADOWRUN:
+    default:
+      return shadowrunTheme;
+  }
+}
