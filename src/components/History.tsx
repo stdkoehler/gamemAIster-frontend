@@ -66,9 +66,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       changeCallbackPlayerInput,
       changeCallbackLlmOutput,
       speechToTextCallback,
-    } = useHistoryCallbacks({
-      mission,
-    });
+    } = useHistoryCallbacks();
 
     // Strip output function
     function stripOutput(llmOutput: string): string {

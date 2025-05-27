@@ -7,10 +7,6 @@ import {
 import useHistoryStore from "../stores/historyStore";
 import useAppStore from "../stores/appStore";
 
-type UseHistoryCallbacksProps = {
-  mission: number | null;
-};
-
 export type HistoryCallbacks = {
   sendRegenerate: () => Promise<void>;
   sendPlayerInput: () => Promise<void>;
@@ -21,9 +17,7 @@ export type HistoryCallbacks = {
   speechToTextCallback: (audioBlob: Blob) => Promise<void>;
 };
 
-export function useHistoryCallbacks({
-  mission,
-}: UseHistoryCallbacksProps): HistoryCallbacks {
+export function useHistoryCallbacks(): HistoryCallbacks {
   function stripOutput(llmOutput: string): string {
     const regexPattern =
       /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;

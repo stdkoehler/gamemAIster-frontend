@@ -18,7 +18,7 @@ interface AppState {
 
 const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Initial state
       mission: null,
       adventure: "GamemAIster",
