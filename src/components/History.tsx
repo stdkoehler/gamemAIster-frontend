@@ -37,6 +37,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
   ({ mission, disabled, ...props }, ref) => {
     console.log("History component rendered");
 
+    // ===== REFS & STORE =====
     const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
 
     const {
@@ -52,13 +53,20 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       setInteractions,
     } = useHistoryStore();
 
-    // Audio state - local to component
+    // ===== LOCAL STATE =====
     const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [loadingAudio, setLoadingAudio] = useState(false);
     const [audioError, setAudioError] = useState<string | null>(null);
 
-    // Direct API call - no need for callback wrapper
+    // ===== UTILITY FUNCTIONS =====
+    const stripOutput = useCallback((llmOutput: string): string => {
+      const regexPattern =
+        /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;
+      return llmOutput.replace(regexPattern, "");
+    }, []);
+
+    // ===== API CALLBACKS =====
     const stopGeneration = useCallback(async (): Promise<void> => {
       try {
         await postStopGeneration();
@@ -67,7 +75,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       }
     }, []);
 
-    // Speech-to-text - handled locally like TTS
     const speechToTextCallback = useCallback(
       async (audioBlob: Blob) => {
         try {
@@ -83,14 +90,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       [setPlayerInput]
     );
 
-    // Simplified strip output function
-    const stripOutput = useCallback((llmOutput: string): string => {
-      const regexPattern =
-        /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;
-      return llmOutput.replace(regexPattern, "");
-    }, []);
-
-    // Simplified player input handler
+    // ===== STREAMING LOGIC =====
     const sendPlayerInputWithStreaming =
       useCallback(async (): Promise<void> => {
         if (mission === null || playerInput === "") return;
@@ -155,7 +155,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
         setPlayerInput,
       ]);
 
-    // Simplified regenerate handler
     const sendRegenerateWithStreaming = useCallback(async (): Promise<void> => {
       if (mission === null || playerInputOld === "") return;
 
@@ -181,16 +180,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       }
     }, [mission, playerInputOld, llmOutput, setLlmOutput]);
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        loadHistoryData,
-        clearHistory,
-      }),
-      [loadHistoryData, clearHistory]
-    );
-
-    // Enhanced audio cleanup with proper MediaSource handling
+    // ===== AUDIO MANAGEMENT =====
     const cleanupAudio = useCallback(() => {
       if (audio) {
         // Remove event listeners to prevent memory leaks
@@ -223,10 +213,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
         setIsPlaying(false);
       }
     }, [audio]);
-
-    useEffect(() => {
-      return cleanupAudio;
-    }, [cleanupAudio]);
 
     const handlePlayTTS = useCallback(async () => {
       setAudioError(null);
@@ -266,7 +252,21 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       cleanupAudio();
     }, [cleanupAudio]);
 
-    // Memoized interaction list
+    // ===== COMPONENT LIFECYCLE =====
+    useImperativeHandle(
+      ref,
+      () => ({
+        loadHistoryData,
+        clearHistory,
+      }),
+      [loadHistoryData, clearHistory]
+    );
+
+    useEffect(() => {
+      return cleanupAudio;
+    }, [cleanupAudio]);
+
+    // ===== RENDER HELPERS =====
     const InteractionList = useCallback(
       (interactions: Interaction[]) => (
         <>
@@ -302,6 +302,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       []
     );
 
+    // ===== RENDER =====
     const lastInteraction = {
       playerInput: playerInputOld,
       llmOutput: llmOutput,
@@ -344,7 +345,7 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
           disabled={disabled}
         />
 
-        {/* Simplified TTS Controls */}
+        {/* TTS Controls */}
         <div
           style={{
             width: "100%",
