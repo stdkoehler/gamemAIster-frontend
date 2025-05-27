@@ -23,8 +23,7 @@ import { HistoryHandle } from "../models/HistoryTypes";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import { useHistoryCallbacks } from "../hooks/historyCallbacks";
-import { useHistoryContext } from "../contexts/HistoryContext";
-import AppGrid from "./AppGrid";
+import useHistoryStore from "../stores/historyStore";
 
 type HistoryProps = ComponentProps<typeof Container> & {
   mission: number | null;
@@ -48,12 +47,11 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       playerInput,
       loadHistoryData,
       clearHistory,
-      hydrateFromStorage,
       setLlmOutput,
       setPlayerInputOld,
       setPlayerInput,
       setInteractions,
-    } = useHistoryContext();
+    } = useHistoryStore();
 
     // Audio state - keep local as it's UI-specific
     const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -193,15 +191,14 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       [setLlmOutput]
     );
 
-    // Imperative handle for external control - now uses context methods
+    // Imperative handle for external control
     useImperativeHandle(
       ref,
       () => ({
         loadHistoryData,
         clearHistory,
-        hydrateFromStorage,
       }),
-      [loadHistoryData, clearHistory, hydrateFromStorage]
+      [loadHistoryData, clearHistory]
     );
 
     // Auto-scroll to bottom

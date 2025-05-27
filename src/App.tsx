@@ -17,15 +17,15 @@ import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
-import { HistoryProvider, useHistoryContext } from "./contexts/HistoryContext";
+import useHistoryStore from "./stores/historyStore";
 
 const placeholder = "GamemAIster";
 
 // Inner component that uses the history context
-const AppContent: React.FC = memo(() => {
+const App: React.FC = memo(() => {
   console.log("App component rendered");
 
-  const { clearHistory, hydrateFromStorage } = useHistoryContext();
+  const { clearHistory } = useHistoryStore();
 
   // Core mission state - stays in App
   const [mission, setMission] = useState<number | null>(() => {
@@ -108,10 +108,6 @@ const AppContent: React.FC = memo(() => {
                 storedInteractions &&
                 JSON.parse(storedInteractions).length > 0
               ) {
-                // Give History component time to mount, then hydrate
-                setTimeout(() => {
-                  hydrateFromStorage();
-                }, 0);
               }
             }
           })
@@ -119,7 +115,7 @@ const AppContent: React.FC = memo(() => {
       }
       isFirstRender.current = false;
     }
-  }, [reset, mission, hydrateFromStorage]);
+  }, [reset, mission]);
 
   // Mission control callbacks - only for mission management
   const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
@@ -208,14 +204,5 @@ const AppContent: React.FC = memo(() => {
     </ThemeProvider>
   );
 });
-
-// Main App component wrapped with HistoryProvider
-const App: React.FC = () => {
-  return (
-    <HistoryProvider>
-      <AppContent />
-    </HistoryProvider>
-  );
-};
 
 export default App;
