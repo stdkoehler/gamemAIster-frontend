@@ -13,15 +13,12 @@ import History from "./components/History";
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { getMission } from "./functions/restInterface";
-import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
 
 const App: React.FC = () => {
-  console.log("App component rendered");
-
   // Get state from consolidated app store
   const { mission, adventure, gameType, setGameType, reset } = useAppStore();
 
@@ -29,7 +26,6 @@ const App: React.FC = () => {
   const currentTheme = useMemo(() => getThemeForGameType(gameType), [gameType]);
 
   const isFirstRender = useRef(true);
-  const historyRef = useRef<HistoryHandle>(null);
 
   // Initial mission validation on first render
   useEffect(() => {
@@ -49,9 +45,7 @@ const App: React.FC = () => {
 
   // Mission control callbacks - simplified with new store
   const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
-    useMissionControlCallbacks({
-      historyRef,
-    });
+    useMissionControlCallbacks();
 
   // Memoize callbacks to prevent child rerenders
   const handleNewMission = useCallback(
@@ -120,7 +114,6 @@ const App: React.FC = () => {
                 <AdventureHeading>{adventure}</AdventureHeading>
                 {/* History now uses context for state management */}
                 <History
-                  ref={historyRef}
                   mission={mission}
                   disabled={mission === null}
                 />

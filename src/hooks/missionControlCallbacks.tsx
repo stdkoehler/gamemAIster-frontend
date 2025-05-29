@@ -1,4 +1,4 @@
-import { useCallback, RefObject } from "react";
+import { useCallback } from "react";
 import {
   postNewMission,
   postSaveMission,
@@ -7,14 +7,9 @@ import {
 } from "../functions/restInterface";
 import { Mission } from "../models/MissionModels";
 import { MissionPayload } from "../models/RestInterface";
-import { HistoryHandle } from "../models/HistoryTypes";
 import { GameType } from "../models/Types";
 import useAppStore from "../stores/appStore";
 import useHistoryStore from "../stores/historyStore";
-
-type UseMissionControlCallbacksProps = {
-  historyRef: RefObject<HistoryHandle>;
-};
 
 export type MissionControlCallbacks = {
   sendNewMissionGenerate: (
@@ -26,9 +21,7 @@ export type MissionControlCallbacks = {
   loadMission: (missionId: number) => Promise<void>;
 };
 
-export function useMissionControlCallbacks({
-  historyRef,
-}: UseMissionControlCallbacksProps): MissionControlCallbacks {
+export function useMissionControlCallbacks(): MissionControlCallbacks {
   const sendNewMissionGenerate = useCallback(
     async (gameType: GameType, background: string): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
@@ -83,20 +76,20 @@ export function useMissionControlCallbacks({
       if (loadedInteractions.length > 0) {
         const lastInteraction =
           loadedInteractions[loadedInteractions.length - 1];
-        historyRef.current?.loadHistoryData({
+        useHistoryStore.getState().loadHistoryData({
           interactions: loadedInteractions.slice(0, -1) || [],
           lastPlayerInput: lastInteraction?.playerInput ?? "",
           lastLlmOutput: lastInteraction?.llmOutput ?? "",
         });
       } else {
-        historyRef.current?.loadHistoryData({
+        useHistoryStore.getState().loadHistoryData({
           interactions: [],
           lastPlayerInput: "",
           lastLlmOutput: "",
         });
       }
     },
-    [historyRef]
+    []
   );
 
   return {

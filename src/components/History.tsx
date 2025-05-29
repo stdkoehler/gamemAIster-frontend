@@ -4,8 +4,6 @@ import {
   useEffect,
   useState,
   useCallback,
-  forwardRef,
-  useImperativeHandle,
   memo,
 } from "react";
 import { Typography, Container, Button, CircularProgress } from "@mui/material";
@@ -21,7 +19,6 @@ import {
   sendPlayerInputToLlm,
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
-import { HistoryHandle } from "../models/HistoryTypes";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
@@ -33,10 +30,7 @@ type HistoryProps = ComponentProps<typeof Container> & {
 
 const USE_TTS_STREAM = true;
 
-const History = forwardRef<HistoryHandle, HistoryProps>(
-  ({ mission, disabled, ...props }, ref) => {
-    console.log("History component rendered");
-
+const History = ({ mission, disabled, ...props }: HistoryProps) => {
     // ===== REFS & STORE =====
     const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
 
@@ -45,8 +39,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       playerInputOld,
       llmOutput,
       playerInput,
-      loadHistoryData,
-      clearHistory,
       setLlmOutput,
       setPlayerInputOld,
       setPlayerInput,
@@ -81,13 +73,11 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
           const transcript = await sendSpeechToText(audioBlob);
           setPlayerInput(transcript);
         } catch (err) {
-          alert(
-            "Speech-to-text failed: " +
-              (err instanceof Error ? err.message : String(err))
-          );
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          setAudioError("Speech-to-text failed: " + errorMessage);
         }
       },
-      [setPlayerInput]
+      [setPlayerInput, setAudioError]
     );
 
     // ===== STREAMING LOGIC =====
@@ -253,15 +243,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     }, [cleanupAudio]);
 
     // ===== COMPONENT LIFECYCLE =====
-    useImperativeHandle(
-      ref,
-      () => ({
-        loadHistoryData,
-        clearHistory,
-      }),
-      [loadHistoryData, clearHistory]
-    );
-
     useEffect(() => {
       return cleanupAudio;
     }, [cleanupAudio]);
@@ -406,6 +387,5 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
       </Container>
     );
   }
-);
 
 export default memo(History);
