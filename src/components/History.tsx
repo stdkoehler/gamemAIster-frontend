@@ -82,42 +82,49 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
   );
 
   // ===== OPTIMISTIC UPDATE HELPER =====
-  const _performOptimisticSendUpdate = useCallback(() => {
-    // Snapshot of current state for rollback
-    const originalState = {
-      playerInput, // Current playerInput before clearing
-      playerInputOld,
-      llmOutput,
-      interactions: [...interactions],
-    };
+  const _performOptimisticSendUpdate = useCallback(
+    (inputValue: string) => {
+      // Get fresh state from store instead of using stale closure values
+      const state = useHistoryStore.getState();
 
-    const strippedLlmOutput = stripOutput(llmOutput);
-    const prevInteractionContext =
-      playerInputOld !== "" && strippedLlmOutput !== ""
-        ? { playerInput: playerInputOld, llmOutput: strippedLlmOutput }
-        : undefined;
+      // Snapshot of current state for rollback
+      const originalState = {
+        playerInput: inputValue,
+        playerInputOld: state.playerInputOld,
+        llmOutput: state.llmOutput,
+        interactions: [...state.interactions],
+      };
 
-    // Optimistic state updates
-    if (prevInteractionContext) {
-      setInteractions([...interactions, prevInteractionContext]);
-    }
-    setPlayerInputOld(originalState.playerInput); // Use playerInput from snapshot
-    setLlmOutput("");
-    setPlayerInput("");
+      const strippedLlmOutput = stripOutput(state.llmOutput);
+      const prevInteractionContext =
+        state.playerInputOld !== "" && strippedLlmOutput !== ""
+          ? { playerInput: state.playerInputOld, llmOutput: strippedLlmOutput }
+          : undefined;
 
-    return { originalState, prevInteractionContext };
-  }, [
-    playerInput,
-    playerInputOld,
-    llmOutput,
-    interactions,
-    stripOutput,
-    setInteractions,
-    setPlayerInputOld,
-    setLlmOutput,
-    setPlayerInput,
-  ]);
+      console.log("inputValue:", inputValue);
+      console.log("originalState:", originalState);
+      console.log("playerInputOld:", state.playerInputOld);
+      console.log("strippedLlmOutput:", strippedLlmOutput);
+      console.log("Prev interaction context:", prevInteractionContext);
 
+      // Optimistic state updates
+      if (prevInteractionContext) {
+        setInteractions([...state.interactions, prevInteractionContext]);
+      }
+      setPlayerInputOld(inputValue);
+      setLlmOutput("");
+      setPlayerInput("");
+
+      return { originalState, prevInteractionContext };
+    },
+    [
+      stripOutput,
+      setInteractions,
+      setPlayerInputOld,
+      setLlmOutput,
+      setPlayerInput,
+    ]
+  );
   const _rollbackSendUpdate = useCallback(
     (originalState: {
       playerInput: string;
@@ -134,53 +141,72 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
   );
 
   // ===== STREAMING LOGIC =====
-  const sendPlayerInputWithStreaming = useCallback(async (): Promise<void> => {
-    if (mission === null) return;
+  const sendPlayerInputWithStreaming = useCallback(
+    async (inputValue: string): Promise<void> => {
+      if (mission === null) return;
 
-    const { originalState, prevInteractionContext } =
-      _performOptimisticSendUpdate();
+      console.log("Sending player input with streaming:", inputValue);
 
-    // Guard against sending empty input after optimistic update clears it
-    if (originalState.playerInput === "") {
-      // If the original input was empty, nothing to send.
-      // Rollback the optimistic update that cleared other fields.
-      _rollbackSendUpdate(originalState);
-      return;
-    }
+      const { originalState, prevInteractionContext } =
+        _performOptimisticSendUpdate(inputValue);
 
-    llmOutputFieldRef.current?.startStream();
+      // Guard against sending empty input after optimistic update clears it
+      if (inputValue === "") {
+        // If the original input was empty, nothing to send.
+        // Rollback the optimistic update that cleared other fields.
+        console.log("Rolling back since inputValue is empty");
+        _rollbackSendUpdate(originalState);
+        return;
+      }
 
-    try {
-      let streamedContent = "";
-      await sendPlayerInputToLlm({
-        missionId: mission,
-        setStateCallback: ({ llmOutput: newLlmOutput }) => {
-          streamedContent = newLlmOutput;
-          llmOutputFieldRef.current?.updateStream(newLlmOutput);
-        },
-        playerInputField: originalState.playerInput,
-        prevInteraction: prevInteractionContext,
-      });
+      llmOutputFieldRef.current?.startStream();
 
-      llmOutputFieldRef.current?.completeStream(streamedContent);
-      setLlmOutput(streamedContent); // Set final LLM output in store
-    } catch (error) {
-      _rollbackSendUpdate(originalState);
-      console.error("Failed to send player input:", error);
-    }
-  }, [
-    mission,
-    _performOptimisticSendUpdate,
-    _rollbackSendUpdate,
-    llmOutputFieldRef,
-    setLlmOutput,
-    // sendPlayerInputToLlm is stable import, not needed in deps
-  ]);
+      try {
+        let streamedContent = "";
+        console.log("prev", prevInteractionContext);
+        console.log("inputValue", inputValue);
+        await sendPlayerInputToLlm({
+          missionId: mission,
+          setStateCallback: ({ llmOutput: newLlmOutput }) => {
+            streamedContent = newLlmOutput;
+            llmOutputFieldRef.current?.updateStream(newLlmOutput);
+          },
+          playerInputField: inputValue,
+          prevInteraction: prevInteractionContext,
+        });
+        llmOutputFieldRef.current?.completeStream(streamedContent);
+        setLlmOutput(streamedContent); // Set final LLM output in store
+      } catch (error) {
+        _rollbackSendUpdate(originalState);
+        console.log("Failed to send player input:", error);
+      }
+    },
+    [
+      mission,
+      _performOptimisticSendUpdate,
+      _rollbackSendUpdate,
+      llmOutputFieldRef,
+      setLlmOutput,
+    ]
+  );
 
   const sendRegenerateWithStreaming = useCallback(async (): Promise<void> => {
-    if (mission === null || playerInputOld === "") return;
+    if (mission === null) return;
 
-    const prevInteraction = { playerInput: playerInputOld, llmOutput };
+    // Get fresh state from store instead of using stale closure values
+    const {
+      playerInputOld: currentPlayerInputOld,
+      llmOutput: currentLlmOutput,
+    } = useHistoryStore.getState();
+
+    if (currentPlayerInputOld === "") return;
+
+    console.log("Sending regenerate");
+
+    const prevInteraction = {
+      playerInput: currentPlayerInputOld,
+      llmOutput: currentLlmOutput,
+    };
 
     llmOutputFieldRef.current?.startStream();
 
@@ -200,7 +226,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
     } catch (error) {
       console.error("Failed to regenerate:", error);
     }
-  }, [mission, playerInputOld, llmOutput, setLlmOutput]);
+  }, [mission, setLlmOutput]);
 
   // ===== AUDIO MANAGEMENT =====
   const cleanupAudio = useCallback(() => {

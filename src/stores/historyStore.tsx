@@ -17,7 +17,6 @@ interface HistoryState {
     lastLlmOutput: string;
   }) => void;
   clearHistory: () => void;
-  // hydrateFromStorage: () => void; // No longer needed, persist middleware handles this
 }
 
 const useHistoryStore = create<HistoryState>()(
@@ -45,10 +44,9 @@ const useHistoryStore = create<HistoryState>()(
           llmOutput: "",
           playerInput: "",
         }),
-      // hydrateFromStorage is removed as persist middleware handles rehydration.
     }),
     {
-      name: "history-storage", // localStorage key
+      name: "history-storage",
     }
   )
 );

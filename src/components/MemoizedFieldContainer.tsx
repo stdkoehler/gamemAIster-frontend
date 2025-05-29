@@ -7,7 +7,7 @@ import { Colors } from "../styles/styles";
 
 // Props interface for the memoized field container
 interface MemoizedFieldContainerProps {
-  sendCallback?: () => Promise<void>;
+  sendCallback?: (valueToSend: string) => Promise<void>;
   changeCallback?: (arg: string) => void;
   onCommit?: (value: string) => void;
   stopCallback?: () => Promise<void>;

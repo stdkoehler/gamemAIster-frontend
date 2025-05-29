@@ -25,11 +25,10 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
   const sendNewMissionGenerate = useCallback(
     async (gameType: GameType, background: string): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
-      const { clearHistory } = useHistoryStore.getState();
 
-      // Reset both app state and history
+      // Reset both stores
       reset();
-      clearHistory();
+      useHistoryStore.getState().clearHistory();
 
       const response = await postNewMission({
         game_type: gameType,
@@ -62,35 +61,36 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
     }));
   }, []);
 
-  const loadMission = useCallback(
-    async (missionId: number): Promise<void> => {
-      const { setMission, setAdventure, setGameType } = useAppStore.getState();
-      const loaded = await getLoadMissions(missionId);
-      setMission(loaded.mission.missionId);
-      setAdventure(loaded.mission.nameCustom || loaded.mission.name);
-      setGameType(loaded.mission.gameType);
+  const loadMission = useCallback(async (missionId: number): Promise<void> => {
+    const { setMission, setAdventure, setGameType } = useAppStore.getState();
+    const { clearHistory, loadHistoryData } = useHistoryStore.getState();
 
-      // Use imperative handle to load history data directly
-      const loadedInteractions = loaded.interactions;
+    // Clear first, then load
+    clearHistory();
 
-      if (loadedInteractions.length > 0) {
-        const lastInteraction =
-          loadedInteractions[loadedInteractions.length - 1];
-        useHistoryStore.getState().loadHistoryData({
-          interactions: loadedInteractions.slice(0, -1) || [],
-          lastPlayerInput: lastInteraction?.playerInput ?? "",
-          lastLlmOutput: lastInteraction?.llmOutput ?? "",
-        });
-      } else {
-        useHistoryStore.getState().loadHistoryData({
-          interactions: [],
-          lastPlayerInput: "",
-          lastLlmOutput: "",
-        });
-      }
-    },
-    []
-  );
+    const loaded = await getLoadMissions(missionId);
+
+    setMission(loaded.mission.missionId);
+    setAdventure(loaded.mission.nameCustom || loaded.mission.name);
+    setGameType(loaded.mission.gameType);
+
+    const loadedInteractions = loaded.interactions;
+
+    if (loadedInteractions.length > 0) {
+      const lastInteraction = loadedInteractions[loadedInteractions.length - 1];
+      loadHistoryData({
+        interactions: loadedInteractions.slice(0, -1) || [],
+        lastPlayerInput: lastInteraction?.playerInput ?? "",
+        lastLlmOutput: lastInteraction?.llmOutput ?? "",
+      });
+    } else {
+      loadHistoryData({
+        interactions: [],
+        lastPlayerInput: "",
+        lastLlmOutput: "",
+      });
+    }
+  }, []);
 
   return {
     sendNewMissionGenerate,
