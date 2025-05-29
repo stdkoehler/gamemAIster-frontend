@@ -341,6 +341,9 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
         setIsEditable(false);
         await sendCallback();
         setIsGenerating(false);
+        if (type === FieldContainerType.MAIN_SEND) {
+          setIsEditable(true);
+        }
       }
     }, [sendCallback, isGenerating, commitValue]);
 
