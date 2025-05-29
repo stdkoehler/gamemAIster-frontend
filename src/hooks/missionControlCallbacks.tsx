@@ -1,4 +1,4 @@
-import { useCallback, RefObject } from "react";
+import { useCallback } from "react";
 import {
   postNewMission,
   postSaveMission,
@@ -7,7 +7,6 @@ import {
 } from "../functions/restInterface";
 import { Mission } from "../models/MissionModels";
 import { MissionPayload } from "../models/RestInterface";
-import { HistoryHandle } from "../models/HistoryTypes";
 import { GameType } from "../models/Types";
 import useAppStore from "../stores/appStore";
 import useHistoryStore from "../stores/historyStore";

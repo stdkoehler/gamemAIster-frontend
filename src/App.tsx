@@ -19,8 +19,6 @@ import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
 
 const App: React.FC = () => {
-  console.log("App component rendered");
-
   // Get state from consolidated app store
   const { mission, adventure, gameType, setGameType, reset } = useAppStore();
 
@@ -28,7 +26,6 @@ const App: React.FC = () => {
   const currentTheme = useMemo(() => getThemeForGameType(gameType), [gameType]);
 
   const isFirstRender = useRef(true);
-  const historyRef = useRef<HistoryHandle>(null);
 
   // Initial mission validation on first render
   useEffect(() => {

@@ -31,8 +31,6 @@ type HistoryProps = ComponentProps<typeof Container> & {
 const USE_TTS_STREAM = true;
 
 const History = ({ mission, disabled, ...props }: HistoryProps) => {
-    console.log("History component rendered");
-
     // ===== REFS & STORE =====
     const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
 
@@ -41,8 +39,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       playerInputOld,
       llmOutput,
       playerInput,
-      loadHistoryData,
-      clearHistory,
       setLlmOutput,
       setPlayerInputOld,
       setPlayerInput,
@@ -77,13 +73,11 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
           const transcript = await sendSpeechToText(audioBlob);
           setPlayerInput(transcript);
         } catch (err) {
-          alert(
-            "Speech-to-text failed: " +
-              (err instanceof Error ? err.message : String(err))
-          );
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          setAudioError("Speech-to-text failed: " + errorMessage);
         }
       },
-      [setPlayerInput]
+      [setPlayerInput, setAudioError]
     );
 
     // ===== STREAMING LOGIC =====
