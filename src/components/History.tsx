@@ -393,6 +393,5 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       </Container>
     );
   }
-);
 
 export default memo(History);
