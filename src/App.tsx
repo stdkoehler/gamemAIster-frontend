@@ -19,6 +19,7 @@ import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
 
 const App: React.FC = () => {
+  console.log("App component rendered");
   // Get state from consolidated app store
   const { mission, adventure, gameType, setGameType, reset } = useAppStore();
 
@@ -113,10 +114,7 @@ const App: React.FC = () => {
               >
                 <AdventureHeading>{adventure}</AdventureHeading>
                 {/* History now uses context for state management */}
-                <History
-                  mission={mission}
-                  disabled={mission === null}
-                />
+                <History mission={mission} disabled={mission === null} />
               </AppGrid>
             </AppGrid>
           </SplitScreen>
