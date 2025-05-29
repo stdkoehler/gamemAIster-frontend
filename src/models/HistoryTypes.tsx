@@ -6,7 +6,3 @@ export interface LoadedHistoryData {
   lastLlmOutput: string;
 }
 
-export interface HistoryHandle {
-  loadHistoryData: (data: LoadedHistoryData) => void;
-  clearHistory: () => void;
-}

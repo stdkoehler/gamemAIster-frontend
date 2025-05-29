@@ -4,8 +4,6 @@ import {
   useEffect,
   useState,
   useCallback,
-  forwardRef,
-  useImperativeHandle,
   memo,
 } from "react";
 import { Typography, Container, Button, CircularProgress } from "@mui/material";
@@ -21,7 +19,6 @@ import {
   sendPlayerInputToLlm,
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
-import { HistoryHandle } from "../models/HistoryTypes";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
@@ -33,8 +30,7 @@ type HistoryProps = ComponentProps<typeof Container> & {
 
 const USE_TTS_STREAM = true;
 
-const History = forwardRef<HistoryHandle, HistoryProps>(
-  ({ mission, disabled, ...props }, ref) => {
+const History = ({ mission, disabled, ...props }: HistoryProps) => {
     console.log("History component rendered");
 
     // ===== REFS & STORE =====
@@ -253,15 +249,6 @@ const History = forwardRef<HistoryHandle, HistoryProps>(
     }, [cleanupAudio]);
 
     // ===== COMPONENT LIFECYCLE =====
-    useImperativeHandle(
-      ref,
-      () => ({
-        loadHistoryData,
-        clearHistory,
-      }),
-      [loadHistoryData, clearHistory]
-    );
-
     useEffect(() => {
       return cleanupAudio;
     }, [cleanupAudio]);
