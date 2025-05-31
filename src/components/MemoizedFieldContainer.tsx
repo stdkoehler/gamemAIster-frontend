@@ -46,7 +46,6 @@ const MemoizedFieldContainer = React.memo(
     (
       {
         sendCallback,
-        changeCallback,
         onCommit,
         stopCallback,
         value,
@@ -65,7 +64,6 @@ const MemoizedFieldContainer = React.memo(
         <FieldContainer
           ref={ref}
           sendCallback={sendCallback}
-          changeCallback={changeCallback}
           onCommit={onCommit}
           stopCallback={stopCallback}
           value={value}

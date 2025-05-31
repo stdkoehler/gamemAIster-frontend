@@ -101,12 +101,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
           ? { playerInput: state.playerInputOld, llmOutput: strippedLlmOutput }
           : undefined;
 
-      console.log("inputValue:", inputValue);
-      console.log("originalState:", originalState);
-      console.log("playerInputOld:", state.playerInputOld);
-      console.log("strippedLlmOutput:", strippedLlmOutput);
-      console.log("Prev interaction context:", prevInteractionContext);
-
       // Optimistic state updates
       if (prevInteractionContext) {
         setInteractions([...state.interactions, prevInteractionContext]);
@@ -145,8 +139,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
     async (inputValue: string): Promise<void> => {
       if (mission === null) return;
 
-      console.log("Sending player input with streaming:", inputValue);
-
       const { originalState, prevInteractionContext } =
         _performOptimisticSendUpdate(inputValue);
 
@@ -154,7 +146,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       if (inputValue === "") {
         // If the original input was empty, nothing to send.
         // Rollback the optimistic update that cleared other fields.
-        console.log("Rolling back since inputValue is empty");
         _rollbackSendUpdate(originalState);
         return;
       }
@@ -163,8 +154,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
 
       try {
         let streamedContent = "";
-        console.log("prev", prevInteractionContext);
-        console.log("inputValue", inputValue);
         await sendPlayerInputToLlm({
           missionId: mission,
           setStateCallback: ({ llmOutput: newLlmOutput }) => {
@@ -196,7 +185,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
 
       // Get fresh state from store instead of using stale closure values
       const currentLlmOutput = useHistoryStore.getState().llmOutput;
-      console.log("Sending regenerate", inputValue);
 
       if (inputValue === "") return;
 
