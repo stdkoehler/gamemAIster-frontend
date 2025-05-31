@@ -324,7 +324,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
      */
     const commitValue = useCallback(() => {
       if (useLocalState && onCommit && localValue !== value) {
-        console.log("commit");
+        console.log("commit", localValue);
         onCommit(localValue);
       }
     }, [useLocalState, onCommit, localValue, value]);
@@ -340,14 +340,16 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
         setIsGenerating(true);
         setIsEditable(false);
         const toSend = localValue;
-        setLocalValue("");
+        if (type === FieldContainerType.MAIN_SEND) {
+          setLocalValue("");
+        }
         await sendCallback(toSend);
         setIsGenerating(false);
         if (type === FieldContainerType.MAIN_SEND) {
           setIsEditable(true);
         }
       }
-    }, [sendCallback, isGenerating, commitValue]);
+    }, [sendCallback, isGenerating, commitValue, type]);
 
     /**
      * Handles the stop action.

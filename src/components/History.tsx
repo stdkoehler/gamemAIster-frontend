@@ -190,43 +190,45 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
     ]
   );
 
-  const sendRegenerateWithStreaming = useCallback(async (): Promise<void> => {
-    if (mission === null) return;
+  const sendRegenerateWithStreaming = useCallback(
+    async (inputValue: string): Promise<void> => {
+      if (mission === null) return;
 
-    // Get fresh state from store instead of using stale closure values
-    const {
-      playerInputOld: currentPlayerInputOld,
-      llmOutput: currentLlmOutput,
-    } = useHistoryStore.getState();
+      // Get fresh state from store instead of using stale closure values
+      const currentLlmOutput = useHistoryStore.getState().llmOutput;
+      console.log("Sending regenerate", inputValue);
 
-    if (currentPlayerInputOld === "") return;
+      if (inputValue === "") return;
 
-    console.log("Sending regenerate");
+      const prevInteraction = {
+        playerInput: inputValue,
+        llmOutput: currentLlmOutput,
+      };
 
-    const prevInteraction = {
-      playerInput: currentPlayerInputOld,
-      llmOutput: currentLlmOutput,
-    };
+      setPlayerInputOld(inputValue);
+      setLlmOutput(""); // Clear LLM output for new generation
 
-    llmOutputFieldRef.current?.startStream();
+      llmOutputFieldRef.current?.startStream();
 
-    try {
-      let streamedContent = "";
-      await sendPlayerInputToLlm({
-        missionId: mission,
-        setStateCallback: ({ llmOutput }) => {
-          streamedContent = llmOutput;
-          llmOutputFieldRef.current?.updateStream(llmOutput);
-        },
-        prevInteraction,
-      });
+      try {
+        let streamedContent = "";
+        await sendPlayerInputToLlm({
+          missionId: mission,
+          setStateCallback: ({ llmOutput }) => {
+            streamedContent = llmOutput;
+            llmOutputFieldRef.current?.updateStream(llmOutput);
+          },
+          prevInteraction,
+        });
 
-      llmOutputFieldRef.current?.completeStream(streamedContent);
-      setLlmOutput(streamedContent);
-    } catch (error) {
-      console.error("Failed to regenerate:", error);
-    }
-  }, [mission, setLlmOutput]);
+        llmOutputFieldRef.current?.completeStream(streamedContent);
+        setLlmOutput(streamedContent);
+      } catch (error) {
+        console.error("Failed to regenerate:", error);
+      }
+    },
+    [mission, setPlayerInputOld, setLlmOutput]
+  );
 
   // ===== AUDIO MANAGEMENT =====
   const cleanupAudio = useCallback(() => {
