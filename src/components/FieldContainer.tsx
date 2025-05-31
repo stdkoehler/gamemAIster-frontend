@@ -31,8 +31,6 @@ export enum FieldContainerType {
 type FieldContainerProps = {
   /** Optional callback function to be executed when a message is sent. */
   sendCallback?: (valueToSend: string) => Promise<void>;
-  /** Optional callback function to be executed when the field value changes (real-time). */
-  changeCallback?: (arg: string) => void;
   /** Optional callback function called when user commits changes (blur, send, etc). */
   onCommit?: (value: string) => void;
   /** Optional callback function to be executed when a stop action is triggered. */
@@ -245,7 +243,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
   (
     {
       sendCallback,
-      changeCallback,
       onCommit,
       stopCallback,
       value,
@@ -389,7 +386,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
 
     /**
      * Handles the change event of the editable field.
-     * Updates local state for performance, optionally calls changeCallback for real-time updates.
+     * Updates local state for performance
      * @param event - The text area change event.
      */
     const handleChange = useCallback(
@@ -404,17 +401,9 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
         if (useLocalState) {
           // Update local state immediately for performance
           setLocalValue(newValue);
-          // Only call changeCallback for MAIN_SEND fields to maintain real-time updates for typing
-          // Other fields will use onCommit for better performance
-          if (changeCallback && type === FieldContainerType.MAIN_SEND) {
-            changeCallback(newValue);
-          }
-        } else {
-          // Legacy behavior - direct callback
-          changeCallback?.(newValue);
         }
       },
-      [changeCallback, useLocalState, type, isStreamingActive]
+      [useLocalState, type, isStreamingActive]
     );
 
     /**
