@@ -1,4 +1,4 @@
-import { useCallback, RefObject } from "react";
+import { useCallback } from "react";
 import {
   postNewMission,
   postSaveMission,
@@ -7,13 +7,9 @@ import {
 } from "../functions/restInterface";
 import { Mission } from "../models/MissionModels";
 import { MissionPayload } from "../models/RestInterface";
-import { HistoryHandle } from "../models/HistoryTypes";
 import { GameType } from "../models/Types";
 import useAppStore from "../stores/appStore";
-
-type UseMissionControlCallbacksProps = {
-  historyRef: RefObject<HistoryHandle>;
-};
+import useHistoryStore from "../stores/historyStore";
 
 export type MissionControlCallbacks = {
   sendNewMissionGenerate: (
@@ -25,13 +21,19 @@ export type MissionControlCallbacks = {
   loadMission: (missionId: number) => Promise<void>;
 };
 
-export function useMissionControlCallbacks({
-  historyRef,
-}: UseMissionControlCallbacksProps): MissionControlCallbacks {
+export function useMissionControlCallbacks(): MissionControlCallbacks {
+  // Get history actions hook for cleaner API
+  const clearHistory = useHistoryStore((state) => state.clearHistory);
+  const loadHistoryData = useHistoryStore((state) => state.loadHistoryData);
+
   const sendNewMissionGenerate = useCallback(
     async (gameType: GameType, background: string): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
-      await reset();
+
+      // Reset both stores
+      reset();
+      clearHistory();
+
       const response = await postNewMission({
         game_type: gameType,
         background,
@@ -41,7 +43,7 @@ export function useMissionControlCallbacks({
         setAdventure(response.name);
       }
     },
-    []
+    [clearHistory]
   );
 
   const saveMission = useCallback(async (nameCustom: string): Promise<void> => {
@@ -66,31 +68,35 @@ export function useMissionControlCallbacks({
   const loadMission = useCallback(
     async (missionId: number): Promise<void> => {
       const { setMission, setAdventure, setGameType } = useAppStore.getState();
+
+      // Clear history first
+      clearHistory();
+
       const loaded = await getLoadMissions(missionId);
+
       setMission(loaded.mission.missionId);
       setAdventure(loaded.mission.nameCustom || loaded.mission.name);
       setGameType(loaded.mission.gameType);
 
-      // Use imperative handle to load history data directly
       const loadedInteractions = loaded.interactions;
 
       if (loadedInteractions.length > 0) {
         const lastInteraction =
           loadedInteractions[loadedInteractions.length - 1];
-        historyRef.current?.loadHistoryData({
+        loadHistoryData({
           interactions: loadedInteractions.slice(0, -1) || [],
           lastPlayerInput: lastInteraction?.playerInput ?? "",
           lastLlmOutput: lastInteraction?.llmOutput ?? "",
         });
       } else {
-        historyRef.current?.loadHistoryData({
+        loadHistoryData({
           interactions: [],
           lastPlayerInput: "",
           lastLlmOutput: "",
         });
       }
     },
-    [historyRef]
+    [clearHistory, loadHistoryData]
   );
 
   return {

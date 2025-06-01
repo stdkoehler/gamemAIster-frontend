@@ -30,9 +30,7 @@ export enum FieldContainerType {
  */
 type FieldContainerProps = {
   /** Optional callback function to be executed when a message is sent. */
-  sendCallback?: () => Promise<void>;
-  /** Optional callback function to be executed when the field value changes (real-time). */
-  changeCallback?: (arg: string) => void;
+  sendCallback?: (valueToSend: string) => Promise<void>;
   /** Optional callback function called when user commits changes (blur, send, etc). */
   onCommit?: (value: string) => void;
   /** Optional callback function to be executed when a stop action is triggered. */
@@ -245,7 +243,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
   (
     {
       sendCallback,
-      changeCallback,
       onCommit,
       stopCallback,
       value,
@@ -324,6 +321,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
      */
     const commitValue = useCallback(() => {
       if (useLocalState && onCommit && localValue !== value) {
+        console.log("commit", localValue);
         onCommit(localValue);
       }
     }, [useLocalState, onCommit, localValue, value]);
@@ -336,14 +334,19 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     const handleSend = useCallback(async () => {
       if (sendCallback && !isGenerating) {
         // Commit any pending changes before sending
-        commitValue();
         setIsGenerating(true);
         setIsEditable(false);
-        await sendCallback();
+        const toSend = localValue;
+        if (type === FieldContainerType.MAIN_SEND) {
+          setLocalValue("");
+        }
+        await sendCallback(toSend);
         setIsGenerating(false);
-        setIsEditable(true);
+        if (type === FieldContainerType.MAIN_SEND) {
+          setIsEditable(true);
+        }
       }
-    }, [sendCallback, isGenerating, commitValue]);
+    }, [sendCallback, isGenerating, commitValue, type]);
 
     /**
      * Handles the stop action.
@@ -360,11 +363,11 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
      */
     const handleEditToggle = useCallback(() => {
       // Commit changes when switching from edit to view mode
-      if (isEditable) {
+      if (isEditable && type !== FieldContainerType.MAIN_SEND) {
         commitValue();
       }
       setIsEditable((prev) => !prev);
-    }, [isEditable, commitValue]);
+    }, [isEditable, commitValue, type]);
 
     /**
      * Handles key down events in the editable field.
@@ -383,7 +386,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
 
     /**
      * Handles the change event of the editable field.
-     * Updates local state for performance, optionally calls changeCallback for real-time updates.
+     * Updates local state for performance
      * @param event - The text area change event.
      */
     const handleChange = useCallback(
@@ -398,17 +401,9 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
         if (useLocalState) {
           // Update local state immediately for performance
           setLocalValue(newValue);
-          // Only call changeCallback for MAIN_SEND fields to maintain real-time updates for typing
-          // Other fields will use onCommit for better performance
-          if (changeCallback && type === FieldContainerType.MAIN_SEND) {
-            changeCallback(newValue);
-          }
-        } else {
-          // Legacy behavior - direct callback
-          changeCallback?.(newValue);
         }
       },
-      [changeCallback, useLocalState, type, isStreamingActive]
+      [useLocalState, type, isStreamingActive]
     );
 
     /**

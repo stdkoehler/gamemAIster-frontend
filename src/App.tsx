@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import { ThemeProvider, Box } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { getThemeForGameType } from "./theme";
@@ -13,7 +13,6 @@ import History from "./components/History";
 import { MissionMenu } from "./components/MissionMenu";
 import { CharacterManager } from "./components/CharacterCard";
 import { getMission } from "./functions/restInterface";
-import { HistoryHandle } from "./models/HistoryTypes";
 import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
@@ -21,7 +20,6 @@ import useAppStore from "./stores/appStore";
 
 const App: React.FC = () => {
   console.log("App component rendered");
-
   // Get state from consolidated app store
   const { mission, adventure, gameType, setGameType, reset } = useAppStore();
 
@@ -29,7 +27,6 @@ const App: React.FC = () => {
   const currentTheme = useMemo(() => getThemeForGameType(gameType), [gameType]);
 
   const isFirstRender = useRef(true);
-  const historyRef = useRef<HistoryHandle>(null);
 
   // Initial mission validation on first render
   useEffect(() => {
@@ -49,9 +46,16 @@ const App: React.FC = () => {
 
   // Mission control callbacks - simplified with new store
   const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
-    useMissionControlCallbacks({
-      historyRef,
-    });
+    useMissionControlCallbacks();
+
+  // Memoize callbacks to prevent child rerenders
+  const handleNewMission = useCallback(
+    async (selectedGameType: GameType, background: string) => {
+      setGameType(selectedGameType);
+      await sendNewMissionGenerate(selectedGameType, background);
+    },
+    [setGameType, sendNewMissionGenerate]
+  );
 
   return (
     <ThemeProvider theme={currentTheme}>
@@ -81,13 +85,7 @@ const App: React.FC = () => {
           >
             <AppGrid container spacing={2}>
               <MissionMenu
-                newCallback={async (
-                  selectedGameType: GameType,
-                  background: string
-                ) => {
-                  setGameType(selectedGameType);
-                  await sendNewMissionGenerate(selectedGameType, background);
-                }}
+                newCallback={handleNewMission}
                 saveCallback={saveMission}
                 listCallback={listMissions}
                 loadCallback={loadMission}
@@ -116,11 +114,7 @@ const App: React.FC = () => {
               >
                 <AdventureHeading>{adventure}</AdventureHeading>
                 {/* History now uses context for state management */}
-                <History
-                  ref={historyRef}
-                  mission={mission}
-                  disabled={mission === null}
-                />
+                <History mission={mission} disabled={mission === null} />
               </AppGrid>
             </AppGrid>
           </SplitScreen>

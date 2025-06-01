@@ -7,7 +7,7 @@ import { Colors } from "../styles/styles";
 
 // Props interface for the memoized field container
 interface MemoizedFieldContainerProps {
-  sendCallback?: () => Promise<void>;
+  sendCallback?: (valueToSend: string) => Promise<void>;
   changeCallback?: (arg: string) => void;
   onCommit?: (value: string) => void;
   stopCallback?: () => Promise<void>;
@@ -46,7 +46,6 @@ const MemoizedFieldContainer = React.memo(
     (
       {
         sendCallback,
-        changeCallback,
         onCommit,
         stopCallback,
         value,
@@ -65,7 +64,6 @@ const MemoizedFieldContainer = React.memo(
         <FieldContainer
           ref={ref}
           sendCallback={sendCallback}
-          changeCallback={changeCallback}
           onCommit={onCommit}
           stopCallback={stopCallback}
           value={value}
