@@ -274,7 +274,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     /** Flag to track if currently in streaming mode */
     const [isStreamingActive, setIsStreamingActive] = useState(false);
     /** Ref to the underlying TextField component to manage focus and scroll. */
-    const textFieldRef = useRef<HTMLDivElement>(null);
+    const textFieldRef = useRef<HTMLDivElement>(null!);
     /** Ref to the MediaRecorder instance for audio recording. */
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     /** Ref to store audio chunks during recording. */

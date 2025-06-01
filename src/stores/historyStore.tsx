@@ -47,7 +47,7 @@ interface HistorySnapshot {
 
 const useHistoryStore = create<State & Action>()(
   persist(
-    (set, get) => ({
+    immer((set, get) => ({
       // Initial state
       interactions: [],
       playerInputOld: "",
@@ -62,9 +62,9 @@ const useHistoryStore = create<State & Action>()(
 
       // History management
       addInteraction: (interaction: Interaction) =>
-        set((state) => ({
-          interactions: [...state.interactions, interaction],
-        })),
+        set((state) => {
+          state.interactions.push(interaction); // So much simpler!
+        }),
       loadHistoryData: (data: {
         interactions: Interaction[];
         lastPlayerInput: string;
@@ -111,14 +111,14 @@ const useHistoryStore = create<State & Action>()(
             : undefined;
 
         // Perform optimistic update
-        set((state) => ({
-          interactions: prevInteractionContext
-            ? [...state.interactions, prevInteractionContext]
-            : state.interactions,
-          playerInputOld: newPlayerInput,
-          llmOutput: "",
-          playerInput: "",
-        }));
+        set((state) => {
+          if (prevInteractionContext) {
+            state.interactions.push(prevInteractionContext); // Just push!
+          }
+          state.playerInputOld = newPlayerInput;
+          state.llmOutput = "";
+          state.playerInput = "";
+        });
 
         return { originalState, prevInteractionContext };
       },
@@ -137,7 +137,7 @@ const useHistoryStore = create<State & Action>()(
           llmOutput: llmOutput,
           playerInput: "",
         })),
-    }),
+    })),
     {
       name: "history-storage",
       // Only persist certain fields
