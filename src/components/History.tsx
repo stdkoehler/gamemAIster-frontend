@@ -269,6 +269,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         console.error("Audio error:", e);
         setAudioError("Audio playback error.");
         setIsPlaying(false);
+        audioElem.onerror = null; // Prevent further error events
       };
 
       setAudio(audioElem);
