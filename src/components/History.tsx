@@ -35,29 +35,31 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
   // ===== REFS & STORE =====
   const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
 
-  const {
-    interactions,
-    playerInputOld,
-    llmOutput,
-    playerInput,
-    setLlmOutput,
-    setPlayerInputOld,
-    setPlayerInput,
-    setInteractions,
-  } = useHistoryStore();
+  // ===== STORE STATE =====
+  const playerInput = useHistoryStore((state) => state.playerInput);
+  const playerInputOld = useHistoryStore((state) => state.playerInputOld);
+  const llmOutput = useHistoryStore((state) => state.llmOutput);
+  const interactions = useHistoryStore((state) => state.interactions);
+  // ===== STORE SETTER =====
+  const updatePlayerInput = useHistoryStore((state) => state.updatePlayerInput);
+  const updatePlayerInputOld = useHistoryStore(
+    (state) => state.updatePlayerInputOld
+  );
+  const updateLlmOutput = useHistoryStore((state) => state.updateLlmOutput);
+  const addInteraction = useHistoryStore((state) => state.addInteraction);
+  const performOptimisticUpdate = useHistoryStore(
+    (state) => state.performOptimisticUpdate
+  );
+  const rollbackOptimisticUpdate = useHistoryStore(
+    (state) => state.rollbackOptimisticUpdate
+  );
+  const commitPlayerInput = useHistoryStore((state) => state.commitPlayerInput);
 
   // ===== LOCAL STATE =====
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
-
-  // ===== UTILITY FUNCTIONS =====
-  const stripOutput = useCallback((llmOutput: string): string => {
-    const regexPattern =
-      /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/;
-    return llmOutput.replace(regexPattern, "");
-  }, []);
 
   // ===== API CALLBACKS =====
   const stopGeneration = useCallback(async (): Promise<void> => {
@@ -72,83 +74,21 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
     async (audioBlob: Blob) => {
       try {
         const transcript = await sendSpeechToText(audioBlob);
-        setPlayerInput(transcript);
+        updatePlayerInput(transcript);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         setAudioError("Speech-to-text failed: " + errorMessage);
       }
     },
-    [setPlayerInput, setAudioError]
+    [updatePlayerInput]
   );
 
-  // ===== OPTIMISTIC UPDATE HELPER =====
-  const _performOptimisticSendUpdate = useCallback(
-    (inputValue: string) => {
-      // Get fresh state from store instead of using stale closure values
-      const state = useHistoryStore.getState();
-
-      // Snapshot of current state for rollback
-      const originalState = {
-        playerInput: inputValue,
-        playerInputOld: state.playerInputOld,
-        llmOutput: state.llmOutput,
-        interactions: [...state.interactions],
-      };
-
-      const strippedLlmOutput = stripOutput(state.llmOutput);
-      const prevInteractionContext =
-        state.playerInputOld !== "" && strippedLlmOutput !== ""
-          ? { playerInput: state.playerInputOld, llmOutput: strippedLlmOutput }
-          : undefined;
-
-      // Optimistic state updates
-      if (prevInteractionContext) {
-        setInteractions([...state.interactions, prevInteractionContext]);
-      }
-      setPlayerInputOld(inputValue);
-      setLlmOutput("");
-      setPlayerInput("");
-
-      return { originalState, prevInteractionContext };
-    },
-    [
-      stripOutput,
-      setInteractions,
-      setPlayerInputOld,
-      setLlmOutput,
-      setPlayerInput,
-    ]
-  );
-  const _rollbackSendUpdate = useCallback(
-    (originalState: {
-      playerInput: string;
-      playerInputOld: string;
-      llmOutput: string;
-      interactions: Interaction[];
-    }) => {
-      setPlayerInputOld(originalState.playerInputOld);
-      setLlmOutput(originalState.llmOutput);
-      setPlayerInput(originalState.playerInput);
-      setInteractions(originalState.interactions);
-    },
-    [setPlayerInputOld, setLlmOutput, setPlayerInput, setInteractions]
-  );
-
-  // ===== STREAMING LOGIC =====
   const sendPlayerInputWithStreaming = useCallback(
     async (inputValue: string): Promise<void> => {
-      if (mission === null) return;
+      if (mission === null || inputValue === "") return;
 
       const { originalState, prevInteractionContext } =
-        _performOptimisticSendUpdate(inputValue);
-
-      // Guard against sending empty input after optimistic update clears it
-      if (inputValue === "") {
-        // If the original input was empty, nothing to send.
-        // Rollback the optimistic update that cleared other fields.
-        _rollbackSendUpdate(originalState);
-        return;
-      }
+        performOptimisticUpdate(inputValue);
 
       llmOutputFieldRef.current?.startStream();
 
@@ -163,39 +103,32 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
           playerInputField: inputValue,
           prevInteraction: prevInteractionContext,
         });
+
         llmOutputFieldRef.current?.completeStream(streamedContent);
-        setLlmOutput(streamedContent); // Set final LLM output in store
+        updateLlmOutput(streamedContent);
       } catch (error) {
-        _rollbackSendUpdate(originalState);
+        rollbackOptimisticUpdate(originalState);
         console.log("Failed to send player input:", error);
       }
     },
     [
       mission,
-      _performOptimisticSendUpdate,
-      _rollbackSendUpdate,
-      llmOutputFieldRef,
-      setLlmOutput,
+      performOptimisticUpdate,
+      updateLlmOutput,
+      rollbackOptimisticUpdate,
     ]
   );
 
   const sendRegenerateWithStreaming = useCallback(
     async (inputValue: string): Promise<void> => {
-      if (mission === null) return;
-
-      // Get fresh state from store instead of using stale closure values
-      const currentLlmOutput = useHistoryStore.getState().llmOutput;
-
-      if (inputValue === "") return;
+      if (mission === null || inputValue === "") return;
 
       const prevInteraction = {
         playerInput: inputValue,
-        llmOutput: currentLlmOutput,
+        llmOutput: llmOutput,
       };
 
-      setPlayerInputOld(inputValue);
-      setLlmOutput(""); // Clear LLM output for new generation
-
+      commitPlayerInput(inputValue, ""); // Clear LLM output for regeneration
       llmOutputFieldRef.current?.startStream();
 
       try {
@@ -210,12 +143,12 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         });
 
         llmOutputFieldRef.current?.completeStream(streamedContent);
-        setLlmOutput(streamedContent);
+        updateLlmOutput(streamedContent);
       } catch (error) {
         console.error("Failed to regenerate:", error);
       }
     },
-    [mission, setPlayerInputOld, setLlmOutput]
+    [mission, llmOutput, commitPlayerInput, updateLlmOutput]
   );
 
   // ===== AUDIO MANAGEMENT =====
@@ -328,12 +261,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
     []
   );
 
-  // ===== RENDER =====
-  const lastInteraction = {
-    playerInput: playerInputOld,
-    llmOutput: llmOutput,
-  };
-
   return (
     <Container
       {...props}
@@ -352,8 +279,8 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       <MemoizedFieldContainer
         sendCallback={sendRegenerateWithStreaming}
         stopCallback={stopGeneration}
-        onCommit={setPlayerInputOld}
-        value={lastInteraction.playerInput}
+        onCommit={updatePlayerInputOld}
+        value={playerInputOld}
         instance="Player"
         color="secondary"
         type={FieldContainerType.PLAYER_OLD}
@@ -362,9 +289,9 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
 
       <MemoizedFieldContainer
         ref={llmOutputFieldRef}
-        onCommit={setLlmOutput}
-        onStreamComplete={setLlmOutput}
-        value={lastInteraction.llmOutput}
+        onCommit={updateLlmOutput}
+        onStreamComplete={updateLlmOutput}
+        value={llmOutput}
         instance="Gamemaster"
         color="primary"
         type={FieldContainerType.GAMEMASTER}
@@ -415,7 +342,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
 
       <MemoizedFieldContainer
         sendCallback={sendPlayerInputWithStreaming}
-        onCommit={setPlayerInput}
+        onCommit={updatePlayerInput}
         stopCallback={stopGeneration}
         value={playerInput}
         instance="Player"

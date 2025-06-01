@@ -22,13 +22,17 @@ export type MissionControlCallbacks = {
 };
 
 export function useMissionControlCallbacks(): MissionControlCallbacks {
+  // Get history actions hook for cleaner API
+  const clearHistory = useHistoryStore((state) => state.clearHistory);
+  const loadHistoryData = useHistoryStore((state) => state.loadHistoryData);
+
   const sendNewMissionGenerate = useCallback(
     async (gameType: GameType, background: string): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
 
       // Reset both stores
       reset();
-      useHistoryStore.getState().clearHistory();
+      clearHistory();
 
       const response = await postNewMission({
         game_type: gameType,
@@ -39,7 +43,7 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
         setAdventure(response.name);
       }
     },
-    []
+    [clearHistory]
   );
 
   const saveMission = useCallback(async (nameCustom: string): Promise<void> => {
@@ -61,36 +65,39 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
     }));
   }, []);
 
-  const loadMission = useCallback(async (missionId: number): Promise<void> => {
-    const { setMission, setAdventure, setGameType } = useAppStore.getState();
-    const { clearHistory, loadHistoryData } = useHistoryStore.getState();
+  const loadMission = useCallback(
+    async (missionId: number): Promise<void> => {
+      const { setMission, setAdventure, setGameType } = useAppStore.getState();
 
-    // Clear first, then load
-    clearHistory();
+      // Clear history first
+      clearHistory();
 
-    const loaded = await getLoadMissions(missionId);
+      const loaded = await getLoadMissions(missionId);
 
-    setMission(loaded.mission.missionId);
-    setAdventure(loaded.mission.nameCustom || loaded.mission.name);
-    setGameType(loaded.mission.gameType);
+      setMission(loaded.mission.missionId);
+      setAdventure(loaded.mission.nameCustom || loaded.mission.name);
+      setGameType(loaded.mission.gameType);
 
-    const loadedInteractions = loaded.interactions;
+      const loadedInteractions = loaded.interactions;
 
-    if (loadedInteractions.length > 0) {
-      const lastInteraction = loadedInteractions[loadedInteractions.length - 1];
-      loadHistoryData({
-        interactions: loadedInteractions.slice(0, -1) || [],
-        lastPlayerInput: lastInteraction?.playerInput ?? "",
-        lastLlmOutput: lastInteraction?.llmOutput ?? "",
-      });
-    } else {
-      loadHistoryData({
-        interactions: [],
-        lastPlayerInput: "",
-        lastLlmOutput: "",
-      });
-    }
-  }, []);
+      if (loadedInteractions.length > 0) {
+        const lastInteraction =
+          loadedInteractions[loadedInteractions.length - 1];
+        loadHistoryData({
+          interactions: loadedInteractions.slice(0, -1) || [],
+          lastPlayerInput: lastInteraction?.playerInput ?? "",
+          lastLlmOutput: lastInteraction?.llmOutput ?? "",
+        });
+      } else {
+        loadHistoryData({
+          interactions: [],
+          lastPlayerInput: "",
+          lastLlmOutput: "",
+        });
+      }
+    },
+    [clearHistory, loadHistoryData]
+  );
 
   return {
     sendNewMissionGenerate,
