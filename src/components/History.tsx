@@ -22,6 +22,7 @@ import { Interaction } from "../models/MissionModels";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
+import { useShallow } from "zustand/react/shallow";
 
 type HistoryProps = ComponentProps<typeof Container> & {
   mission: number | null;
@@ -36,17 +37,21 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
   const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
 
   // ===== STORE STATE =====
-  const playerInput = useHistoryStore((state) => state.playerInput);
-  const playerInputOld = useHistoryStore((state) => state.playerInputOld);
-  const llmOutput = useHistoryStore((state) => state.llmOutput);
-  const interactions = useHistoryStore((state) => state.interactions);
+  const { playerInput, playerInputOld, llmOutput, interactions } =
+    useHistoryStore(
+      useShallow((state) => ({
+        playerInput: state.playerInput,
+        playerInputOld: state.playerInputOld,
+        llmOutput: state.llmOutput,
+        interactions: state.interactions,
+      }))
+    );
   // ===== STORE SETTER =====
   const updatePlayerInput = useHistoryStore((state) => state.updatePlayerInput);
   const updatePlayerInputOld = useHistoryStore(
     (state) => state.updatePlayerInputOld
   );
   const updateLlmOutput = useHistoryStore((state) => state.updateLlmOutput);
-  const addInteraction = useHistoryStore((state) => state.addInteraction);
   const performOptimisticUpdate = useHistoryStore(
     (state) => state.performOptimisticUpdate
   );
