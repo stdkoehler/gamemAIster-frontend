@@ -1410,130 +1410,276 @@ export function getThemeForGameType(gameType: GameType): Theme {
 
 
 export const seventhSeaTheme = createTheme({
-  palette: {
-    mode: "dark",
-    primary: {
-      light: "#4fc3f7", // Light ocean blue
-      main: "#1565c0",  // Deep ocean blue
-      dark: "#0d47a1",  // Navy blue
-      contrastText: "#f5f3f0" // Cream/sail white
-    },
-    secondary: {
-      light: "#ffb74d", // Light amber/gold
-      main: "#ff8f00",  // Rich amber (treasure gold)
-      dark: "#e65100",  // Dark amber
-      contrastText: "#2e2e2e" // Dark text for contrast
-    },
-    warning: {
-      light: "#ffcc02", // Bright gold
-      main: "#ffa000",  // Doubloon gold
-      dark: "#ff6f00",  // Deep gold
-      contrastText: "#2e2e2e",
-    },
-    error: {
-      light: "#e57373", // Light red
-      main: "#d32f2f",  // Blood red (battle/danger)
-      dark: "#c62828",  // Dark red
-      contrastText: "#ffffff",
-    },
-    info: {
-      light: "#81c784", // Sea foam green
-      main: "#388e3c",  // Forest green (islands/land)
-      dark: "#2e7d32",  // Deep forest green
-      contrastText: "#f5f5f5",
-    },
-    success: {
-      light: "#a5d6a7",
-      main: "#4caf50",  // Success green
-      dark: "#388e3c",  // Deep green
-      contrastText: "#f5f5f5",
-    },
-    background: {
-      default: "#0f1419", // Deep night ocean
-      paper: "#1a2027",   // Slightly lighter ship deck color
-    },
-    text: {
-      primary: "#f5f3f0", // Cream/sail white
-      secondary: "#d4c5b0", // Weathered parchment
-      disabled: "#8b7455", // Aged brown
-    },
+// palette: {
+//   mode: "dark",
+//   primary: {
+//     light: "#7a8a97", // Weathered steel blue
+//     main: "#3f4c5c",  // Muted naval gray-blue
+//     dark: "#2a333e",  // Ship hull dark blue-gray
+//     contrastText: "#eae2d0" // Old sail canvas
+//   },
+//   secondary: {
+//     light: "#b58c50", // Faded brass
+//     main: "#8c5c2f",  // Tarnished bronze
+//     dark: "#5d3a1e",  // Dark aged wood
+//     contrastText: "#eae2d0" // Same parchment-like cream
+//   },
+//   warning: {
+//     light: "#c2a249", // Dull gold
+//     main: "#a1742b",  // Antique gold
+//     dark: "#714f1c",  // Deep brass
+//     contrastText: "#1e1e1e", // Near-black
+//   },
+//   error: {
+//     light: "#b06b6b", // Dried blood red
+//     main: "#7e3e3e",  // Rusty red
+//     dark: "#5a2d2d",  // Dark blood
+//     contrastText: "#f4f0e6", // Aged parchment
+//   },
+//   info: {
+//     light: "#7a9473", // Seaweed green
+//     main: "#556b4e",  // Mossy olive
+//     dark: "#384836",  // Swamp dark
+//     contrastText: "#eae2d0",
+//   },
+//   success: {
+//     light: "#849c82", // Weathered green
+//     main: "#5a7157",  // Verdant moss
+//     dark: "#3b4d38",  // Deep forest floor
+//     contrastText: "#eae2d0",
+//   },
+//   background: {
+//     default: "#13110f", // Pitch dark wood
+//     paper: "#1c1a17",   // Aged deck planks
+//   },
+//   text: {
+//     primary: "#eae2d0", // Aged parchment
+//     secondary: "#c2b49a", // Faded ink
+//     disabled: "#8b7760", // Weathered leather
+//   },
+// },
+
+// typography: {
+//   fontFamily: seventhSeaFontFamily,
+//   allVariants: {
+//     fontFamily: seventhSeaFontFamily,
+//     color: "#eae2d0", // Main parchment tone
+//   },
+//   h1: { 
+//     fontFamily: seventhSeaHeadingFontFamily, 
+//     fontWeight: 700, 
+//     letterSpacing: '0.02em',
+//     fontSize: "2.5rem",
+//     margin: "0.5em 0 0.7em",
+//     color: "#f1e7cf", // Highlighted parchment
+//   },
+//   h2: { 
+//     fontFamily: seventhSeaDisplayFontFamily, 
+//     fontWeight: 600,
+//     letterSpacing: '0.01em',
+//     fontSize: "2rem",
+//     color: "#dfd3b8", // Slightly faded
+//   },
+//   h3: { 
+//     fontFamily: seventhSeaSansFontFamily,
+//     fontWeight: 500,
+//     fontSize: "1.7rem",
+//     letterSpacing: '0.03em',
+//     textTransform: "uppercase",
+//     color: "#cbb899", // Ink-worn tone
+//   },
+//   h4: {
+//     fontFamily: seventhSeaSansFontFamily,
+//     fontWeight: 500,
+//     fontSize: "1.4rem",
+//     letterSpacing: '0.05em',
+//     textTransform: "uppercase",
+//     color: "#cbb899",
+//   },
+//   h5: {
+//     fontFamily: seventhSeaFontFamily,
+//     fontSize: "1.2rem",
+//     letterSpacing: '0.02em',
+//     color: "#bca98d", // Very faded parchment
+//   },
+//   h6: {
+//     fontFamily: seventhSeaFontFamily,
+//     fontSize: "1.1rem",
+//     letterSpacing: '0.01em',
+//     color: "#bca98d",
+//   },
+//   subtitle1: {
+//     fontFamily: seventhSeaScriptFontFamily,
+//     fontStyle: "normal",
+//     fontSize: "1.1rem",
+//     color: "#d3c2a6", // Antique margin note
+//   },
+//   subtitle2: {
+//     fontFamily: seventhSeaModernFontFamily,
+//     fontStyle: "italic",
+//     fontSize: "0.95rem",
+//     color: "#b4a287", // Muted ink
+//   },
+//   button: {
+//     fontFamily: seventhSeaSansFontFamily,
+//     textTransform: "uppercase",
+//     fontWeight: 500,
+//     letterSpacing: "0.06em",
+//     color: "#e0d6c0", // Paper-like cream
+//   },
+//   body1: { 
+//     lineHeight: 1.7,
+//     letterSpacing: "0.01em",
+//     fontSize: "1rem",
+//     color: "#eae2d0", // Core body text
+//   },
+//   body2: {
+//     lineHeight: 1.6,
+//     fontSize: "0.95rem",
+//     color: "#c2b49a", // Secondary text
+//   },
+//   caption: {
+//     fontFamily: seventhSeaModernFontFamily,
+//     fontStyle: "italic",
+//     fontSize: "0.85rem",
+//     color: "#9c8b75", // Aged ink fade
+//   },
+// },
+palette: {
+  mode: "dark",
+  primary: {
+    light: "#FAE4A0", // aged parchment
+    main: "#D8B868",  // golden parchment
+    dark: "#8A6B30",  // darkened edge parchment
+    contrastText: "#FAE4A0" // dark ink
   },
-  typography: {
+  secondary: {
+    light: "#EFB058", // treasure amber
+    main: "#B75B27",  // worn leather
+    dark: "#5A2F18",  // scorched wood
+    contrastText: "#FDF3D0" // faded sailcloth
+  },
+  warning: {
+    light: "#FFC060", // bright brass
+    main: "#D68730",  // aged brass
+    dark: "#A04E0A",
+    contrastText: "#D68730",
+  },
+  error: {
+    light: "#D46A4C", // blood red
+    main: "#7A3020",  // dried blood
+    dark: "#501210",
+    contrastText: "#FDF3D0",
+  },
+  info: {
+    light: "#C0A97D", // aged jungle map
+    main: "#89754E",  // expedition gear
+    dark: "#574622",
+    contrastText: "#F5F0E6",
+  },
+  success: {
+    light: "#A8A86D", // mossy gold
+    main: "#67663A",  // faded foliage
+    dark: "#36311C",
+    contrastText: "#F5F0E6",
+  },
+  background: {
+    default: "#13110f", // Pitch dark wood
+    paper: "#1c1a17",   // Aged deck planks
+  },
+  text: {
+    primary: "#A39880", // deep ink
+    secondary: "#aa8c5e", // faded brown ink
+    disabled: "#2D1C0C", // dusted ink
+  },
+},
+typography: {
+  fontFamily: seventhSeaFontFamily,
+  allVariants: {
     fontFamily: seventhSeaFontFamily,
-    allVariants: {
-      fontFamily: seventhSeaFontFamily,
-      color: "#f5f3f0",
-    },
-    h1: { 
-      fontFamily: seventhSeaHeadingFontFamily, 
-      fontWeight: 700, 
-      letterSpacing: '0.02em',
-      fontSize: "2.5rem",
-      margin: "0.5em 0 0.7em"
-    },
-    h2: { 
-      fontFamily: seventhSeaDisplayFontFamily, 
-      fontWeight: 600,
-      letterSpacing: '0.01em',
-      fontSize: "2rem"
-    },
-    h3: { 
-      fontFamily: seventhSeaSansFontFamily,
-      fontWeight: 500,
-      fontSize: "1.7rem",
-      letterSpacing: '0.03em',
-      textTransform: "uppercase"
-    },
-    h4: {
-      fontFamily: seventhSeaSansFontFamily,
-      fontWeight: 500,
-      fontSize: "1.4rem",
-      letterSpacing: '0.05em',
-      textTransform: "uppercase"
-    },
-    h5: {
-      fontFamily: seventhSeaFontFamily,
-      fontSize: "1.2rem",
-      letterSpacing: '0.02em',
-    },
-    h6: {
-      fontFamily: seventhSeaFontFamily,
-      fontSize: "1.1rem",
-      letterSpacing: '0.01em',
-    },
-    subtitle1: {
-      fontFamily: seventhSeaScriptFontFamily,
-      fontStyle: "normal",
-      fontSize: "1.1rem"
-    },
-    subtitle2: {
-      fontFamily: seventhSeaModernFontFamily,
-      fontStyle: "italic",
-      fontSize: "0.95rem",
-      color: "#d4c5b0"
-    },
-    button: {
-      fontFamily: seventhSeaSansFontFamily,
-      textTransform: "uppercase",
-      fontWeight: 500,
-      letterSpacing: "0.06em",
-    },
-    body1: { 
-      lineHeight: 1.7,
-      letterSpacing: "0.01em",
-      fontSize: "1rem" 
-    },
-    body2: {
-      lineHeight: 1.6,
-      fontSize: "0.95rem"
-    },
-    caption: {
-      fontFamily: seventhSeaModernFontFamily,
-      fontStyle: "italic",
-      fontSize: "0.85rem",
-      color: "#a89885"
-    },
+    color: "#2D1C0C",  // inked text
   },
+  h1: {
+    fontFamily: seventhSeaHeadingFontFamily,
+    fontWeight: 700,
+    fontSize: "2.5rem",
+    letterSpacing: '0.02em',
+    margin: "0.5em 0 0.7em",
+    color: "#4A3010",  // deep sepia
+  },
+  h2: {
+    fontFamily: seventhSeaDisplayFontFamily,
+    fontWeight: 600,
+    letterSpacing: '0.01em',
+    fontSize: "2rem",
+    color: "#5A3E21",
+  },
+  h3: {
+    fontFamily: seventhSeaSansFontFamily,
+    fontWeight: 500,
+    fontSize: "1.7rem",
+    letterSpacing: '0.03em',
+    textTransform: "uppercase",
+    color: "#5A4A32",
+  },
+  h4: {
+    fontFamily: seventhSeaSansFontFamily,
+    fontWeight: 500,
+    fontSize: "1.4rem",
+    letterSpacing: '0.05em',
+    textTransform: "uppercase",
+    color: "#6D5A3F",
+  },
+  h5: {
+    fontFamily: seventhSeaFontFamily,
+    fontSize: "1.2rem",
+    letterSpacing: '0.02em',
+    color: "#7A664C",
+  },
+  h6: {
+    fontFamily: seventhSeaFontFamily,
+    fontSize: "1.1rem",
+    letterSpacing: '0.01em',
+    color: "#7A664C",
+  },
+  subtitle1: {
+    fontFamily: seventhSeaScriptFontFamily,
+    fontStyle: "normal",
+    fontSize: "1.1rem",
+    color: "#6C5438",
+  },
+  subtitle2: {
+    fontFamily: seventhSeaModernFontFamily,
+    fontStyle: "italic",
+    fontSize: "0.95rem",
+    color: "#9A8666",
+  },
+  button: {
+    fontFamily: seventhSeaSansFontFamily,
+    textTransform: "uppercase",
+    fontWeight: 500,
+    letterSpacing: "0.06em",
+    color: "#2D1C0C",
+  },
+  body1: {
+    lineHeight: 1.7,
+    letterSpacing: "0.01em",
+    fontSize: "1rem",
+    color: "#2D1C0C",
+  },
+  body2: {
+    lineHeight: 1.6,
+    fontSize: "0.95rem",
+    color: "#5A4A32",
+  },
+  caption: {
+    fontFamily: seventhSeaModernFontFamily,
+    fontStyle: "italic",
+    fontSize: "0.85rem",
+    color: "#A08868",
+  },
+},
+
   shape: {
     borderRadius: 4,
   },
@@ -1543,7 +1689,7 @@ export const seventhSeaTheme = createTheme({
         '@font-face': [
           {
             fontFamily: 'Pirata One',
-            src: 'url("https://fonts.googleapis.com/css2?family=Pirata+One&display=swap")',
+            src: 'url(/src/assets/PirataOne-Regular.ttf) format("truetype")',
             fontWeight: 'normal',
             fontStyle: 'normal',
           },
@@ -2030,5 +2176,5 @@ export const seventhSeaTheme = createTheme({
       backgroundColor: theme.palette.background.default,
     },
   }),
-  logo: "/src/assets/seventh-sea/7th_sea_logo.png",
+  logo: "/src/assets/seventh_sea/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
 });
