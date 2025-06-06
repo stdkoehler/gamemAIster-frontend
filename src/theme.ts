@@ -2176,5 +2176,5 @@ typography: {
       backgroundColor: theme.palette.background.default,
     },
   }),
-  logo: "/src/assets/seventh_sea/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
+  logo: "/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
 });
