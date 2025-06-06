@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useImperativeHandle,
   forwardRef,
+  memo,
 } from "react";
 import { Button, Typography, Box, Container } from "@mui/material";
 
@@ -228,6 +229,45 @@ function FieldButtonGroup({
   );
 }
 
+/**
+ * Props for the MicrophoneButton component.
+ */
+interface MicrophoneButtonProps {
+  /** Whether the microphone is currently recording audio. */
+  isRecording: boolean;
+  /** The color theme for the button. */
+  color: Colors;
+  /** Flag to disable the button. */
+  disabled: boolean;
+  /** Callback for when the microphone button is clicked. */
+  onClick: () => void;
+}
+
+function MicrophoneButton({
+  isRecording,
+  color,
+  disabled,
+  onClick,
+}: MicrophoneButtonProps) {
+  return (
+    <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 1 }}>
+      <Button
+        variant={isRecording ? "contained" : "outlined"}
+        color={isRecording ? "error" : color}
+        onClick={onClick}
+        disabled={disabled}
+        startIcon={
+          <span role="img" aria-label="microphone">
+            {isRecording ? "🔴" : "🎤"}
+          </span>
+        }
+      >
+        {isRecording ? "Stop Recording" : "Record"}
+      </Button>
+    </Box>
+  );
+}
+
 // --- Main Component ---
 
 /**
@@ -295,25 +335,34 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
       : value;
 
     // Expose imperative methods for streaming
+    const updateStream = useCallback((content: string) => {
+      setStreamValue(content);
+    }, []);
+
+    const completeStream = useCallback(
+      (finalContent: string) => {
+        setStreamValue(finalContent);
+        setIsStreamingActive(false);
+        if (onStreamComplete) {
+          onStreamComplete(finalContent);
+        }
+      },
+      [onStreamComplete]
+    );
+
+    const startStream = useCallback(() => {
+      setIsStreamingActive(true);
+      setStreamValue("");
+    }, []);
+
     useImperativeHandle(
       ref,
       () => ({
-        updateStream: (content: string) => {
-          setStreamValue(content);
-        },
-        completeStream: (finalContent: string) => {
-          setStreamValue(finalContent);
-          setIsStreamingActive(false);
-          if (onStreamComplete) {
-            onStreamComplete(finalContent);
-          }
-        },
-        startStream: () => {
-          setIsStreamingActive(true);
-          setStreamValue("");
-        },
+        updateStream,
+        completeStream,
+        startStream,
       }),
-      [onStreamComplete]
+      [updateStream, completeStream, startStream]
     );
 
     /**
@@ -346,7 +395,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           setIsEditable(true);
         }
       }
-    }, [sendCallback, isGenerating, commitValue, type]);
+    }, [sendCallback, isGenerating, localValue, type]);
 
     /**
      * Handles the stop action.
@@ -403,7 +452,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           setLocalValue(newValue);
         }
       },
-      [useLocalState, type, isStreamingActive]
+      [useLocalState, isStreamingActive]
     );
 
     /**
@@ -458,6 +507,10 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
       }
     }, [isRecording, speechToTextCallback]);
 
+    const MemoizedDisplayField = memo(DisplayField);
+    const MemoizedFieldButtonGroup = memo(FieldButtonGroup);
+    const MemoizedMicrophoneButton = memo(MicrophoneButton);
+
     return (
       <>
         <Typography
@@ -491,9 +544,9 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
               inputRef={textFieldRef}
             />
           ) : (
-            <DisplayField value={displayValue} color={color} />
+            <MemoizedDisplayField value={displayValue} color={color} />
           )}
-          <FieldButtonGroup
+          <MemoizedFieldButtonGroup
             isEditable={isEditable}
             isGenerating={isGenerating || isStreamingActive}
             type={type}
@@ -505,21 +558,12 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           />
         </Container>
         {type === FieldContainerType.MAIN_SEND && (
-          <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 1 }}>
-            <Button
-              variant={isRecording ? "contained" : "outlined"}
-              color={isRecording ? "error" : color}
-              onClick={handleMicClick}
-              disabled={disabled}
-              startIcon={
-                <span role="img" aria-label="microphone">
-                  {isRecording ? "🔴" : "🎤"}
-                </span>
-              }
-            >
-              {isRecording ? "Stop Recording" : "Record"}
-            </Button>
-          </Box>
+          <MemoizedMicrophoneButton
+            isRecording={isRecording}
+            color={color}
+            disabled={disabled}
+            onClick={handleMicClick}
+          />
         )}
       </>
     );
