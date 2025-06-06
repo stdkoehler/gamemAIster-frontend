@@ -350,6 +350,7 @@ function FilterableLoadMissionModal({
             Vampire The Masquerade
           </MenuItem>
           <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
+          <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
         </TextField>
         <Autocomplete
           value={selectedMission}
