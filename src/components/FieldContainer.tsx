@@ -508,7 +508,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     }, [isRecording, speechToTextCallback]);
 
     const MemoizedDisplayField = memo(DisplayField);
-    const MemoizedFieldButtonGroup = memo(FieldButtonGroup);
     const MemoizedMicrophoneButton = memo(MicrophoneButton);
 
     return (
@@ -546,7 +545,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           ) : (
             <MemoizedDisplayField value={displayValue} color={color} />
           )}
-          <MemoizedFieldButtonGroup
+          <FieldButtonGroup
             isEditable={isEditable}
             isGenerating={isGenerating || isStreamingActive}
             type={type}
