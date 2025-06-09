@@ -145,7 +145,7 @@ const useHistoryStore = create<State & Action>()(
         interactions: state.interactions,
         playerInputOld: state.playerInputOld,
         llmOutput: state.llmOutput,
-        // Don't persist playerInput (draft text)
+        playerInput: state.playerInput,
       }),
     }
   )
