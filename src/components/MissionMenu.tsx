@@ -153,6 +153,7 @@ const NewMissionModal = ({
           </MenuItem>
           <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
           <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
+          <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         </TextField>
         <TextField
           label="Background"
@@ -351,6 +352,7 @@ function FilterableLoadMissionModal({
           </MenuItem>
           <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
           <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
+          <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         </TextField>
         <Autocomplete
           value={selectedMission}
