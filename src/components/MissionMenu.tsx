@@ -5,6 +5,8 @@ import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
+import Tooltip from "@mui/material/Tooltip";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 import Typography from "@mui/material/Typography";
 import {
@@ -182,7 +184,18 @@ const NewMissionModal = ({
           }}
         />
         <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-          <Typography sx={{ mr: 2 }}>Non-Hero Mode</Typography>
+          <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
+          <Tooltip
+            title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world. Providing some background info on what you want to play is strongly recommended.`}
+            enterTouchDelay={0}
+            leaveTouchDelay={3000}
+            arrow
+          >
+            <InfoOutlinedIcon
+              color="info"
+              sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
+            />
+          </Tooltip>
           <Switch
             checked={nonHeroMode}
             onChange={handleNonHeroModeChange}
