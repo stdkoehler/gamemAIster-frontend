@@ -12,6 +12,7 @@ import {
   Autocomplete,
   CircularProgress,
   useTheme,
+  Switch,
 } from "@mui/material";
 import {
   TextfieldStyle,
@@ -74,8 +75,12 @@ type NewMissionModalComponentProps = {
   open: boolean;
   /** Callback function to close the modal. */
   onClose: () => void;
-  /** Callback function to confirm the new mission creation, passing the selected game type and background. */
-  onConfirm: (selectedGame: GameType, background: string) => void;
+  /** Callback function to confirm the new mission creation, passing the selected game type, background, and nonHeroMode. */
+  onConfirm: (
+    selectedGame: GameType,
+    background: string,
+    nonHeroMode: boolean
+  ) => void;
 };
 
 /**
@@ -113,6 +118,7 @@ const NewMissionModal = ({
   const theme = useTheme();
   const [selectedGame, setSelectedGame] = React.useState(GameType.SHADOWRUN);
   const [background, setBackground] = React.useState("");
+  const [nonHeroMode, setNonHeroMode] = React.useState(false);
 
   const handleGameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setSelectedGame(event.target.value as GameType);
@@ -122,6 +128,12 @@ const NewMissionModal = ({
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setBackground(event.target.value);
+  };
+
+  const handleNonHeroModeChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setNonHeroMode(event.target.checked);
   };
 
   return (
@@ -169,12 +181,21 @@ const NewMissionModal = ({
             },
           }}
         />
+        <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+          <Typography sx={{ mr: 2 }}>Non-Hero Mode</Typography>
+          <Switch
+            checked={nonHeroMode}
+            onChange={handleNonHeroModeChange}
+            id="non-hero-mode-switch"
+            color="info"
+          />
+        </Box>
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
           <Button onClick={onClose} color="warning">
             Cancel
           </Button>
           <Button
-            onClick={() => onConfirm(selectedGame, background)}
+            onClick={() => onConfirm(selectedGame, background, nonHeroMode)}
             color="primary"
           >
             Confirm
@@ -384,9 +405,13 @@ function FilterableLoadMissionModal({
  */
 type MissionMenuComponentProps = {
   /** Callback function to initiate the creation of a new mission.
-   * Takes the selected game type and background story as arguments.
+   * Takes the selected game type, background story, and nonHeroMode as arguments.
    */
-  newCallback: (gameType: GameType, background: string) => Promise<void>;
+  newCallback: (
+    gameType: GameType,
+    background: string,
+    nonHeroMode: boolean
+  ) => Promise<void>;
   /** Callback function to save the current mission.
    * Takes the custom name for the mission as an argument.
    */
@@ -505,13 +530,18 @@ export function MissionMenu({
    * and then closes the loading indicator.
    * @param selectedGame - The game type selected by the user.
    * @param background - The background story entered by the user.
+   * @param nonHeroMode - Whether Non-Hero Mode is enabled.
    */
   const handleNewModalConfirm = React.useCallback(
-    async (selectedGame: GameType, background: string) => {
+    async (
+      selectedGame: GameType,
+      background: string,
+      nonHeroMode: boolean
+    ) => {
       handleModalClose();
       setActiveModal(ModalNames.LOADING);
       try {
-        await newCallback(selectedGame, background);
+        await newCallback(selectedGame, background, nonHeroMode);
       } catch (error) {
         console.error("An error occurred during new mission creation:", error);
       }
@@ -600,8 +630,8 @@ export function MissionMenu({
       <NewMissionModal
         open={activeModal === ModalNames.NEW}
         onClose={handleModalClose}
-        onConfirm={(gameType, background) =>
-          handleNewModalConfirm(gameType, background)
+        onConfirm={(gameType, background, nonHeroMode) =>
+          handleNewModalConfirm(gameType, background, nonHeroMode)
         }
       />
       <SaveMissionModal

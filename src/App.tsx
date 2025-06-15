@@ -50,9 +50,13 @@ const App: React.FC = () => {
 
   // Memoize callbacks to prevent child rerenders
   const handleNewMission = useCallback(
-    async (selectedGameType: GameType, background: string) => {
+    async (
+      selectedGameType: GameType,
+      background: string,
+      nonHeroMode: boolean
+    ) => {
       setGameType(selectedGameType);
-      await sendNewMissionGenerate(selectedGameType, background);
+      await sendNewMissionGenerate(selectedGameType, background, nonHeroMode);
     },
     [setGameType, sendNewMissionGenerate]
   );
