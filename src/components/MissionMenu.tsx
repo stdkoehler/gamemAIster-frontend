@@ -112,6 +112,8 @@ const LoadingModal = ({ open }: { open: boolean }) => (
   </Modal>
 );
 
+const gamesWithHeroModeSwitch = [GameType.EXPANSE]; // Add more GameTypes as needed
+
 const NewMissionModal = ({
   open,
   onClose,
@@ -124,6 +126,7 @@ const NewMissionModal = ({
 
   const handleGameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setSelectedGame(event.target.value as GameType);
+    setNonHeroMode(false);
   };
 
   const handleBackgroundChange = (
@@ -183,26 +186,28 @@ const NewMissionModal = ({
             },
           }}
         />
-        <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-          <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
-          <Tooltip
-            title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world. Providing some background info on what you want to play is strongly recommended.`}
-            enterTouchDelay={0}
-            leaveTouchDelay={3000}
-            arrow
-          >
-            <InfoOutlinedIcon
+        {gamesWithHeroModeSwitch.includes(selectedGame) && (
+          <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+            <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
+            <Tooltip
+              title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world. Providing some background info on what you want to play is strongly recommended.`}
+              enterTouchDelay={0}
+              leaveTouchDelay={3000}
+              arrow
+            >
+              <InfoOutlinedIcon
+                color="info"
+                sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
+              />
+            </Tooltip>
+            <Switch
+              checked={nonHeroMode}
+              onChange={handleNonHeroModeChange}
+              id="non-hero-mode-switch"
               color="info"
-              sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
             />
-          </Tooltip>
-          <Switch
-            checked={nonHeroMode}
-            onChange={handleNonHeroModeChange}
-            id="non-hero-mode-switch"
-            color="info"
-          />
-        </Box>
+          </Box>
+        )}
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
           <Button onClick={onClose} color="warning">
             Cancel
