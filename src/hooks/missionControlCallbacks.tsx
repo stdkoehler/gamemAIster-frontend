@@ -14,7 +14,8 @@ import useHistoryStore from "../stores/historyStore";
 export type MissionControlCallbacks = {
   sendNewMissionGenerate: (
     gameType: GameType,
-    background: string
+    background: string,
+    nonHeroMode: boolean
   ) => Promise<void>;
   saveMission: (nameCustom: string) => Promise<void>;
   listMissions: () => Promise<Mission[]>;
@@ -27,7 +28,11 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
   const loadHistoryData = useHistoryStore((state) => state.loadHistoryData);
 
   const sendNewMissionGenerate = useCallback(
-    async (gameType: GameType, background: string): Promise<void> => {
+    async (
+      gameType: GameType,
+      background: string,
+      nonHeroMode: boolean
+    ): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
 
       // Reset both stores
@@ -37,6 +42,7 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
       const response = await postNewMission({
         game_type: gameType,
         background,
+        non_hero_mode: nonHeroMode,
       });
       if (response !== null) {
         setMission(response.mission_id);

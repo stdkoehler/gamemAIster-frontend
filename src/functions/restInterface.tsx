@@ -219,6 +219,7 @@ export async function postStopGeneration(): Promise<void> {
 export async function postNewMission(payload: {
   game_type: GameType;
   background: string;
+  non_hero_mode: boolean;
 }): Promise<MissionPayload> {
   return await apiRequest<MissionPayload>(
     "/mission/new-mission",
