@@ -41,6 +41,7 @@ import { auth } from "../auth/firebase";
  * @constant
  */
 const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
 
 ////////////////////
 // Helper Logic   //
@@ -69,10 +70,16 @@ async function apiRequest<T>(
     let headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    // Add Firebase token if available
-    if (auth.currentUser) {
-      const token = await auth.currentUser.getIdToken();
-      headers["Authorization"] = `Bearer ${token}`;
+    if (USE_FIREBASE) {
+      // Add Firebase token if available
+      if (auth.currentUser) {
+        const token = await auth.currentUser.getIdToken();
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    } else {
+      // Demo mode: send username from localStorage
+      const demoUser = localStorage.getItem("demoUser") || "demo-user";
+      headers["X-Demo-User"] = demoUser;
     }
     const res = await fetch(url, {
       method,
@@ -154,9 +161,14 @@ export async function sendPlayerInputToLlm({
     let headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-    if (auth.currentUser) {
-      const token = await auth.currentUser.getIdToken();
-      headers["Authorization"] = `Bearer ${token}`;
+    if (USE_FIREBASE) {
+      if (auth.currentUser) {
+        const token = await auth.currentUser.getIdToken();
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+    } else {
+      const demoUser = localStorage.getItem("demoUser") || "demo-user";
+      headers["X-Demo-User"] = demoUser;
     }
     const response = await fetch(`${API_BASE}/interaction/gamemaster-send`, {
       method: "POST",

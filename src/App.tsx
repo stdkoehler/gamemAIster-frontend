@@ -22,6 +22,8 @@ import useAppStore from "./stores/appStore";
 import Login from "./components/Login";
 import { useFirebaseAuth } from "./hooks/useFirebaseAuth";
 
+const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
+
 const App: React.FC = () => {
   console.log("App component rendered");
   // Get state from consolidated app store
@@ -84,7 +86,14 @@ const App: React.FC = () => {
           <Button
             variant="outlined"
             color="secondary"
-            onClick={() => signOut(auth)}
+            onClick={() => {
+              if (USE_FIREBASE) {
+                signOut(auth);
+              } else {
+                localStorage.removeItem("demoUser");
+                window.location.reload();
+              }
+            }}
           >
             Logout
           </Button>
