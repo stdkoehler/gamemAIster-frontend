@@ -30,6 +30,7 @@ import { MissionPayload, PromptPayload } from "../models/RestInterface";
 import { PlayerInputData } from "../models/PlayerInputData";
 import { MissionLoadPayload } from "../models/RestInterface";
 import { GameType } from "../models/Types";
+import { auth } from "../auth/firebase";
 
 ////////////////////
 // Configuration  //
@@ -65,9 +66,17 @@ async function apiRequest<T>(
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
   try {
+    let headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    // Add Firebase token if available
+    if (auth.currentUser) {
+      const token = await auth.currentUser.getIdToken();
+      headers["Authorization"] = `Bearer ${token}`;
+    }
     const res = await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers,
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
 
@@ -142,9 +151,16 @@ export async function sendPlayerInputToLlm({
   }
 
   try {
+    let headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (auth.currentUser) {
+      const token = await auth.currentUser.getIdToken();
+      headers["Authorization"] = `Bearer ${token}`;
+    }
     const response = await fetch(`${API_BASE}/interaction/gamemaster-send`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     });
 
