@@ -1,6 +1,13 @@
 import React, { useState } from "react";
-import { Button, Box, Typography, TextField } from "@mui/material";
+import {
+  Button,
+  Box,
+  Typography,
+  TextField,
+  ThemeProvider,
+} from "@mui/material";
 import { auth, provider, signInWithPopup } from "../auth/firebase";
+import { shadowrunTheme } from "../theme";
 
 const useFirebase = import.meta.env.VITE_USE_FIREBASE !== "false";
 
@@ -26,39 +33,41 @@ const Login: React.FC = () => {
   };
 
   return (
-    <Box
-      sx={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#222",
-      }}
-    >
-      <Typography variant="h4" color="white" mb={3}>
-        Welcome to gamemAIster
-      </Typography>
-      {/* Show user text field if not using Firebase */}
-      {!useFirebase && (
-        <TextField
-          label="User"
-          variant="outlined"
-          value={demoUser}
-          onChange={(e) => setDemoUser(e.target.value)}
-          sx={{ mb: 2, background: "white", borderRadius: 1 }}
-          autoFocus
-        />
-      )}
-      {error && (
-        <Typography color="error" mb={2}>
-          {error}
+    <ThemeProvider theme={shadowrunTheme}>
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#222",
+        }}
+      >
+        <Typography variant="h4" color="white" mb={3}>
+          Welcome to gamemAIster
         </Typography>
-      )}
-      <Button variant="contained" color="primary" onClick={handleLogin}>
-        {useFirebase ? "Login with Google" : "Demo Login"}
-      </Button>
-    </Box>
+        {/* Show user text field if not using Firebase */}
+        {!useFirebase && (
+          <TextField
+            label="User"
+            variant="outlined"
+            value={demoUser}
+            onChange={(e) => setDemoUser(e.target.value)}
+            sx={{ mb: 2, background: "white", borderRadius: 1 }}
+            autoFocus
+          />
+        )}
+        {error && (
+          <Typography color="error" mb={2}>
+            {error}
+          </Typography>
+        )}
+        <Button variant="contained" color="primary" onClick={handleLogin}>
+          {useFirebase ? "Login with Google" : "Demo Login"}
+        </Button>
+      </Box>
+    </ThemeProvider>
   );
 };
 
