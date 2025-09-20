@@ -8,7 +8,7 @@ function techGlowShadow(theme: Theme): string {
 }
 
 // Enhanced holographic text shadow for important elements
-function holoTextShadow(theme: Theme, _?: string): string {
+function holoTextShadow(theme: Theme): string {
   const baseColor = theme.palette.info.light; // Use cyan-blue for holo effect
   const lightColor = theme.palette.info.light; // Lighter shade for glow
   return `0 0 2px ${lightColor}, 0 0 4px ${baseColor}CC, 0 0 8px ${baseColor}77, 0 0 12px ${baseColor}44`;
@@ -257,7 +257,7 @@ export const expanseTheme = createTheme({
           "&:hover": {
             backgroundColor: `${theme.palette.info.main}18`,
             color: theme.palette.text.primary,
-            textShadow: techGlowShadow(theme, ownerState.color),
+            textShadow: techGlowShadow(theme),
             letterSpacing: "0.08em",
             "&::after": {
               opacity: 1,
@@ -359,13 +359,13 @@ export const expanseTheme = createTheme({
           return {
             color: mainColor,
             textShadow: ownerState.variant?.startsWith("h")
-              ? techGlowShadow(theme, ownerState.color)
+              ? techGlowShadow(theme)
               : subtleTechShadow(theme),
             ...theme.scrollbarStyles(theme),
           };
         },
         h1: ({ theme }) => ({
-          textShadow: holoTextShadow(theme, "info"),
+          textShadow: holoTextShadow(theme),
           "&::after": {
             content: '""',
             display: "block",
@@ -376,7 +376,7 @@ export const expanseTheme = createTheme({
           },
         }),
         h2: ({ theme }) => ({
-          textShadow: holoTextShadow(theme, "info"),
+          textShadow: holoTextShadow(theme),
           "&::after": {
             content: '""',
             display: "block",
@@ -448,7 +448,7 @@ export const expanseTheme = createTheme({
           letterSpacing: "0.08em",
           textTransform: "uppercase",
           fontSize: "1.2rem",
-          textShadow: techGlowShadow(theme, "info"),
+          textShadow: techGlowShadow(theme),
         }),
         subheader: ({ theme }) => ({
           fontFamily: expanseBodyFontFamily,
@@ -543,7 +543,7 @@ export const expanseTheme = createTheme({
           letterSpacing: "0.08em",
           fontSize: "0.85rem",
           fontWeight: 600,
-          textShadow: techGlowShadow(theme, "info"),
+          textShadow: techGlowShadow(theme),
           background: `${theme.palette.info.dark}22`,
         }),
       },
@@ -612,11 +612,11 @@ export const expanseTheme = createTheme({
           transition: "all 0.2s ease",
           "&:hover": {
             color: theme.palette.info.light,
-            textShadow: techGlowShadow(theme, "info"),
+            textShadow: techGlowShadow(theme),
           },
           "&.Mui-selected": {
             color: theme.palette.info.light,
-            textShadow: techGlowShadow(theme, "info"),
+            textShadow: techGlowShadow(theme),
           },
         }),
       },
