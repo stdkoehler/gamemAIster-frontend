@@ -7,7 +7,7 @@ import {
   ThemeProvider,
 } from "@mui/material";
 import { auth, provider, signInWithPopup } from "../auth/firebase";
-import { shadowrunTheme } from "../theme";
+import { shadowrunTheme } from "../themes/shadowrun";
 
 const useFirebase = import.meta.env.VITE_USE_FIREBASE !== "false";
 
