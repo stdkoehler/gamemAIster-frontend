@@ -2837,6 +2837,8 @@ export function getThemeForGameType(gameType: GameType): Theme {
       return seventhSeaTheme;
     case GameType.EXPANSE:
       return expanseTheme;
+    case GameType.CUSTOM:
+      return seventhSeaTheme;
     case GameType.SHADOWRUN:
     default:
       return shadowrunTheme;
