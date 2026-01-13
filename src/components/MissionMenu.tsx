@@ -298,6 +298,10 @@ type LoadMissionModalComponentProps = {
   selectedMission: Mission | null;
   /** Setter function for updating the selectedMission state. */
   setSelectedMission: React.Dispatch<React.SetStateAction<Mission | null>>;
+  /** Callback to fetch mission data (metadata + interactions). */
+  getMissionData: (
+    missionId: number
+  ) => Promise<import("../models/MissionModels").MissionLoadData>;
 };
 
 /**
@@ -314,10 +318,59 @@ function FilterableLoadMissionModal({
   missions,
   selectedMission,
   setSelectedMission,
+  getMissionData,
 }: LoadMissionModalComponentProps) {
   /** State for the currently selected game type filter. `null` means no filter. */
   const [selectedGameType, setSelectedGameType] =
     React.useState<GameType | null>(null);
+
+  const handleDownload = async () => {
+    if (!selectedMission) return;
+    try {
+      const { mission, interactions } = await getMissionData(
+        selectedMission.missionId
+      );
+
+      const title =
+        mission.nameCustom || mission.name || `Mission-${mission.missionId}`;
+      const header =
+        `# ${title}\n\n` +
+        (mission.description ? `${mission.description}\n\n` : "");
+
+      const body = interactions
+        .map((it, idx) => {
+          const player = (it.playerInput ?? "").trim();
+          const ai = (it.llmOutput ?? "").trim();
+          return [
+            `## Interaction ${idx + 1}`,
+            "",
+            player
+              ? "**Player**\n\n" + "```\n" + player + "\n```"
+              : "**Player**: (empty)",
+            "",
+            ai
+              ? "**GM/AI**\n\n" + "```\n" + ai + "\n```"
+              : "**GM/AI**: (empty)",
+            "",
+          ].join("\n");
+        })
+        .join("\n");
+
+      const md = header + body;
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const safeTitle = title.replace(/[^a-z0-9-_]+/gi, "_");
+      a.href = url;
+      a.download = `${safeTitle}_${mission.missionId}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Failed to download mission interactions:", e);
+    }
+  };
 
   /**
    * Handles changes to the selected mission in the Autocomplete field.
@@ -412,7 +465,14 @@ function FilterableLoadMissionModal({
         <Button onClick={onClose} color="warning">
           Cancel
         </Button>
-        <Button onClick={onConfirm} color="primary">
+        <Button
+          onClick={handleDownload}
+          color="secondary"
+          disabled={!selectedMission}
+        >
+          Download
+        </Button>
+        <Button onClick={onConfirm} color="primary" disabled={!selectedMission}>
           Confirm
         </Button>
       </Box>
@@ -442,6 +502,9 @@ type MissionMenuComponentProps = {
    * Takes the ID of the mission to load as an argument.
    */
   loadCallback: (missionId: number) => Promise<void>;
+  getMissionData: (
+    missionId: number
+  ) => Promise<import("../models/MissionModels").MissionLoadData>;
 };
 
 /**
@@ -457,6 +520,7 @@ export function MissionMenu({
   saveCallback,
   listCallback,
   loadCallback,
+  getMissionData,
 }: MissionMenuComponentProps) {
   /** State for the anchor element of the dropdown menu. `null` when the menu is closed. */
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
@@ -668,6 +732,7 @@ export function MissionMenu({
         missions={missionList}
         selectedMission={selectedMission}
         setSelectedMission={setSelectedMission}
+        getMissionData={getMissionData}
       />
     </div>
   );

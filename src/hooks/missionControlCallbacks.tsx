@@ -20,6 +20,7 @@ export type MissionControlCallbacks = {
   saveMission: (nameCustom: string) => Promise<void>;
   listMissions: () => Promise<Mission[]>;
   loadMission: (missionId: number) => Promise<void>;
+  getMissionData: (missionId: number) => Promise<import("../models/MissionModels").MissionLoadData>;
 };
 
 export function useMissionControlCallbacks(): MissionControlCallbacks {
@@ -105,11 +106,16 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
     [clearHistory, loadHistoryData]
   );
 
+  const getMissionData = useCallback(async (missionId: number) => {
+    return await getLoadMissions(missionId);
+  }, []);
+
   return {
     sendNewMissionGenerate,
     saveMission,
     listMissions,
     loadMission,
+    getMissionData,
   };
 }
 

@@ -52,8 +52,13 @@ const App: React.FC = () => {
   }, [reset, mission]);
 
   // Mission control callbacks - simplified with new store
-  const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
-    useMissionControlCallbacks();
+  const {
+    sendNewMissionGenerate,
+    saveMission,
+    listMissions,
+    loadMission,
+    getMissionData,
+  } = useMissionControlCallbacks();
 
   // Memoize callbacks to prevent child rerenders
   const handleNewMission = useCallback(
@@ -119,6 +124,7 @@ const App: React.FC = () => {
                 saveCallback={saveMission}
                 listCallback={listMissions}
                 loadCallback={loadMission}
+                getMissionData={getMissionData}
               />
               <CharacterManager />
             </AppGrid>
