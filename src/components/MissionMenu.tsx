@@ -66,7 +66,7 @@ export const StyledTextField = React.memo(
     return (
       <TextField {...props} color={color} sx={TextfieldStyle({ color })} />
     );
-  }
+  },
 );
 
 /**
@@ -81,7 +81,7 @@ type NewMissionModalComponentProps = {
   onConfirm: (
     selectedGame: GameType,
     background: string,
-    nonHeroMode: boolean
+    nonHeroMode: boolean,
   ) => void;
 };
 
@@ -130,13 +130,13 @@ const NewMissionModal = ({
   };
 
   const handleBackgroundChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setBackground(event.target.value);
   };
 
   const handleNonHeroModeChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setNonHeroMode(event.target.checked);
   };
@@ -171,6 +171,7 @@ const NewMissionModal = ({
           <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
           <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
           <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
+          <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
         </TextField>
         <TextField
           label="Background"
@@ -297,6 +298,10 @@ type LoadMissionModalComponentProps = {
   selectedMission: Mission | null;
   /** Setter function for updating the selectedMission state. */
   setSelectedMission: React.Dispatch<React.SetStateAction<Mission | null>>;
+  /** Callback to fetch mission data (metadata + interactions). */
+  getMissionData: (
+    missionId: number,
+  ) => Promise<import("../models/MissionModels").MissionLoadData>;
 };
 
 /**
@@ -313,10 +318,61 @@ function FilterableLoadMissionModal({
   missions,
   selectedMission,
   setSelectedMission,
+  getMissionData,
 }: LoadMissionModalComponentProps) {
   /** State for the currently selected game type filter. `null` means no filter. */
   const [selectedGameType, setSelectedGameType] =
     React.useState<GameType | null>(null);
+
+  const handleDownload = async () => {
+    if (!selectedMission) return;
+    try {
+      const { mission, interactions } = await getMissionData(
+        selectedMission.missionId,
+      );
+
+      const title =
+        mission.nameCustom || mission.name || `Mission-${mission.missionId}`;
+      const header =
+        `# ${title}\n\n` +
+        (mission.description ? `${mission.description}\n\n` : "");
+
+      // strip re.sub(r"---\s*What do you do\?\s*", "", text)
+      const body = interactions
+        .map((it, idx) => {
+          const player = (it.playerInput ?? "").trim();
+          const rawAi = (it.llmOutput ?? "").trim();
+          const ai = rawAi.replace(/---\s*What do you do\?\s*/g, "").trim();
+          return [
+            `## Interaction ${idx + 1}`,
+            "",
+            player
+              ? "**Player**\n\n" + "```\n" + player + "\n```"
+              : "**Player**: (empty)",
+            "",
+            ai
+              ? "**GM/AI**\n\n" + "```\n" + ai + "\n```"
+              : "**GM/AI**: (empty)",
+            "",
+          ].join("\n");
+        })
+        .join("\n");
+
+      const md = header + body;
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const safeTitle = title.replace(/[^a-z0-9-_]+/gi, "_");
+      a.href = url;
+      a.download = `${safeTitle}_${mission.missionId}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Failed to download mission interactions:", e);
+    }
+  };
 
   /**
    * Handles changes to the selected mission in the Autocomplete field.
@@ -325,7 +381,7 @@ function FilterableLoadMissionModal({
    */
   const handleMissionChange = (
     _: React.SyntheticEvent<Element, Event>,
-    newValue: Mission | null
+    newValue: Mission | null,
   ) => {
     setSelectedMission(newValue);
   };
@@ -335,7 +391,7 @@ function FilterableLoadMissionModal({
    * @param event - The change event from the game type filter selection field.
    */
   const handleGameTypeChange = (
-    event: React.ChangeEvent<{ value: unknown }>
+    event: React.ChangeEvent<{ value: unknown }>,
   ) => {
     setSelectedGameType(event.target.value as GameType);
   };
@@ -347,7 +403,7 @@ function FilterableLoadMissionModal({
   const filteredMissions = React.useMemo(() => {
     if (!selectedGameType) return missions || [];
     return (missions || []).filter(
-      (mission) => mission.gameType === selectedGameType
+      (mission) => mission.gameType === selectedGameType,
     );
   }, [missions, selectedGameType]);
 
@@ -392,6 +448,7 @@ function FilterableLoadMissionModal({
           <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
           <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
           <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
+          <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
         </TextField>
         <Autocomplete
           value={selectedMission}
@@ -410,7 +467,14 @@ function FilterableLoadMissionModal({
         <Button onClick={onClose} color="warning">
           Cancel
         </Button>
-        <Button onClick={onConfirm} color="primary">
+        <Button
+          onClick={handleDownload}
+          color="secondary"
+          disabled={!selectedMission}
+        >
+          Download
+        </Button>
+        <Button onClick={onConfirm} color="primary" disabled={!selectedMission}>
           Confirm
         </Button>
       </Box>
@@ -428,7 +492,7 @@ type MissionMenuComponentProps = {
   newCallback: (
     gameType: GameType,
     background: string,
-    nonHeroMode: boolean
+    nonHeroMode: boolean,
   ) => Promise<void>;
   /** Callback function to save the current mission.
    * Takes the custom name for the mission as an argument.
@@ -440,6 +504,9 @@ type MissionMenuComponentProps = {
    * Takes the ID of the mission to load as an argument.
    */
   loadCallback: (missionId: number) => Promise<void>;
+  getMissionData: (
+    missionId: number,
+  ) => Promise<import("../models/MissionModels").MissionLoadData>;
 };
 
 /**
@@ -455,12 +522,13 @@ export function MissionMenu({
   saveCallback,
   listCallback,
   loadCallback,
+  getMissionData,
 }: MissionMenuComponentProps) {
   /** State for the anchor element of the dropdown menu. `null` when the menu is closed. */
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   /** State to control which modal is currently active. See {@link ModalNames}. */
   const [activeModal, setActiveModal] = React.useState<ModalNames>(
-    ModalNames.CLOSED
+    ModalNames.CLOSED,
   );
   /** State for the value entered in the "Save Mission" modal's name field. */
   const [saveModalValue, setSaveModalValue] = React.useState("");
@@ -468,7 +536,7 @@ export function MissionMenu({
   const [missionList, setMissionList] = React.useState<Mission[] | null>(null);
   /** State for the mission currently selected in the "Load Mission" modal's Autocomplete field. */
   const [selectedMission, setSelectedMission] = React.useState<Mission | null>(
-    null
+    null,
   );
 
   /** Boolean indicating whether the mission dropdown menu is open. */
@@ -532,7 +600,7 @@ export function MissionMenu({
       }
       setActiveModal(modalName);
     },
-    [listCallback]
+    [listCallback],
   );
 
   /**
@@ -554,7 +622,7 @@ export function MissionMenu({
     async (
       selectedGame: GameType,
       background: string,
-      nonHeroMode: boolean
+      nonHeroMode: boolean,
     ) => {
       handleModalClose();
       setActiveModal(ModalNames.LOADING);
@@ -565,7 +633,7 @@ export function MissionMenu({
       }
       setActiveModal(ModalNames.CLOSED);
     },
-    [newCallback, handleModalClose]
+    [newCallback, handleModalClose],
   );
 
   /**
@@ -589,7 +657,7 @@ export function MissionMenu({
    * @param event - The change event from the text area.
    */
   const handleSaveModalValueChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
     if (event.target.value !== undefined) {
       setSaveModalValue(event.target.value);
@@ -666,6 +734,7 @@ export function MissionMenu({
         missions={missionList}
         selectedMission={selectedMission}
         setSelectedMission={setSelectedMission}
+        getMissionData={getMissionData}
       />
     </div>
   );

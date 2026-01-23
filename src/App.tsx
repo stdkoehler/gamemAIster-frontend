@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useMemo, useCallback } from "react";
-import { ThemeProvider, Box } from "@mui/material";
+import { ThemeProvider, Box, Button } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { getThemeForGameType } from "./theme";
+import { signOut } from "firebase/auth";
+import { auth } from "./auth/firebase";
 
 import AdventureHeading from "./components/AdventureHeading";
 import AppGrid from "./components/AppGrid";
@@ -17,11 +19,16 @@ import { GameType } from "./models/Types";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
+import Login from "./components/Login";
+import { useFirebaseAuth } from "./hooks/useFirebaseAuth";
+
+const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
 
 const App: React.FC = () => {
   console.log("App component rendered");
   // Get state from consolidated app store
   const { mission, adventure, gameType, setGameType, reset } = useAppStore();
+  const { user, loading } = useFirebaseAuth();
 
   // Memoized theme calculation - only recalculates when gameType changes
   const currentTheme = useMemo(() => getThemeForGameType(gameType), [gameType]);
@@ -45,8 +52,13 @@ const App: React.FC = () => {
   }, [reset, mission]);
 
   // Mission control callbacks - simplified with new store
-  const { sendNewMissionGenerate, saveMission, listMissions, loadMission } =
-    useMissionControlCallbacks();
+  const {
+    sendNewMissionGenerate,
+    saveMission,
+    listMissions,
+    loadMission,
+    getMissionData,
+  } = useMissionControlCallbacks();
 
   // Memoize callbacks to prevent child rerenders
   const handleNewMission = useCallback(
@@ -61,6 +73,9 @@ const App: React.FC = () => {
     [setGameType, sendNewMissionGenerate]
   );
 
+  if (loading) return null;
+  if (!user) return <Login />;
+
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
@@ -72,6 +87,22 @@ const App: React.FC = () => {
           flexDirection: "column",
         }}
       >
+        <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => {
+              if (USE_FIREBASE) {
+                signOut(auth);
+              } else {
+                localStorage.removeItem("demoUser");
+                window.location.reload();
+              }
+            }}
+          >
+            Logout
+          </Button>
+        </Box>
         <ImageContainer src={currentTheme.logo} />
         <Box
           sx={{
@@ -93,6 +124,7 @@ const App: React.FC = () => {
                 saveCallback={saveMission}
                 listCallback={listMissions}
                 loadCallback={loadMission}
+                getMissionData={getMissionData}
               />
               <CharacterManager />
             </AppGrid>
