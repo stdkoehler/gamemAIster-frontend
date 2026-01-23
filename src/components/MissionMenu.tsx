@@ -77,11 +77,12 @@ type NewMissionModalComponentProps = {
   open: boolean;
   /** Callback function to close the modal. */
   onClose: () => void;
-  /** Callback function to confirm the new mission creation, passing the selected game type, background, and nonHeroMode. */
+  /** Callback function to confirm the new mission creation, passing the selected game type, background, nonHeroMode and oracle. */
   onConfirm: (
     selectedGame: GameType,
     background: string,
     nonHeroMode: boolean,
+    oracle: boolean,
   ) => void;
 };
 
@@ -123,6 +124,7 @@ const NewMissionModal = ({
   const [selectedGame, setSelectedGame] = React.useState(GameType.SHADOWRUN);
   const [background, setBackground] = React.useState("");
   const [nonHeroMode, setNonHeroMode] = React.useState(false);
+  const [oracle, setOracle] = React.useState(true);
 
   const handleGameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setSelectedGame(event.target.value as GameType);
@@ -139,6 +141,10 @@ const NewMissionModal = ({
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setNonHeroMode(event.target.checked);
+  };
+
+  const handleOracleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setOracle(event.target.checked);
   };
 
   return (
@@ -187,6 +193,30 @@ const NewMissionModal = ({
             },
           }}
         />
+        <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+          <Typography sx={{ mr: 1 }}>Oracle</Typography>
+          <Tooltip
+            title={`Oracle will generate details like hidden plots and characters. 
+              It will try to align to your (optional) "Background" but will insert unknowns. 
+              If you want to specify these with "Background" yourself in detail, you can disable Oracle. 
+              If using Oracle it is preferable to only give a high-level background.
+              If not using Oracle it is preferable to give a detailed background describing main characters and plot.`}
+            enterTouchDelay={0}
+            leaveTouchDelay={3000}
+            arrow
+          >
+            <InfoOutlinedIcon
+              color="info"
+              sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
+            />
+          </Tooltip>
+          <Switch
+            checked={oracle}
+            onChange={handleOracleChange}
+            id="oracle-switch"
+            color="info"
+          />
+        </Box>
         {gamesWithHeroModeSwitch.includes(selectedGame) && (
           <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
             <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
@@ -214,7 +244,9 @@ const NewMissionModal = ({
             Cancel
           </Button>
           <Button
-            onClick={() => onConfirm(selectedGame, background, nonHeroMode)}
+            onClick={() =>
+              onConfirm(selectedGame, background, nonHeroMode, oracle)
+            }
             color="primary"
           >
             Confirm
@@ -493,6 +525,7 @@ type MissionMenuComponentProps = {
     gameType: GameType,
     background: string,
     nonHeroMode: boolean,
+    oracle: boolean,
   ) => Promise<void>;
   /** Callback function to save the current mission.
    * Takes the custom name for the mission as an argument.
@@ -617,17 +650,19 @@ export function MissionMenu({
    * @param selectedGame - The game type selected by the user.
    * @param background - The background story entered by the user.
    * @param nonHeroMode - Whether Non-Hero Mode is enabled.
+   * @param oracle - Whether Oracle mode is enabled.
    */
   const handleNewModalConfirm = React.useCallback(
     async (
       selectedGame: GameType,
       background: string,
       nonHeroMode: boolean,
+      oracle: boolean,
     ) => {
       handleModalClose();
       setActiveModal(ModalNames.LOADING);
       try {
-        await newCallback(selectedGame, background, nonHeroMode);
+        await newCallback(selectedGame, background, nonHeroMode, oracle);
       } catch (error) {
         console.error("An error occurred during new mission creation:", error);
       }
@@ -716,8 +751,8 @@ export function MissionMenu({
       <NewMissionModal
         open={activeModal === ModalNames.NEW}
         onClose={handleModalClose}
-        onConfirm={(gameType, background, nonHeroMode) =>
-          handleNewModalConfirm(gameType, background, nonHeroMode)
+        onConfirm={(gameType, background, nonHeroMode, oracle) =>
+          handleNewModalConfirm(gameType, background, nonHeroMode, oracle)
         }
       />
       <SaveMissionModal

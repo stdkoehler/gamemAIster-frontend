@@ -63,7 +63,7 @@ const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
 async function apiRequest<T>(
   path: string,
   method: "GET" | "POST",
-  body?: any
+  body?: any,
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
   try {
@@ -93,7 +93,7 @@ async function apiRequest<T>(
         errorDetail = "\n" + (await res.text());
       } catch {}
       throw new Error(
-        `Request to ${url} failed [${res.status}]: ${errorDetail}`
+        `Request to ${url} failed [${res.status}]: ${errorDetail}`,
       );
     }
 
@@ -108,7 +108,7 @@ async function apiRequest<T>(
     throw new Error(
       `API request to "${path}" failed: ${
         err instanceof Error ? err.message : String(err)
-      }`
+      }`,
     );
   }
 }
@@ -216,7 +216,7 @@ export async function sendPlayerInputToLlm({
     throw new Error(
       `Error streaming LLM output: ${
         err instanceof Error ? err.message : String(err)
-      }`
+      }`,
     );
   }
 }
@@ -248,11 +248,12 @@ export async function postNewMission(payload: {
   game_type: GameType;
   background: string;
   non_hero_mode: boolean;
+  oracle: boolean;
 }): Promise<MissionPayload> {
   return await apiRequest<MissionPayload>(
     "/mission/new-mission",
     "POST",
-    payload
+    payload,
   );
 }
 
@@ -267,7 +268,7 @@ export async function postNewMission(payload: {
  */
 export async function postSaveMission(
   missionId: number,
-  nameCustom: string
+  nameCustom: string,
 ): Promise<void> {
   await apiRequest<void>("/mission/save-mission", "POST", {
     mission_id: missionId,
@@ -287,11 +288,11 @@ export async function postSaveMission(
  * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
  */
 export async function getMission(
-  mission_id: number
+  mission_id: number,
 ): Promise<MissionPayload | null> {
   return await apiRequest<MissionPayload>(
     `/mission/mission/${mission_id}`,
-    "GET"
+    "GET",
   );
 }
 
@@ -323,11 +324,11 @@ export async function getListMissions(): Promise<MissionPayload[]> {
  *                 Also throws if the received data structure is not as expected (e.g., `data.interactions` not an array).
  */
 export async function getLoadMissions(
-  mission_id: number
+  mission_id: number,
 ): Promise<MissionLoadData> {
   const data = await apiRequest<MissionLoadPayload>(
     `/mission/load-mission/${mission_id}`,
-    "GET"
+    "GET",
   );
 
   // Transform Mission data from MissionLoadPayload.mission to Mission
@@ -375,7 +376,7 @@ export async function sendTextToSpeech(text: string): Promise<Blob> {
 
   if (!response.ok) {
     throw new Error(
-      `TTS request failed: ${response.status} ${response.statusText}`
+      `TTS request failed: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -414,7 +415,7 @@ export async function sendTextToSpeech(text: string): Promise<Blob> {
  *                 or if any error occurs during the streaming and `MediaSource` handling process.
  */
 export async function sendTextToSpeechStream(
-  text: string
+  text: string,
 ): Promise<HTMLAudioElement> {
   const response = await fetch(`${API_BASE}/tts/tts-stream`, {
     method: "POST",
@@ -426,7 +427,7 @@ export async function sendTextToSpeechStream(
 
   if (!response.ok || !response.body) {
     throw new Error(
-      `TTS stream request failed: ${response.status} ${response.statusText}`
+      `TTS stream request failed: ${response.status} ${response.statusText}`,
     );
   }
 
@@ -612,7 +613,7 @@ export async function sendSpeechToText(audioBlob: Blob): Promise<string> {
 
   if (!response.ok) {
     throw new Error(
-      `Speech-to-text request failed: ${response.status} ${response.statusText}`
+      `Speech-to-text request failed: ${response.status} ${response.statusText}`,
     );
   }
 
