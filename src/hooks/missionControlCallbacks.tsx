@@ -15,12 +15,15 @@ export type MissionControlCallbacks = {
   sendNewMissionGenerate: (
     gameType: GameType,
     background: string,
-    nonHeroMode: boolean
+    nonHeroMode: boolean,
+    oracle: boolean,
   ) => Promise<void>;
   saveMission: (nameCustom: string) => Promise<void>;
   listMissions: () => Promise<Mission[]>;
   loadMission: (missionId: number) => Promise<void>;
-  getMissionData: (missionId: number) => Promise<import("../models/MissionModels").MissionLoadData>;
+  getMissionData: (
+    missionId: number,
+  ) => Promise<import("../models/MissionModels").MissionLoadData>;
 };
 
 export function useMissionControlCallbacks(): MissionControlCallbacks {
@@ -32,7 +35,8 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
     async (
       gameType: GameType,
       background: string,
-      nonHeroMode: boolean
+      nonHeroMode: boolean,
+      oracle: boolean,
     ): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
 
@@ -44,13 +48,14 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
         game_type: gameType,
         background,
         non_hero_mode: nonHeroMode,
+        oracle: oracle,
       });
       if (response !== null) {
         setMission(response.mission_id);
         setAdventure(response.name);
       }
     },
-    [clearHistory]
+    [clearHistory],
   );
 
   const saveMission = useCallback(async (nameCustom: string): Promise<void> => {
@@ -103,7 +108,7 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
         });
       }
     },
-    [clearHistory, loadHistoryData]
+    [clearHistory, loadHistoryData],
   );
 
   const getMissionData = useCallback(async (missionId: number) => {

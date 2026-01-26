@@ -65,12 +65,18 @@ const App: React.FC = () => {
     async (
       selectedGameType: GameType,
       background: string,
-      nonHeroMode: boolean
+      nonHeroMode: boolean,
+      oracle: boolean,
     ) => {
       setGameType(selectedGameType);
-      await sendNewMissionGenerate(selectedGameType, background, nonHeroMode);
+      await sendNewMissionGenerate(
+        selectedGameType,
+        background,
+        nonHeroMode,
+        oracle,
+      );
     },
-    [setGameType, sendNewMissionGenerate]
+    [setGameType, sendNewMissionGenerate],
   );
 
   if (loading) return null;
