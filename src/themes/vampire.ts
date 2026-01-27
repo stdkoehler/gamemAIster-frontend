@@ -30,14 +30,18 @@ export const vampireTheme = createTheme({
   palette: {
     mode: "dark",
     primary: {
+      // light: "#ff9b91", // #ff6659 Blood red, slightly brighter
+      // main: "#ff6659", // #c00000 Deep blood red
       light: "#ff6659", // Blood red, slightly brighter
       main: "#c00000", // Deep blood red
       dark: "#870000", // Dark dried blood
       contrastText: "#e6c5c1", //"#e8e6e3", // Off-white, easier on eyes than pure white
     },
     secondary: {
-      light: "#c095d5", // Light purple - more vibrant for accents
-      main: "#7b1fa2", // Rich purple (Lasombra/Tremere vibes)
+      // light: "#ebd1f1", // #c095d5 Light purple - more vibrant for accents
+      // main: "#c095d5", // #7b1fa2 Rich purple (Lasombra/Tremere vibes)
+      light: "#c095d5", // # Light purple - more vibrant for accents
+      main: "#7b1fa2", // # Rich purple (Lasombra/Tremere vibes)
       dark: "#4a0072", // Deep purple
       contrastText: "#d8c1e6", //"#e8e6e3", // Off-white, easier on eyes than pure white
     },
@@ -621,7 +625,7 @@ export const vampireTheme = createTheme({
   },
   spinButtonBackgroundImage: (color) =>
     `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
     )}")`,
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {

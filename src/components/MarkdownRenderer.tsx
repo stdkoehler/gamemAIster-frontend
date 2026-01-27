@@ -46,9 +46,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               color={color}
               component="div"
               sx={{
-                marginBottom: "8px",
+                marginTop: "0.5em",
+                marginBottom: "1em",
                 lineHeight: 1.7,
-                fontSize: "0.95rem",
+                fontSize: "1.05rem",
                 letterSpacing: "0.02em",
               }}
               {...props}
@@ -61,7 +62,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 border: "none",
                 borderTop: "1px solid",
                 borderColor: color,
-                my: 2,
+                my: 3,
               }}
             />
           ),
