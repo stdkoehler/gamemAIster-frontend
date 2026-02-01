@@ -564,7 +564,11 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
             }}
           >
             <Box sx={{ width: "100%", marginTop: 1 }}>
-              <ThinkingDisclosure content={displayThinking} color={color} />
+              <ThinkingDisclosure
+                content={displayThinking}
+                color={color}
+                isStreaming={isStreamingActive && !displayValue.trim()}
+              />
             </Box>
 
             <Box sx={{ width: "100%" }}>

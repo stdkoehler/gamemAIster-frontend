@@ -1,28 +1,44 @@
 import React, { useState } from "react";
-import { Box, Typography, alpha, Collapse, useTheme } from "@mui/material";
+import {
+  Box,
+  Typography,
+  alpha,
+  Collapse,
+  useTheme,
+  keyframes,
+} from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 
 import { Colors } from "../styles/styles";
+
+// Pulse abnimation for streaming indicator
+const pulse = keyframes`
+  0% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.6; transform: scale(1); }
+`;
 
 type ThinkingDisclosureProps = {
   content?: string;
   color: Colors;
   defaultExpanded?: boolean;
   title?: string;
+  isStreaming?: boolean;
 };
 
 export default function ThinkingDisclosure({
   content,
   color,
   defaultExpanded = false,
-  title = "Thinking",
+  title = "Reasoning",
+  isStreaming = false,
 }: ThinkingDisclosureProps) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const trimmed = (content ?? "").trim();
-  if (!trimmed) return null;
+  if (!trimmed && !isStreaming) return null;
 
   return (
     <Box
@@ -34,7 +50,6 @@ export default function ThinkingDisclosure({
         border: (theme) => `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         position: "relative",
         overflow: "hidden",
-        // Ensure it sits above any overlapping containers / backgrounds
         zIndex: 1,
       }}
     >
@@ -44,55 +59,104 @@ export default function ThinkingDisclosure({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          px: 1,
-          py: 0.5,
+          px: 1.5,
+          py: 0.75,
           cursor: "pointer",
-          backgroundColor: (theme) =>
-            expanded
-              ? alpha(theme.palette.background.default, 0.2)
-              : "transparent",
-          borderBottom: (theme) =>
-            expanded
-              ? `1px solid ${alpha(theme.palette.divider, 0.05)}`
-              : "none",
+          backgroundColor: expanded
+            ? alpha(theme.palette.background.default, 0.2)
+            : "transparent",
           transition: "background-color 0.2s",
           "&:hover": {
-            backgroundColor: (theme) =>
-              alpha(theme.palette.background.default, 0.3),
+            backgroundColor: alpha(theme.palette.background.default, 0.3),
           },
-          // guard against global styles that might collapse the header height
-          minHeight: 28,
+          minHeight: 32,
         }}
       >
-        <Box
-          sx={{ display: "flex", alignItems: "center", gap: 1, opacity: 0.9 }}
-        >
-          <PsychologyIcon fontSize="small" color={color} />
-          <Typography
-            variant="caption"
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <PsychologyIcon
+            fontSize="small"
+            color={color}
             sx={{
-              fontFamily: "monospace",
-              fontWeight: 700,
-              color: "text.primary",
-              textTransform: "uppercase",
-              letterSpacing: "1px",
-              userSelect: "none",
-              lineHeight: 1,
+              animation: isStreaming
+                ? `${pulse} 1.5s infinite ease-in-out`
+                : "none",
+              filter: isStreaming
+                ? `drop-shadow(0 0 2px ${theme.palette[color as "primary" | "secondary" | "error" | "info" | "success" | "warning"]?.main || "transparent"})`
+                : "none",
             }}
-          >
-            {title}
-          </Typography>
+          />
+          <Box>
+            <Typography
+              variant="caption"
+              sx={{
+                fontFamily: "monospace",
+                fontWeight: 700,
+                color: "text.primary",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                userSelect: "none",
+                lineHeight: 1,
+                display: "block",
+              }}
+            >
+              {title}
+            </Typography>
+            {!expanded && isStreaming && (
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: "0.65rem",
+                  color: "text.secondary",
+                  fontStyle: "italic",
+                  display: "block",
+                  mt: -0.2,
+                }}
+              >
+                Processing thoughts...
+              </Typography>
+            )}
+          </Box>
         </Box>
 
-        <ExpandMoreIcon
-          fontSize="small"
-          sx={{
-            color: "text.secondary",
-            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.3s",
-          }}
-        />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <ExpandMoreIcon
+            fontSize="small"
+            sx={{
+              color: "text.secondary",
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.3s",
+            }}
+          />
+        </Box>
       </Box>
+
+      {/* Subtle Progress Bar for Streaming */}
+      {!expanded && isStreaming && (
+        <Box
+          sx={{
+            height: "2px",
+            width: "100%",
+            background: alpha(theme.palette.divider, 0.1),
+            position: "absolute",
+            bottom: 0,
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            sx={{
+              height: "100%",
+              width: "30%",
+              backgroundColor: `${color}.main`,
+              borderRadius: 1,
+              animation: "slide 1.5s infinite linear",
+              "@keyframes slide": {
+                "0%": { transform: "translateX(-100%)" },
+                "100%": { transform: "translateX(400%)" },
+              },
+            }}
+          />
+        </Box>
+      )}
 
       <Collapse in={expanded} timeout="auto">
         <Box
@@ -100,6 +164,7 @@ export default function ThinkingDisclosure({
             p: 2,
             maxHeight: 220,
             overflow: "auto",
+            borderTop: `1px solid ${alpha(theme.palette.divider, 0.05)}`,
             ...(theme as any).scrollbarStyles?.(theme),
           }}
         >
@@ -111,12 +176,12 @@ export default function ThinkingDisclosure({
                 "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
               fontSize: "0.8rem",
               whiteSpace: "pre-wrap",
-              color: "text.primary",
+              color: "text.secondary", // Dimmed slightly to distinguish from final answer
               lineHeight: 1.5,
-              textShadow: "none !important",
             }}
           >
             {trimmed}
+            {isStreaming && <span className="cursor"> |</span>}
           </Typography>
         </Box>
       </Collapse>
