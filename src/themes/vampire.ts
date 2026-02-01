@@ -76,8 +76,9 @@ export const vampireTheme = createTheme({
     text: {
       primary: "#eb8b80", //"#e8e6e3", // Off-white, easier on eyes than pure white
       secondary: "#9b6666", // Muted cream
-      disabled: "#6c5f5f", // Muted red-gray
+      disabled: "#615f6c", // Muted red-gray
     },
+    divider: "#c00000", // Dark red-brown
   },
   typography: {
     fontFamily: vampireModernFontFamily,
@@ -340,13 +341,14 @@ export const vampireTheme = createTheme({
         },
         h1: ({ theme }) => ({
           textShadow: bloodTextShadow(theme, "primary"),
+          marginBottom: "0em",
           "&::after": {
             content: '""',
             display: "block",
             width: "100%",
-            height: "1px",
-            marginTop: "0.2em",
-            background: `linear-gradient(to right, transparent, ${theme.palette.primary.main}77, transparent)`,
+            height: "3px",
+            marginTop: "0.3em",
+            background: `linear-gradient(to right, transparent, ${theme.palette.primary.main}, transparent)`,
           },
         }),
         h2: ({ theme }) => ({
@@ -377,15 +379,13 @@ export const vampireTheme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: ({ theme }) => ({
-          borderColor: `${theme.palette.primary.main}33`, // rgba(192, 0, 0, 0.2) equivalent
-          "&::before, &::after": {
-            borderTop: `thin solid ${theme.palette.primary.main}33`,
-          },
-          "&.MuiDivider-textAlignCenter": {
-            "&::before, &::after": {
-              borderTop: `thin solid ${theme.palette.primary.main}33`,
-            },
-          },
+          height: "1px",
+          border: "none",
+          backgroundImage: `linear-gradient(to right, transparent, ${theme.palette.primary.main}, transparent)`,
+          backgroundColor: "transparent",
+          marginTop: theme.spacing(3),
+          marginBottom: theme.spacing(3),
+          opacity: 1,
         }),
       },
     },

@@ -47,7 +47,7 @@ export default function ThinkingDisclosure({
         mb: 1,
         borderRadius: 1,
         backgroundColor: (theme) => alpha(theme.palette.background.paper, 0.4),
-        border: (theme) => `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        border: (theme) => `1px solid ${alpha(theme.palette.divider, 0.3)}`,
         position: "relative",
         overflow: "hidden",
         zIndex: 1,
