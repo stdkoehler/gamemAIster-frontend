@@ -14,6 +14,10 @@ export function MenuStyle() {
       backgroundColor: alpha(theme.palette.primary.main, 0.12),
       textShadow: `0 0 6px ${theme.palette.primary.main}`, // Neon glow effect
       transition: "all 0.2s ease-in-out",
+      color: theme.palette.primary.light,
+    },
+    "& .MuiButtonBase-root.MuiMenuItem-root": {
+      color: theme.palette.primary.contrastText,
     },
     "& .MuiList-root.MuiMenu-list": {
       padding: "8px",
@@ -264,16 +268,16 @@ const color3Rgb = hexToRgb("#e53f7e");
 function calculateTransition(
   startColor: { r: number; g: number; b: number },
   endColor: { r: number; g: number; b: number },
-  percentage: number
+  percentage: number,
 ) {
   const r = Math.round(
-    startColor.r + (endColor.r - startColor.r) * (percentage / 100)
+    startColor.r + (endColor.r - startColor.r) * (percentage / 100),
   );
   const g = Math.round(
-    startColor.g + (endColor.g - startColor.g) * (percentage / 100)
+    startColor.g + (endColor.g - startColor.g) * (percentage / 100),
   );
   const b = Math.round(
-    startColor.b + (endColor.b - startColor.b) * (percentage / 100)
+    startColor.b + (endColor.b - startColor.b) * (percentage / 100),
   );
   return `rgb(${r}, ${g}, ${b})`;
 }

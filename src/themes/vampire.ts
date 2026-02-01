@@ -74,8 +74,8 @@ export const vampireTheme = createTheme({
       paper: "#1d1515", // Dark burgundy-black
     },
     text: {
-      primary: "#e6c5c1", //"#e8e6e3", // Off-white, easier on eyes than pure white
-      secondary: "#bdb3ad", // Muted cream
+      primary: "#eb8b80", //"#e8e6e3", // Off-white, easier on eyes than pure white
+      secondary: "#9b6666", // Muted cream
       disabled: "#6c5f5f", // Muted red-gray
     },
   },

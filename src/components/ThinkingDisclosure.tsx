@@ -77,6 +77,7 @@ export default function ThinkingDisclosure({
             fontSize="small"
             color={color}
             sx={{
+              opacity: expanded ? 0.7 : 1,
               animation: isStreaming
                 ? `${pulse} 1.5s infinite ease-in-out`
                 : "none",
@@ -89,9 +90,10 @@ export default function ThinkingDisclosure({
             <Typography
               variant="caption"
               sx={{
+                opacity: expanded ? 0.7 : 1,
                 fontFamily: "monospace",
                 fontWeight: 700,
-                color: "text.primary",
+                color: { color },
                 textTransform: "uppercase",
                 letterSpacing: "1px",
                 userSelect: "none",
@@ -105,8 +107,9 @@ export default function ThinkingDisclosure({
               <Typography
                 variant="caption"
                 sx={{
+                  opacity: 0.7,
                   fontSize: "0.65rem",
-                  color: "text.secondary",
+                  color: { color },
                   fontStyle: "italic",
                   display: "block",
                   mt: -0.2,
@@ -176,7 +179,7 @@ export default function ThinkingDisclosure({
                 "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
               fontSize: "0.8rem",
               whiteSpace: "pre-wrap",
-              color: "text.secondary", // Dimmed slightly to distinguish from final answer
+              color: "text.secondary",
               lineHeight: 1.5,
             }}
           >
