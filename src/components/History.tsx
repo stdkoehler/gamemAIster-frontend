@@ -44,23 +44,25 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         playerInputOld: state.playerInputOld,
         llmOutput: state.llmOutput,
         interactions: state.interactions,
-      }))
+      })),
     );
   // ===== STORE SETTER =====
   const updatePlayerInput = useHistoryStore((state) => state.updatePlayerInput);
   const updatePlayerInputOld = useHistoryStore(
-    (state) => state.updatePlayerInputOld
+    (state) => state.updatePlayerInputOld,
   );
   const updateLlmOutput = useHistoryStore((state) => state.updateLlmOutput);
   const performOptimisticUpdate = useHistoryStore(
-    (state) => state.performOptimisticUpdate
+    (state) => state.performOptimisticUpdate,
   );
   const rollbackOptimisticUpdate = useHistoryStore(
-    (state) => state.rollbackOptimisticUpdate
+    (state) => state.rollbackOptimisticUpdate,
   );
   const commitPlayerInput = useHistoryStore((state) => state.commitPlayerInput);
 
   // ===== LOCAL STATE =====
+  // Todo: not necessary when moved to store
+  const [tempThinking, setTempThinking] = useState("");
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingAudio, setLoadingAudio] = useState(false);
@@ -85,7 +87,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         setAudioError("Speech-to-text failed: " + errorMessage);
       }
     },
-    [updatePlayerInput]
+    [updatePlayerInput],
   );
 
   const sendPlayerInputWithStreaming = useCallback(
@@ -95,22 +97,38 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       const { originalState, prevInteractionContext } =
         performOptimisticUpdate(inputValue);
 
+      // Todo: not necessary when moved to store
+      setTempThinking("");
       llmOutputFieldRef.current?.startStream();
 
       try {
         let streamedContent = "";
+        let streamedThinking = "";
+
         await sendPlayerInputToLlm({
           missionId: mission,
-          setStateCallback: ({ llmOutput: newLlmOutput }) => {
+          setStateCallback: ({
+            llmOutput: newLlmOutput,
+            llmThinking: newLlmThinking,
+          }) => {
             streamedContent = newLlmOutput;
-            llmOutputFieldRef.current?.updateStream(newLlmOutput);
+            streamedThinking = newLlmThinking || "";
+            llmOutputFieldRef.current?.updateStream(
+              newLlmOutput,
+              newLlmThinking,
+            );
           },
           playerInputField: inputValue,
           prevInteraction: prevInteractionContext,
         });
 
-        llmOutputFieldRef.current?.completeStream(streamedContent);
+        llmOutputFieldRef.current?.completeStream(
+          streamedContent,
+          streamedThinking,
+        );
         updateLlmOutput(streamedContent);
+        // Todo: will be handled in updateLlmOutput when moved to store
+        setTempThinking(streamedThinking);
       } catch (error) {
         rollbackOptimisticUpdate(originalState);
         console.log("Failed to send player input:", error);
@@ -121,7 +139,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       performOptimisticUpdate,
       updateLlmOutput,
       rollbackOptimisticUpdate,
-    ]
+    ],
   );
 
   const sendRegenerateWithStreaming = useCallback(
@@ -134,26 +152,43 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       };
 
       commitPlayerInput(inputValue, ""); // Clear LLM output for regeneration
+
+      // Todo move to store
+      setTempThinking("");
       llmOutputFieldRef.current?.startStream();
 
       try {
         let streamedContent = "";
+        let streamedThinking = "";
+
         await sendPlayerInputToLlm({
           missionId: mission,
-          setStateCallback: ({ llmOutput }) => {
-            streamedContent = llmOutput;
-            llmOutputFieldRef.current?.updateStream(llmOutput);
+          setStateCallback: ({
+            llmOutput: newLlmOutput,
+            llmThinking: newLlmThinking,
+          }) => {
+            streamedContent = newLlmOutput;
+            streamedThinking = newLlmThinking || "";
+            llmOutputFieldRef.current?.updateStream(
+              newLlmOutput,
+              newLlmThinking,
+            );
           },
           prevInteraction,
         });
 
-        llmOutputFieldRef.current?.completeStream(streamedContent);
+        llmOutputFieldRef.current?.completeStream(
+          streamedContent,
+          streamedThinking,
+        );
         updateLlmOutput(streamedContent);
+        // Todo: will be handled in updateLlmOutput when moved to store
+        setTempThinking(streamedThinking);
       } catch (error) {
         console.error("Failed to regenerate:", error);
       }
     },
-    [mission, llmOutput, commitPlayerInput, updateLlmOutput]
+    [mission, llmOutput, commitPlayerInput, updateLlmOutput],
   );
 
   // ===== AUDIO MANAGEMENT =====
@@ -217,7 +252,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
       console.error("TTS Error:", err);
       setAudioError(
         "❌ Could not synthesize or play audio: " +
-          (err instanceof Error ? err.message : String(err))
+          (err instanceof Error ? err.message : String(err)),
       );
       setIsPlaying(false);
     } finally {
@@ -263,7 +298,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         ))}
       </>
     ),
-    []
+    [],
   );
 
   return (
@@ -297,6 +332,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         onCommit={updateLlmOutput}
         onStreamComplete={updateLlmOutput}
         value={llmOutput}
+        thinking={tempThinking}
         instance="Gamemaster"
         color="primary"
         type={FieldContainerType.GAMEMASTER}

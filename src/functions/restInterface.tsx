@@ -185,7 +185,8 @@ export async function sendPlayerInputToLlm({
       throw new Error("Unable to get reader from response body.");
     }
 
-    let accumulated = "";
+    let accumulatedText = "";
+    let accumulatedThinking = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -200,19 +201,30 @@ export async function sendPlayerInputToLlm({
       for (const line of lines) {
         try {
           const jsonData = JSON.parse(line);
-          if (typeof jsonData.text === "string") {
-            accumulated += jsonData.text;
+          if (jsonData.type === "thinking") {
+            accumulatedThinking += jsonData.content;
+          } else if (jsonData.type === "text") {
+            accumulatedText += jsonData.content;
           }
         } catch {
           // Could be an incomplete/faulty chunk, just log for debugging
           console.error("Unable to parse JSON chunk from LLM stream:", line);
         }
       }
-      setStateCallback({ llmOutput: accumulated });
+      setStateCallback({
+        llmOutput: accumulatedText,
+        llmThinking: accumulatedThinking,
+      });
     }
-    setStateCallback({ llmOutput: accumulated.trim() });
+    setStateCallback({
+      llmOutput: accumulatedText.trim(),
+      llmThinking: accumulatedThinking.trim(),
+    });
   } catch (err) {
-    setStateCallback({ llmOutput: "❌ Error receiving LLM response." });
+    setStateCallback({
+      llmOutput: "❌ Error receiving LLM response.",
+      llmThinking: "",
+    });
     throw new Error(
       `Error streaming LLM output: ${
         err instanceof Error ? err.message : String(err)

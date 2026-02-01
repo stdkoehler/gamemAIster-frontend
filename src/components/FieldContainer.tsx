@@ -12,6 +12,7 @@ import { Button, Typography, Box, Container } from "@mui/material";
 import { Colors } from "../styles/styles.tsx";
 import StyledTextField from "./StyledTextField.tsx";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
+import ThinkingDisclosure from "./ThinkingDisclosure.tsx";
 
 /**
  * Enum for the different types of FieldContainer.
@@ -38,6 +39,8 @@ type FieldContainerProps = {
   stopCallback?: () => Promise<void>;
   /** The current value of the field. */
   value: string;
+  /** Optional current thinking text for streaming display. */
+  thinking?: string;
   /** Identifier or label for the field instance (e.g., "Player Input", "Gamemaster Output"). */
   instance: string;
   /** The color theme for the field. See {@link Colors}. */
@@ -53,7 +56,7 @@ type FieldContainerProps = {
   /** Optional flag to use local state for typing performance. Defaults to `true`. */
   useLocalState?: boolean;
   /** Optional callback to commit the final streamed value to context. */
-  onStreamComplete?: (value: string) => void;
+  onStreamComplete?: (value: string, thinking: string) => void;
 };
 
 /**
@@ -61,9 +64,9 @@ type FieldContainerProps = {
  */
 export interface FieldContainerHandle {
   /** Updates the field with streaming content without triggering context updates. */
-  updateStream: (content: string) => void;
+  updateStream: (content: string, thinking?: string) => void;
   /** Completes the stream and commits the final value to context. */
-  completeStream: (finalContent: string) => void;
+  completeStream: (finalContent: string, finalThinking?: string) => void;
   /** Starts streaming mode. */
   startStream: () => void;
 }
@@ -286,6 +289,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
       onCommit,
       stopCallback,
       value,
+      thinking = "",
       instance,
       color,
       type,
@@ -295,13 +299,13 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
       useLocalState = true,
       onStreamComplete,
     },
-    ref
+    ref,
   ) => {
     /** State variable to control if the field is in edit mode or display mode.
      *  Initialized to `true` if the type is `MAIN_SEND`, `false` otherwise.
      */
     const [isEditable, setIsEditable] = useState(
-      type === FieldContainerType.MAIN_SEND
+      type === FieldContainerType.MAIN_SEND,
     );
     /** State variable to track if content is currently being generated (e.g., waiting for an API response). */
     const [isGenerating, setIsGenerating] = useState(false);
@@ -311,6 +315,8 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     const [localValue, setLocalValue] = useState(value);
     /** Local state for streaming content - bypasses context during streaming */
     const [streamValue, setStreamValue] = useState("");
+    /** Local state for streaming thinking content */
+    const [streamThinking, setStreamThinking] = useState("");
     /** Flag to track if currently in streaming mode */
     const [isStreamingActive, setIsStreamingActive] = useState(false);
     /** Ref to the underlying TextField component to manage focus and scroll. */
@@ -331,28 +337,42 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     const displayValue = isStreamingActive
       ? streamValue
       : useLocalState
-      ? localValue
-      : value;
+        ? localValue
+        : value;
+
+    // Determine thinking for display
+    const displayThinking = isStreamingActive ? streamThinking : thinking;
 
     // Expose imperative methods for streaming
-    const updateStream = useCallback((content: string) => {
-      setStreamValue(content);
-    }, []);
-
-    const completeStream = useCallback(
-      (finalContent: string) => {
-        setStreamValue(finalContent);
-        setIsStreamingActive(false);
-        if (onStreamComplete) {
-          onStreamComplete(finalContent);
+    const updateStream = useCallback(
+      (content: string, newThinking?: string) => {
+        setStreamValue(content);
+        if (newThinking !== undefined) {
+          setStreamThinking(newThinking);
         }
       },
-      [onStreamComplete]
+      [],
+    );
+
+    const completeStream = useCallback(
+      (finalContent: string, finalThinking?: string) => {
+        setStreamValue(finalContent);
+        if (finalThinking !== undefined) {
+          setStreamThinking(finalThinking);
+        }
+        setIsStreamingActive(false);
+        if (onStreamComplete) {
+          // Pass both back to parent
+          onStreamComplete(finalContent, finalThinking || "");
+        }
+      },
+      [onStreamComplete],
     );
 
     const startStream = useCallback(() => {
       setIsStreamingActive(true);
       setStreamValue("");
+      setStreamThinking(""); // Reset thinking stream
     }, []);
 
     useImperativeHandle(
@@ -362,7 +382,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
         completeStream,
         startStream,
       }),
-      [updateStream, completeStream, startStream]
+      [updateStream, completeStream, startStream],
     );
 
     /**
@@ -430,7 +450,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           handleSend();
         }
       },
-      [handleSend]
+      [handleSend],
     );
 
     /**
@@ -452,7 +472,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           setLocalValue(newValue);
         }
       },
-      [useLocalState, isStreamingActive]
+      [useLocalState, isStreamingActive],
     );
 
     /**
@@ -522,39 +542,62 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           {instance}
           <br />
         </Typography>
+
         <Container
           sx={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: "row", // Main container is now a horizontal row
+            alignItems: "center", // Aligns buttons to the bottom of the field/disclosure
             paddingLeft: "0 !important",
             paddingRight: "0 !important",
+            gap: 1,
           }}
         >
-          {isEditable ? (
-            <EditableField
-              value={displayValue}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
+          {/* Left Column: Vertical Stack for Thinking + Field */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              flex: "1 1 auto",
+              minWidth: 0,
+              gap: 0.5, // Space between thinking disclosure and field
+            }}
+          >
+            <Box sx={{ width: "100%", marginTop: 1 }}>
+              <ThinkingDisclosure content={displayThinking} color={color} />
+            </Box>
+
+            <Box sx={{ width: "100%" }}>
+              {isEditable ? (
+                <EditableField
+                  value={displayValue}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  onKeyDown={handleKeyDown}
+                  color={color}
+                  placeholder={placeholder}
+                  disabled={disabled || isStreamingActive}
+                  inputRef={textFieldRef}
+                />
+              ) : (
+                <MemoizedDisplayField value={displayValue} color={color} />
+              )}
+            </Box>
+          </Box>
+
+          {/* Right Column: Button Group */}
+          <Box sx={{ flex: "0 0 auto", flexShrink: 0 }}>
+            <FieldButtonGroup
+              isEditable={isEditable}
+              isGenerating={isGenerating || isStreamingActive}
+              type={type}
               color={color}
-              placeholder={placeholder}
-              disabled={disabled || isStreamingActive}
-              inputRef={textFieldRef}
+              disabled={disabled}
+              onEditClick={handleEditToggle}
+              onSendClick={handleSend}
+              onStopClick={handleStop}
             />
-          ) : (
-            <MemoizedDisplayField value={displayValue} color={color} />
-          )}
-          <FieldButtonGroup
-            isEditable={isEditable}
-            isGenerating={isGenerating || isStreamingActive}
-            type={type}
-            color={color}
-            disabled={disabled}
-            onEditClick={handleEditToggle}
-            onSendClick={handleSend}
-            onStopClick={handleStop}
-          />
+          </Box>
         </Container>
         {type === FieldContainerType.MAIN_SEND && (
           <MemoizedMicrophoneButton
@@ -566,7 +609,7 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
         )}
       </>
     );
-  }
+  },
 );
 
 FieldContainer.displayName = "FieldContainer";

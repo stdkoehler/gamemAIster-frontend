@@ -12,6 +12,7 @@ interface MemoizedFieldContainerProps {
   onCommit?: (value: string) => void;
   stopCallback?: () => Promise<void>;
   value: string;
+  thinking?: string;
   instance: string;
   color: Colors;
   type: FieldContainerType;
@@ -25,7 +26,7 @@ interface MemoizedFieldContainerProps {
 // Custom comparison function for React.memo
 const arePropsEqual = (
   prevProps: MemoizedFieldContainerProps,
-  nextProps: MemoizedFieldContainerProps
+  nextProps: MemoizedFieldContainerProps,
 ): boolean => {
   // Only re-render if essential props change
   // Note: We don't compare callbacks as they should be stable from useCallback
@@ -49,6 +50,7 @@ const MemoizedFieldContainer = React.memo(
         onCommit,
         stopCallback,
         value,
+        thinking,
         instance,
         color,
         type,
@@ -58,7 +60,7 @@ const MemoizedFieldContainer = React.memo(
         useLocalState = true,
         onStreamComplete,
       },
-      ref
+      ref,
     ) => {
       return (
         <FieldContainer
@@ -67,6 +69,7 @@ const MemoizedFieldContainer = React.memo(
           onCommit={onCommit}
           stopCallback={stopCallback}
           value={value}
+          thinking={thinking}
           instance={instance}
           color={color}
           type={type}
@@ -77,9 +80,9 @@ const MemoizedFieldContainer = React.memo(
           onStreamComplete={onStreamComplete}
         />
       );
-    }
+    },
   ),
-  arePropsEqual
+  arePropsEqual,
 );
 
 MemoizedFieldContainer.displayName = "MemoizedFieldContainer";

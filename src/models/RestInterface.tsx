@@ -28,6 +28,7 @@ export interface MissionLoadPayload {
  */
 export interface State {
   llmOutput: string;
+  llmThinking: string;
 }
 
 /**
