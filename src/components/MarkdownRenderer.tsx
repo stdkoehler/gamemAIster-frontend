@@ -2,7 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import Typography from "@mui/material/Typography";
-import { Box } from "@mui/material";
+import { Divider } from "@mui/material";
 
 /**
  * Props for the MarkdownRenderer component.
@@ -55,17 +55,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
               {...props}
             />
           ),
-          hr: () => (
-            <Box
-              component="hr"
-              sx={{
-                border: "none",
-                borderTop: "1px solid",
-                borderColor: color,
-                my: 3,
-              }}
-            />
-          ),
+          hr: () => <Divider />,
         }}
       >
         {value}
