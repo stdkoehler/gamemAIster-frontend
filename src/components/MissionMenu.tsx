@@ -8,6 +8,8 @@ import Modal from "@mui/material/Modal";
 import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Typography from "@mui/material/Typography";
 import {
   TextField,
@@ -15,6 +17,8 @@ import {
   CircularProgress,
   useTheme,
   Switch,
+  Collapse,
+  InputAdornment,
 } from "@mui/material";
 import {
   TextfieldStyle,
@@ -77,10 +81,11 @@ type NewMissionModalComponentProps = {
   open: boolean;
   /** Callback function to close the modal. */
   onClose: () => void;
-  /** Callback function to confirm the new mission creation, passing the selected game type, background, nonHeroMode and oracle. */
+  /** Callback function to confirm the new mission creation, passing the selected game type, background, detailed background, nonHeroMode and oracle. */
   onConfirm: (
     selectedGame: GameType,
     background: string,
+    detailed_background: string,
     nonHeroMode: boolean,
     oracle: boolean,
   ) => void;
@@ -123,6 +128,9 @@ const NewMissionModal = ({
   const theme = useTheme();
   const [selectedGame, setSelectedGame] = React.useState(GameType.SHADOWRUN);
   const [background, setBackground] = React.useState("");
+  const [detailedBackground, setDetailedBackground] = React.useState("");
+  const [showDetailedBackground, setShowDetailedBackground] =
+    React.useState(false);
   const [nonHeroMode, setNonHeroMode] = React.useState(false);
   const [oracle, setOracle] = React.useState(true);
 
@@ -135,6 +143,12 @@ const NewMissionModal = ({
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setBackground(event.target.value);
+  };
+
+  const handleDetailedBackgroundChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setDetailedBackground(event.target.value);
   };
 
   const handleNonHeroModeChange = (
@@ -154,74 +168,181 @@ const NewMissionModal = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={ModalStyle()}>
-        <Typography id="modal-modal-title" variant="h6" component="h2">
-          New Mission
-        </Typography>
-        <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-          Are you sure you want to proceed? This will delete your current
-          mission.
-        </Typography>
-        <TextField
-          select
-          label="Select Game"
-          value={selectedGame}
-          onChange={handleGameChange}
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
-          <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
-            Vampire The Masquerade
-          </MenuItem>
-          <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
-          <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
-          <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
-          <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
-        </TextField>
-        <TextField
-          label="Background"
-          value={background}
-          onChange={handleBackgroundChange}
-          fullWidth
-          multiline
-          rows={10}
+      <Box
+        sx={{
+          ...ModalStyle(),
+          p: 0, // Remove default padding so scrollbar can touch the edge
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden", // Prevents the outer container from scrolling
+        }}
+      >
+        {/* --- FIXED HEADER --- */}
+        <Box sx={{ p: 3, pb: 1 }}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            New Mission
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            Are you sure you want to proceed? If you didn't save the current
+            mission it will be deleted.
+          </Typography>
+        </Box>
+
+        {/* --- SCROLLABLE BODY --- */}
+        <Box
           sx={{
-            mt: 3,
-            "& .MuiInputBase-input.MuiOutlinedInput-input": {
-              ...theme.scrollbarStyles(theme),
-            },
+            flex: 1, // Takes up remaining space
+            overflowY: "auto",
+            px: 3, // Horizontal padding for content
+            pb: 3, // Bottom padding so last items aren't cramped
+            ...theme.scrollbarStyles(theme),
           }}
-        />
-        <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-          <Typography sx={{ mr: 1 }}>Oracle</Typography>
+        >
+          <TextField
+            select
+            label="Select Game"
+            value={selectedGame}
+            onChange={handleGameChange}
+            fullWidth
+            sx={{ mt: 2 }}
+          >
+            <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
+            <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
+              Vampire The Masquerade
+            </MenuItem>
+            <MenuItem value={GameType.CALL_OF_CTHULHU}>
+              Call of Cthulhu
+            </MenuItem>
+            <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
+            <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
+            <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
+          </TextField>
+
+          <TextField
+            label="Background"
+            value={background}
+            onChange={handleBackgroundChange}
+            fullWidth
+            multiline
+            rows={10}
+            placeholder="e.g. Ben is a detective in 1920s Chicago. He has been hired by a mysterious client to investigate a series of occult murders. The only clue is a strange symbol left at each crime scene."
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment
+                    position="end"
+                    sx={{ alignSelf: "flex-start", mt: 1 }}
+                  >
+                    <Tooltip
+                      title="Provide a high-level overview. If Oracle is ON, keep this brief; if OFF, include your core mission goals. For detailed guidance longer than a paragraph, use Detailed Background."
+                      arrow
+                      enterTouchDelay={0}
+                    >
+                      <InfoOutlinedIcon
+                        color="info"
+                        sx={{ fontSize: 20, cursor: "pointer", opacity: 0.7 }}
+                      />
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{
+              mt: 3,
+              "& .MuiInputBase-input.MuiOutlinedInput-input": {
+                ...theme.scrollbarStyles(theme),
+              },
+            }}
+          />
+
+          {/* --- COLLAPSIBLE TOGGLE --- */}
           <Tooltip
-            title={`Oracle will generate details like hidden plots and characters. 
-              It will try to align to your (optional) "Background" but will insert unknowns. 
-              If you want to specify these with "Background" yourself in detail, you can disable Oracle. 
-              If using Oracle it is preferable to only give a high-level background.
-              If not using Oracle it is preferable to give a detailed background describing main characters and plot.`}
+            title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
+            placement="top-start"
+            enterDelay={500}
             enterTouchDelay={0}
             leaveTouchDelay={3000}
             arrow
           >
-            <InfoOutlinedIcon
-              color="info"
-              sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
-            />
+            <Box
+              onClick={() => setShowDetailedBackground(!showDetailedBackground)}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                mt: 3,
+                mb: 1,
+                color: "text.secondary",
+                "&:hover": { color: "primary.main" },
+                transition: "color 0.2s",
+              }}
+            >
+              <ExpandMoreIcon
+                sx={{
+                  transform: showDetailedBackground
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                  transition: "0.3s",
+                  mr: 1,
+                }}
+              />
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: "bold", userSelect: "none" }}
+              >
+                Detailed Background
+              </Typography>
+            </Box>
           </Tooltip>
-          <Switch
-            checked={oracle}
-            onChange={handleOracleChange}
-            id="oracle-switch"
-            color="info"
-          />
-        </Box>
-        {gamesWithHeroModeSwitch.includes(selectedGame) && (
+
+          <Collapse in={showDetailedBackground}>
+            <TextField
+              label="Detailed Background"
+              value={detailedBackground}
+              onChange={handleDetailedBackgroundChange}
+              fullWidth
+              multiline
+              rows={10}
+              placeholder="e.g. # History of Events... # Key Characters... # Important Locations... # Secrets and Twists..."
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment
+                      position="end"
+                      sx={{ alignSelf: "flex-start", mt: 1 }}
+                    >
+                      <Tooltip
+                        title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
+                        arrow
+                        enterTouchDelay={0}
+                      >
+                        <InfoOutlinedIcon
+                          color="info"
+                          sx={{ fontSize: 20, cursor: "pointer", opacity: 0.7 }}
+                        />
+                      </Tooltip>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+              sx={{
+                mt: 3,
+                "& .MuiInputBase-input.MuiOutlinedInput-input": {
+                  ...theme.scrollbarStyles(theme),
+                },
+              }}
+            />
+          </Collapse>
+
           <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-            <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
+            <Typography sx={{ mr: 1 }}>Oracle</Typography>
             <Tooltip
-              title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world. Providing some background info on what you want to play is strongly recommended.`}
+              title={`Oracle will generate details like hidden plots and characters. 
+            It will try to align to your (optional) "Background" but will insert unknowns. 
+            If you want to specify these with "Background" yourself in detail, you can disable Oracle. 
+            If using Oracle it is preferable to only give a high-level background.`}
+              enterDelay={500}
               enterTouchDelay={0}
               leaveTouchDelay={3000}
               arrow
@@ -232,20 +353,58 @@ const NewMissionModal = ({
               />
             </Tooltip>
             <Switch
-              checked={nonHeroMode}
-              onChange={handleNonHeroModeChange}
-              id="non-hero-mode-switch"
+              checked={oracle}
+              onChange={handleOracleChange}
+              id="oracle-switch"
               color="info"
             />
           </Box>
-        )}
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-          <Button onClick={onClose} color="warning">
+
+          {gamesWithHeroModeSwitch.includes(selectedGame) && (
+            <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+              <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
+              <Tooltip
+                title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world.`}
+                enterTouchDelay={0}
+                leaveTouchDelay={3000}
+                arrow
+              >
+                <InfoOutlinedIcon
+                  color="info"
+                  sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
+                />
+              </Tooltip>
+              <Switch
+                checked={nonHeroMode}
+                onChange={handleNonHeroModeChange}
+                id="non-hero-mode-switch"
+                color="info"
+              />
+            </Box>
+          )}
+        </Box>
+
+        {/* --- FIXED FOOTER --- */}
+        <Box
+          sx={{
+            p: 2,
+            px: 3,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <Button onClick={onClose} color="warning" sx={{ mr: 1 }}>
             Cancel
           </Button>
           <Button
             onClick={() =>
-              onConfirm(selectedGame, background, nonHeroMode, oracle)
+              onConfirm(
+                selectedGame,
+                background,
+                detailedBackground,
+                nonHeroMode,
+                oracle,
+              )
             }
             color="primary"
           >
@@ -493,8 +652,8 @@ function FilterableLoadMissionModal({
           renderInput={(params) => <TextField {...params} label="Mission" />}
         />
         <Typography id="modal-modal-description" sx={{ mt: 2, mb: 2 }}>
-          Are you sure you want to proceed? This will delete your current
-          mission.
+          Are you sure you want to proceed? If you didn't save the current
+          mission it will be deleted.
         </Typography>
         <Button onClick={onClose} color="warning">
           Cancel
@@ -519,11 +678,12 @@ function FilterableLoadMissionModal({
  */
 type MissionMenuComponentProps = {
   /** Callback function to initiate the creation of a new mission.
-   * Takes the selected game type, background story, and nonHeroMode as arguments.
+   * Takes the selected game type, background story, detailed background, and nonHeroMode as arguments.
    */
   newCallback: (
     gameType: GameType,
     background: string,
+    detailedBackground: string,
     nonHeroMode: boolean,
     oracle: boolean,
   ) => Promise<void>;
@@ -649,6 +809,7 @@ export function MissionMenu({
    * and then closes the loading indicator.
    * @param selectedGame - The game type selected by the user.
    * @param background - The background story entered by the user.
+   * @param detailedBackground - The detailed background story entered by the user.
    * @param nonHeroMode - Whether Non-Hero Mode is enabled.
    * @param oracle - Whether Oracle mode is enabled.
    */
@@ -656,13 +817,20 @@ export function MissionMenu({
     async (
       selectedGame: GameType,
       background: string,
+      detailedBackground: string,
       nonHeroMode: boolean,
       oracle: boolean,
     ) => {
       handleModalClose();
       setActiveModal(ModalNames.LOADING);
       try {
-        await newCallback(selectedGame, background, nonHeroMode, oracle);
+        await newCallback(
+          selectedGame,
+          background,
+          detailedBackground,
+          nonHeroMode,
+          oracle,
+        );
       } catch (error) {
         console.error("An error occurred during new mission creation:", error);
       }
@@ -751,8 +919,20 @@ export function MissionMenu({
       <NewMissionModal
         open={activeModal === ModalNames.NEW}
         onClose={handleModalClose}
-        onConfirm={(gameType, background, nonHeroMode, oracle) =>
-          handleNewModalConfirm(gameType, background, nonHeroMode, oracle)
+        onConfirm={(
+          gameType,
+          background,
+          detailedBackground,
+          nonHeroMode,
+          oracle,
+        ) =>
+          handleNewModalConfirm(
+            gameType,
+            background,
+            detailedBackground,
+            nonHeroMode,
+            oracle,
+          )
         }
       />
       <SaveMissionModal
