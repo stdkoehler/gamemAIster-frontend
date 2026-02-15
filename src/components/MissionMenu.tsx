@@ -9,7 +9,6 @@ import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Typography from "@mui/material/Typography";
 import {
   TextField,
@@ -645,9 +644,11 @@ function FilterableLoadMissionModal({
           value={selectedMission}
           onChange={handleMissionChange}
           disablePortal
-          PaperComponent={AutocompletePaper}
           options={filteredMissions}
           getOptionLabel={(option) => option.nameCustom || option.name}
+          slots={{
+            paper: AutocompletePaper,
+          }}
           sx={{ ...AutocompleteStyle, mt: 2 }}
           renderInput={(params) => <TextField {...params} label="Mission" />}
         />
