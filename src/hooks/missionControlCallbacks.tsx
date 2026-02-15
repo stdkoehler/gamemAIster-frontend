@@ -101,12 +101,14 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
         loadHistoryData({
           interactions: loadedInteractions.slice(0, -1) || [],
           lastPlayerInput: lastInteraction?.playerInput ?? "",
+          lastLlmThinking: "",
           lastLlmOutput: lastInteraction?.llmOutput ?? "",
         });
       } else {
         loadHistoryData({
           interactions: [],
           lastPlayerInput: "",
+          lastLlmThinking: "",
           lastLlmOutput: "",
         });
       }

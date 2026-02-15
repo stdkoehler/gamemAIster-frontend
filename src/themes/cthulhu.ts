@@ -152,7 +152,7 @@ export const cthulhuTheme = createTheme({
           fontFamily: cthulhuFontFamily,
           textShadow: antiquarianTextShadow(
             theme,
-            ownerState.color || "primary"
+            ownerState.color || "primary",
           ),
           color: theme.palette.text.primary,
           position: "relative",
@@ -170,7 +170,6 @@ export const cthulhuTheme = createTheme({
               backgroundColor: theme.palette.secondary.main + "99",
             },
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -232,7 +231,6 @@ export const cthulhuTheme = createTheme({
               transform: "translateY(1px)",
               boxShadow: `0 1px 3px rgba(0,0,0,0.1)`,
             },
-            ...theme.scrollbarStyles(theme),
           };
         },
       },
@@ -244,7 +242,6 @@ export const cthulhuTheme = createTheme({
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
           textShadow: antiquarianTextShadow(theme, ownerState.color),
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -266,7 +263,6 @@ export const cthulhuTheme = createTheme({
               borderBottomColor: theme.palette.secondary.main,
             },
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -374,7 +370,7 @@ export const cthulhuTheme = createTheme({
   },
   spinButtonBackgroundImage: (color) =>
     `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
     )}")`,
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {

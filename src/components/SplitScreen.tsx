@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import { Box } from "@mui/material";
-import { useTheme } from "@mui/material";
 
 import { Colors } from "../styles/styles.tsx";
 
@@ -42,7 +41,6 @@ export default function SplitScreen({
   scrollable = false,
 }: SplitScreenProps) {
   const [left, right] = children;
-  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -62,7 +60,6 @@ export default function SplitScreen({
           minHeight: 0,
           display: "flex",
           flexDirection: "column", // Changed from "row" to "column"
-          ...theme.scrollbarStyles(theme), // Apply custom scrollbar styles
         }}
       >
         {left}
