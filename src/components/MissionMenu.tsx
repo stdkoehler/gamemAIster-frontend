@@ -946,8 +946,10 @@ export function MissionMenu({
         open={open}
         color="primary"
         onClose={handleMenuClose}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
+        slotProps={{
+          list: {
+            "aria-labelledby": "basic-button",
+          },
         }}
         sx={MenuStyle()}
       >
