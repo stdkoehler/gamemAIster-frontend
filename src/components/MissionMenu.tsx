@@ -236,7 +236,6 @@ const NewMissionModal = ({
                     <Tooltip
                       title="Provide a high-level overview. If Oracle is ON, keep this brief; if OFF, include your core mission goals. For detailed guidance longer than a paragraph, use Detailed Background."
                       arrow
-                      enterTouchDelay={0}
                     >
                       <InfoOutlinedIcon
                         color="info"
@@ -259,9 +258,6 @@ const NewMissionModal = ({
           <Tooltip
             title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
             placement="top-start"
-            enterDelay={500}
-            enterTouchDelay={0}
-            leaveTouchDelay={3000}
             arrow
           >
             <Box
@@ -314,7 +310,6 @@ const NewMissionModal = ({
                       <Tooltip
                         title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
                         arrow
-                        enterTouchDelay={0}
                       >
                         <InfoOutlinedIcon
                           color="info"
@@ -341,9 +336,6 @@ const NewMissionModal = ({
             It will try to align to your (optional) "Background" but will insert unknowns. 
             If you want to specify these with "Background" yourself in detail, you can disable Oracle. 
             If using Oracle it is preferable to only give a high-level background.`}
-              enterDelay={500}
-              enterTouchDelay={0}
-              leaveTouchDelay={3000}
               arrow
             >
               <InfoOutlinedIcon
@@ -364,8 +356,6 @@ const NewMissionModal = ({
               <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
               <Tooltip
                 title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world.`}
-                enterTouchDelay={0}
-                leaveTouchDelay={3000}
                 arrow
               >
                 <InfoOutlinedIcon
