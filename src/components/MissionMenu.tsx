@@ -138,7 +138,6 @@ const BaseMissionModal = ({
             overflowY: "auto",
             px: 3, // Horizontal padding for content
             pb: 3, // Bottom padding so last items aren't cramped
-            // @ts-ignore - Assuming scrollbarStyles accepts theme
             ...theme.scrollbarStyles(theme),
           }}
         >
@@ -326,7 +325,6 @@ const NewMissionModal = ({
         sx={{
           mt: 3,
           "& .MuiInputBase-input.MuiOutlinedInput-input": {
-            // @ts-ignore
             ...theme.scrollbarStyles(theme),
           },
         }}
@@ -401,7 +399,6 @@ const NewMissionModal = ({
           sx={{
             mt: 3,
             "& .MuiInputBase-input.MuiOutlinedInput-input": {
-              // @ts-ignore
               ...theme.scrollbarStyles(theme),
             },
           }}
@@ -550,6 +547,7 @@ function FilterableLoadMissionModal({
   setSelectedMission,
   getMissionData,
 }: LoadMissionModalComponentProps) {
+  const theme = useTheme();
   /** State for the currently selected game type filter. `null` means no filter. */
   const [selectedGameType, setSelectedGameType] =
     React.useState<GameType | null>(null);
@@ -706,6 +704,13 @@ function FilterableLoadMissionModal({
         getOptionLabel={(option) => option.nameCustom || option.name}
         slots={{
           paper: AutocompletePaper,
+        }}
+        slotProps={{
+          listbox: {
+            sx: {
+              ...theme.scrollbarStyles(theme),
+            },
+          },
         }}
         sx={{ ...AutocompleteStyle, mt: 2 }}
         renderInput={(params) => <TextField {...params} label="Mission" />}
