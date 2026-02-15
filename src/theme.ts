@@ -23,11 +23,32 @@ const globalOverrides: ThemeOptions = {
 };
 
 const injectGlobals = (baseTheme: Theme): Theme => {
-  // We use createTheme again to ensure the merged result
-  // maintains correct MUI internal structures
-  return createTheme(deepmerge(baseTheme, globalOverrides));
-};
+  // 1. Get the specific scrollbar styles for this theme
+  // We execute the helper function attached to the theme
+  const scrollStyles = baseTheme.scrollbarStyles
+    ? baseTheme.scrollbarStyles(baseTheme)
+    : {};
 
+  // 2. Create dynamic overrides for CssBaseline
+  const dynamicOverrides: ThemeOptions = {
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          // Apply to the main window body
+          body: scrollStyles,
+          // Apply to all elements (Textareas, Autocomplete lists, Modals)
+          "*": scrollStyles,
+        },
+      },
+    },
+  };
+
+  // 3. Merge: Static Globals + Dynamic Globals
+  const allOverrides = deepmerge(globalOverrides, dynamicOverrides);
+
+  // 4. Merge into the base theme
+  return createTheme(deepmerge(baseTheme, allOverrides));
+};
 /**
  * Helper function to get the appropriate theme for a game type
  * @param gameType The game type to get the theme for

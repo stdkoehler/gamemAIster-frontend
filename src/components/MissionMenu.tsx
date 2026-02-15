@@ -138,7 +138,6 @@ const BaseMissionModal = ({
             overflowY: "auto",
             px: 3, // Horizontal padding for content
             pb: 3, // Bottom padding so last items aren't cramped
-            ...theme.scrollbarStyles(theme),
           }}
         >
           {children}
@@ -324,9 +323,6 @@ const NewMissionModal = ({
         }}
         sx={{
           mt: 3,
-          "& .MuiInputBase-input.MuiOutlinedInput-input": {
-            ...theme.scrollbarStyles(theme),
-          },
         }}
       />
 
@@ -398,9 +394,6 @@ const NewMissionModal = ({
           }}
           sx={{
             mt: 3,
-            "& .MuiInputBase-input.MuiOutlinedInput-input": {
-              ...theme.scrollbarStyles(theme),
-            },
           }}
         />
       </Collapse>
@@ -704,13 +697,6 @@ function FilterableLoadMissionModal({
         getOptionLabel={(option) => option.nameCustom || option.name}
         slots={{
           paper: AutocompletePaper,
-        }}
-        slotProps={{
-          listbox: {
-            sx: {
-              ...theme.scrollbarStyles(theme),
-            },
-          },
         }}
         sx={{ ...AutocompleteStyle, mt: 2 }}
         renderInput={(params) => <TextField {...params} label="Mission" />}

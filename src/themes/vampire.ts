@@ -258,7 +258,6 @@ export const vampireTheme = createTheme({
               backgroundColor: `${theme.palette.primary.main}40`, // rgba(192, 0, 0, 0.25) equivalent
             },
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -301,7 +300,6 @@ export const vampireTheme = createTheme({
               backgroundColor: `${mainColor}26`, // Converting hex to rgba with 0.15 opacity
               boxShadow: `0 0 10px ${mainColor}55, inset 0 0 8px ${mainColor}33`,
             },
-            ...theme.scrollbarStyles(theme),
           };
         },
       },
@@ -336,7 +334,6 @@ export const vampireTheme = createTheme({
             textShadow: ownerState.variant?.startsWith("h")
               ? gothicTextShadow(theme, ownerState.color)
               : subtleGothicShadow(theme),
-            ...theme.scrollbarStyles(theme),
           };
         },
         h1: ({ theme }) => ({
@@ -372,7 +369,6 @@ export const vampireTheme = createTheme({
           [theme.breakpoints.up("lg")]: {
             maxWidth: "1500px",
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },

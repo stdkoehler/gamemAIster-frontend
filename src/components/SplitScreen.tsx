@@ -62,7 +62,6 @@ export default function SplitScreen({
           minHeight: 0,
           display: "flex",
           flexDirection: "column", // Changed from "row" to "column"
-          ...theme.scrollbarStyles(theme), // Apply custom scrollbar styles
         }}
       >
         {left}

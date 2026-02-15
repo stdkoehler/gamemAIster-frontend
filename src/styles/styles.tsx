@@ -381,8 +381,5 @@ export function TextfieldStyle({ color }: { color: Colors }) {
         borderColor: baseColor,
       },
     },
-    "& .MuiInputBase-input.MuiOutlinedInput-input": {
-      ...theme.scrollbarStyles(theme),
-    },
   };
 }
