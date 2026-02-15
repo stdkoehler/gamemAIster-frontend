@@ -15,6 +15,7 @@ export type MissionControlCallbacks = {
   sendNewMissionGenerate: (
     gameType: GameType,
     background: string,
+    detailedBackground: string,
     nonHeroMode: boolean,
     oracle: boolean,
   ) => Promise<void>;
@@ -35,6 +36,7 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
     async (
       gameType: GameType,
       background: string,
+      detailedBackground: string,
       nonHeroMode: boolean,
       oracle: boolean,
     ): Promise<void> => {
@@ -47,6 +49,7 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
       const response = await postNewMission({
         game_type: gameType,
         background,
+        detailed_background: detailedBackground,
         non_hero_mode: nonHeroMode,
         oracle: oracle,
       });
