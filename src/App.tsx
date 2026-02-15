@@ -65,6 +65,7 @@ const App: React.FC = () => {
     async (
       selectedGameType: GameType,
       background: string,
+      detailedBackground: string,
       nonHeroMode: boolean,
       oracle: boolean,
     ) => {
@@ -72,6 +73,7 @@ const App: React.FC = () => {
       await sendNewMissionGenerate(
         selectedGameType,
         background,
+        detailedBackground,
         nonHeroMode,
         oracle,
       );

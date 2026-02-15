@@ -252,6 +252,9 @@ export async function postStopGeneration(): Promise<void> {
  * @param {object} payload - Payload containing the necessary information to create a new mission.
  * @param {GameType} payload.game_type - The specific game type for the new mission (e.g., Shadowrun, Vampire).
  * @param {string} payload.background - A string providing the background story or context for the new mission.
+ * @param {string} payload.detailed_background - A string providing a more detailed background story or context for the new mission.
+ * @param {boolean} payload.non_hero_mode - A boolean indicating whether the mission is in non-hero mode.
+ * @param {boolean} payload.oracle - A boolean indicating whether the mission uses the oracle feature.
  * @returns {Promise<MissionPayload>} - A promise that resolves with the data of the newly created mission,
  *                                      as defined by {@link MissionPayload}.
  * @throws {Error} Propagated from `apiRequest` if the network request or server response fails.
@@ -259,6 +262,7 @@ export async function postStopGeneration(): Promise<void> {
 export async function postNewMission(payload: {
   game_type: GameType;
   background: string;
+  detailed_background: string;
   non_hero_mode: boolean;
   oracle: boolean;
 }): Promise<MissionPayload> {
