@@ -232,7 +232,7 @@ export const expanseTheme = createTheme({
     },
     MuiMenuItem: {
       styleOverrides: {
-        root: ({ theme, ownerState }) => ({
+        root: ({ theme }) => ({
           fontFamily: expanseModernFontFamily,
           textShadow: subtleTechShadow(theme),
           color: theme.palette.text.secondary,
@@ -270,7 +270,6 @@ export const expanseTheme = createTheme({
               backgroundColor: `${theme.palette.info.main}40`,
             },
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -328,7 +327,6 @@ export const expanseTheme = createTheme({
             "&:hover::before": {
               left: "100%",
             },
-            ...theme.scrollbarStyles(theme),
           };
         },
       },
@@ -361,7 +359,6 @@ export const expanseTheme = createTheme({
             textShadow: ownerState.variant?.startsWith("h")
               ? techGlowShadow(theme)
               : subtleTechShadow(theme),
-            ...theme.scrollbarStyles(theme),
           };
         },
         h1: ({ theme }) => ({
@@ -396,7 +393,6 @@ export const expanseTheme = createTheme({
           [theme.breakpoints.up("lg")]: {
             maxWidth: "1400px",
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -656,7 +652,7 @@ export const expanseTheme = createTheme({
   },
   spinButtonBackgroundImage: (color) =>
     `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`
+      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
     )}")`,
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {

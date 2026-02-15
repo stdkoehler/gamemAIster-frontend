@@ -14,7 +14,6 @@ import {
   TextField,
   Autocomplete,
   CircularProgress,
-  useTheme,
   Switch,
   Collapse,
   InputAdornment,
@@ -96,8 +95,6 @@ const BaseMissionModal = ({
   children,
   actions,
 }: BaseMissionModalProps) => {
-  const theme = useTheme();
-
   return (
     <Modal
       open={open}
@@ -211,7 +208,6 @@ const NewMissionModal = ({
   onClose,
   onConfirm,
 }: NewMissionModalComponentProps) => {
-  const theme = useTheme();
   const [selectedGame, setSelectedGame] = React.useState(GameType.SHADOWRUN);
   const [background, setBackground] = React.useState("");
   const [detailedBackground, setDetailedBackground] = React.useState("");
@@ -540,7 +536,6 @@ function FilterableLoadMissionModal({
   setSelectedMission,
   getMissionData,
 }: LoadMissionModalComponentProps) {
-  const theme = useTheme();
   /** State for the currently selected game type filter. `null` means no filter. */
   const [selectedGameType, setSelectedGameType] =
     React.useState<GameType | null>(null);
