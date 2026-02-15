@@ -73,6 +73,95 @@ export const StyledTextField = React.memo(
 );
 
 /**
+ * Props for the BaseMissionModal component.
+ */
+interface BaseMissionModalProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  description?: React.ReactNode;
+  children: React.ReactNode;
+  actions: React.ReactNode;
+}
+
+/**
+ * A reusable modal wrapper that enforces a fixed header, scrollable body, and fixed footer.
+ * Encapsulates the layout logic originally defined in NewMissionModal.
+ */
+const BaseMissionModal = ({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  actions,
+}: BaseMissionModalProps) => {
+  const theme = useTheme();
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box
+        sx={{
+          ...ModalStyle(),
+          p: 0, // Remove default padding so scrollbar can touch the edge
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden", // Prevents the outer container from scrolling
+        }}
+      >
+        {/* --- FIXED HEADER --- */}
+        <Box sx={{ p: 3, pb: 1 }}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            {title}
+          </Typography>
+          {description && (
+            <Box id="modal-modal-description" sx={{ mt: 2 }}>
+              {typeof description === "string" ? (
+                <Typography>{description}</Typography>
+              ) : (
+                description
+              )}
+            </Box>
+          )}
+        </Box>
+
+        {/* --- SCROLLABLE BODY --- */}
+        <Box
+          sx={{
+            flex: 1, // Takes up remaining space
+            overflowY: "auto",
+            px: 3, // Horizontal padding for content
+            pb: 3, // Bottom padding so last items aren't cramped
+            // @ts-ignore - Assuming scrollbarStyles accepts theme
+            ...theme.scrollbarStyles(theme),
+          }}
+        >
+          {children}
+        </Box>
+
+        {/* --- FIXED FOOTER --- */}
+        <Box
+          sx={{
+            p: 2,
+            px: 3,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          {actions}
+        </Box>
+      </Box>
+    </Modal>
+  );
+};
+
+/**
  * Props for the NewMissionModal component.
  */
 type NewMissionModalComponentProps = {
@@ -161,227 +250,13 @@ const NewMissionModal = ({
   };
 
   return (
-    <Modal
+    <BaseMissionModal
       open={open}
       onClose={onClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      <Box
-        sx={{
-          ...ModalStyle(),
-          p: 0, // Remove default padding so scrollbar can touch the edge
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden", // Prevents the outer container from scrolling
-        }}
-      >
-        {/* --- FIXED HEADER --- */}
-        <Box sx={{ p: 3, pb: 1 }}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            New Mission
-          </Typography>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            Are you sure you want to proceed? If you didn't save the current
-            mission it will be deleted.
-          </Typography>
-        </Box>
-
-        {/* --- SCROLLABLE BODY --- */}
-        <Box
-          sx={{
-            flex: 1, // Takes up remaining space
-            overflowY: "auto",
-            px: 3, // Horizontal padding for content
-            pb: 3, // Bottom padding so last items aren't cramped
-            ...theme.scrollbarStyles(theme),
-          }}
-        >
-          <TextField
-            select
-            label="Select Game"
-            value={selectedGame}
-            onChange={handleGameChange}
-            fullWidth
-            sx={{ mt: 2 }}
-          >
-            <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
-            <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
-              Vampire The Masquerade
-            </MenuItem>
-            <MenuItem value={GameType.CALL_OF_CTHULHU}>
-              Call of Cthulhu
-            </MenuItem>
-            <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
-            <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
-            <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
-          </TextField>
-
-          <TextField
-            label="Background"
-            value={background}
-            onChange={handleBackgroundChange}
-            fullWidth
-            multiline
-            rows={10}
-            placeholder="e.g. Ben is a detective in 1920s Chicago. He has been hired by a mysterious client to investigate a series of occult murders. The only clue is a strange symbol left at each crime scene."
-            slotProps={{
-              input: {
-                endAdornment: (
-                  <InputAdornment
-                    position="end"
-                    sx={{ alignSelf: "flex-start", mt: 1 }}
-                  >
-                    <Tooltip
-                      title="Provide a high-level overview. If Oracle is ON, keep this brief; if OFF, include your core mission goals. For detailed guidance longer than a paragraph, use Detailed Background."
-                      arrow
-                    >
-                      <InfoOutlinedIcon
-                        color="info"
-                        sx={{ fontSize: 20, cursor: "pointer", opacity: 0.7 }}
-                      />
-                    </Tooltip>
-                  </InputAdornment>
-                ),
-              },
-            }}
-            sx={{
-              mt: 3,
-              "& .MuiInputBase-input.MuiOutlinedInput-input": {
-                ...theme.scrollbarStyles(theme),
-              },
-            }}
-          />
-
-          {/* --- COLLAPSIBLE TOGGLE --- */}
-          <Tooltip
-            title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
-            placement="top-start"
-            arrow
-          >
-            <Box
-              onClick={() => setShowDetailedBackground(!showDetailedBackground)}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer",
-                mt: 3,
-                mb: 1,
-                color: "text.secondary",
-                "&:hover": { color: "primary.main" },
-                transition: "color 0.2s",
-              }}
-            >
-              <ExpandMoreIcon
-                sx={{
-                  transform: showDetailedBackground
-                    ? "rotate(180deg)"
-                    : "rotate(0deg)",
-                  transition: "0.3s",
-                  mr: 1,
-                }}
-              />
-              <Typography
-                variant="subtitle2"
-                sx={{ fontWeight: "bold", userSelect: "none" }}
-              >
-                Detailed Background
-              </Typography>
-            </Box>
-          </Tooltip>
-
-          <Collapse in={showDetailedBackground}>
-            <TextField
-              label="Detailed Background"
-              value={detailedBackground}
-              onChange={handleDetailedBackgroundChange}
-              fullWidth
-              multiline
-              rows={10}
-              placeholder="e.g. # History of Events... # Key Characters... # Important Locations... # Secrets and Twists..."
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment
-                      position="end"
-                      sx={{ alignSelf: "flex-start", mt: 1 }}
-                    >
-                      <Tooltip
-                        title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
-                        arrow
-                      >
-                        <InfoOutlinedIcon
-                          color="info"
-                          sx={{ fontSize: 20, cursor: "pointer", opacity: 0.7 }}
-                        />
-                      </Tooltip>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-              sx={{
-                mt: 3,
-                "& .MuiInputBase-input.MuiOutlinedInput-input": {
-                  ...theme.scrollbarStyles(theme),
-                },
-              }}
-            />
-          </Collapse>
-
-          <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-            <Typography sx={{ mr: 1 }}>Oracle</Typography>
-            <Tooltip
-              title={`Oracle will generate details like hidden plots and characters. 
-            It will try to align to your (optional) "Background" but will insert unknowns. 
-            If you want to specify these with "Background" yourself in detail, you can disable Oracle. 
-            If using Oracle it is preferable to only give a high-level background.`}
-              arrow
-            >
-              <InfoOutlinedIcon
-                color="info"
-                sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
-              />
-            </Tooltip>
-            <Switch
-              checked={oracle}
-              onChange={handleOracleChange}
-              id="oracle-switch"
-              color="info"
-            />
-          </Box>
-
-          {gamesWithHeroModeSwitch.includes(selectedGame) && (
-            <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-              <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
-              <Tooltip
-                title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world.`}
-                arrow
-              >
-                <InfoOutlinedIcon
-                  color="info"
-                  sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
-                />
-              </Tooltip>
-              <Switch
-                checked={nonHeroMode}
-                onChange={handleNonHeroModeChange}
-                id="non-hero-mode-switch"
-                color="info"
-              />
-            </Box>
-          )}
-        </Box>
-
-        {/* --- FIXED FOOTER --- */}
-        <Box
-          sx={{
-            p: 2,
-            px: 3,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
+      title="New Mission"
+      description="Are you sure you want to proceed? If you didn't save the current mission it will be deleted."
+      actions={
+        <>
           <Button onClick={onClose} color="warning" sx={{ mr: 1 }}>
             Cancel
           </Button>
@@ -399,9 +274,183 @@ const NewMissionModal = ({
           >
             Confirm
           </Button>
+        </>
+      }
+    >
+      <TextField
+        select
+        label="Select Game"
+        value={selectedGame}
+        onChange={handleGameChange}
+        fullWidth
+        sx={{ mt: 2 }}
+      >
+        <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
+        <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
+          Vampire The Masquerade
+        </MenuItem>
+        <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
+        <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
+        <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
+        <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
+      </TextField>
+
+      <TextField
+        label="Background"
+        value={background}
+        onChange={handleBackgroundChange}
+        fullWidth
+        multiline
+        rows={10}
+        placeholder="e.g. Ben is a detective in 1920s Chicago. He has been hired by a mysterious client to investigate a series of occult murders. The only clue is a strange symbol left at each crime scene."
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment
+                position="end"
+                sx={{ alignSelf: "flex-start", mt: 1 }}
+              >
+                <Tooltip
+                  title="Provide a high-level overview. If Oracle is ON, keep this brief; if OFF, include your core mission goals. For detailed guidance longer than a paragraph, use Detailed Background."
+                  arrow
+                >
+                  <InfoOutlinedIcon
+                    color="info"
+                    sx={{ fontSize: 20, cursor: "pointer", opacity: 0.7 }}
+                  />
+                </Tooltip>
+              </InputAdornment>
+            ),
+          },
+        }}
+        sx={{
+          mt: 3,
+          "& .MuiInputBase-input.MuiOutlinedInput-input": {
+            // @ts-ignore
+            ...theme.scrollbarStyles(theme),
+          },
+        }}
+      />
+
+      {/* --- COLLAPSIBLE TOGGLE --- */}
+      <Tooltip
+        title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
+        placement="top-start"
+        arrow
+      >
+        <Box
+          onClick={() => setShowDetailedBackground(!showDetailedBackground)}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            mt: 3,
+            mb: 1,
+            color: "text.secondary",
+            "&:hover": { color: "primary.main" },
+            transition: "color 0.2s",
+          }}
+        >
+          <ExpandMoreIcon
+            sx={{
+              transform: showDetailedBackground
+                ? "rotate(180deg)"
+                : "rotate(0deg)",
+              transition: "0.3s",
+              mr: 1,
+            }}
+          />
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: "bold", userSelect: "none" }}
+          >
+            Detailed Background
+          </Typography>
         </Box>
+      </Tooltip>
+
+      <Collapse in={showDetailedBackground}>
+        <TextField
+          label="Detailed Background"
+          value={detailedBackground}
+          onChange={handleDetailedBackgroundChange}
+          fullWidth
+          multiline
+          rows={10}
+          placeholder="e.g. # History of Events... # Key Characters... # Important Locations... # Secrets and Twists..."
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment
+                  position="end"
+                  sx={{ alignSelf: "flex-start", mt: 1 }}
+                >
+                  <Tooltip
+                    title="Use this to provide detailed plot, characters, locations, or secrets if you aren't using the Oracle."
+                    arrow
+                  >
+                    <InfoOutlinedIcon
+                      color="info"
+                      sx={{ fontSize: 20, cursor: "pointer", opacity: 0.7 }}
+                    />
+                  </Tooltip>
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{
+            mt: 3,
+            "& .MuiInputBase-input.MuiOutlinedInput-input": {
+              // @ts-ignore
+              ...theme.scrollbarStyles(theme),
+            },
+          }}
+        />
+      </Collapse>
+
+      <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+        <Typography sx={{ mr: 1 }}>Oracle</Typography>
+        <Tooltip
+          title={`Oracle will generate details like hidden plots and characters. 
+            It will try to align to your (optional) "Background" but will insert unknowns. 
+            If you want to specify these with "Background" yourself in detail, you can disable Oracle. 
+            If using Oracle it is preferable to only give a high-level background.`}
+          arrow
+        >
+          <InfoOutlinedIcon
+            color="info"
+            sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
+          />
+        </Tooltip>
+        <Switch
+          checked={oracle}
+          onChange={handleOracleChange}
+          id="oracle-switch"
+          color="info"
+        />
       </Box>
-    </Modal>
+
+      {gamesWithHeroModeSwitch.includes(selectedGame) && (
+        <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+          <Typography sx={{ mr: 1 }}>Non-Hero Mode</Typography>
+          <Tooltip
+            title={`Non-Hero Mode for less dramatic missions. You're just a normal person in the ${selectedGame} world.`}
+            arrow
+          >
+            <InfoOutlinedIcon
+              color="info"
+              sx={{ fontSize: 20, cursor: "pointer", mr: 2 }}
+            />
+          </Tooltip>
+          <Switch
+            checked={nonHeroMode}
+            onChange={handleNonHeroModeChange}
+            id="non-hero-mode-switch"
+            color="info"
+          />
+        </Box>
+      )}
+    </BaseMissionModal>
   );
 };
 
@@ -435,31 +484,32 @@ const SaveMissionModal = ({
   value,
   onValueChange,
 }: SaveMissionModalComponentProps) => (
-  <Modal
+  <BaseMissionModal
     open={open}
     onClose={onClose}
-    aria-labelledby="modal-modal-title"
-    aria-describedby="modal-modal-description"
+    title="Save Mission"
+    actions={
+      <>
+        <Button onClick={onClose} color="warning" sx={{ mr: 1 }}>
+          Cancel
+        </Button>
+        <Button onClick={onConfirm} color="primary">
+          Confirm
+        </Button>
+      </>
+    }
   >
-    <Box sx={ModalStyle()}>
-      <Typography id="modal-modal-title" variant="h6" component="h2">
-        Save Mission
-      </Typography>
-      <StyledTextField
-        value={value}
-        color={"primary"}
-        disabled={false}
-        onChange={onValueChange}
-        rows={1}
-      />
-      <Button onClick={onClose} color="warning">
-        Cancel
-      </Button>
-      <Button onClick={onConfirm} color="primary">
-        Confirm
-      </Button>
-    </Box>
-  </Modal>
+    <StyledTextField
+      value={value}
+      color={"primary"}
+      disabled={false}
+      onChange={onValueChange}
+      rows={1}
+      label="Mission Name"
+      fullWidth
+      sx={{ mt: 1 }}
+    />
+  </BaseMissionModal>
 );
 
 /**
@@ -602,65 +652,65 @@ function FilterableLoadMissionModal({
   }, [selectedMission, selectedGameType]);
 
   return (
-    <Modal
+    <BaseMissionModal
       open={open}
       onClose={onClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
+      title="Load Mission"
+      description="Are you sure you want to proceed? If you didn't save the current mission it will be deleted."
+      actions={
+        <>
+          <Button onClick={onClose} color="warning" sx={{ mr: 1 }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDownload}
+            color="secondary"
+            disabled={!selectedMission}
+            sx={{ mr: 1 }}
+          >
+            Download
+          </Button>
+          <Button
+            onClick={onConfirm}
+            color="primary"
+            disabled={!selectedMission}
+          >
+            Confirm
+          </Button>
+        </>
+      }
     >
-      <Box sx={ModalStyle()}>
-        <Typography id="modal-modal-title" variant="h6" component="h2">
-          Load Mission
-        </Typography>
-        <TextField
-          select
-          label="Filter by Game Type"
-          value={selectedGameType || ""}
-          onChange={handleGameTypeChange}
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          <MenuItem value="">All</MenuItem>
-          <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
-          <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
-            Vampire The Masquerade
-          </MenuItem>
-          <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
-          <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
-          <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
-          <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
-        </TextField>
-        <Autocomplete
-          value={selectedMission}
-          onChange={handleMissionChange}
-          disablePortal
-          options={filteredMissions}
-          getOptionLabel={(option) => option.nameCustom || option.name}
-          slots={{
-            paper: AutocompletePaper,
-          }}
-          sx={{ ...AutocompleteStyle, mt: 2 }}
-          renderInput={(params) => <TextField {...params} label="Mission" />}
-        />
-        <Typography id="modal-modal-description" sx={{ mt: 2, mb: 2 }}>
-          Are you sure you want to proceed? If you didn't save the current
-          mission it will be deleted.
-        </Typography>
-        <Button onClick={onClose} color="warning">
-          Cancel
-        </Button>
-        <Button
-          onClick={handleDownload}
-          color="secondary"
-          disabled={!selectedMission}
-        >
-          Download
-        </Button>
-        <Button onClick={onConfirm} color="primary" disabled={!selectedMission}>
-          Confirm
-        </Button>
-      </Box>
-    </Modal>
+      <TextField
+        select
+        label="Filter by Game Type"
+        value={selectedGameType || ""}
+        onChange={handleGameTypeChange}
+        fullWidth
+        sx={{ mt: 2 }}
+      >
+        <MenuItem value="">All</MenuItem>
+        <MenuItem value={GameType.SHADOWRUN}>Shadowrun</MenuItem>
+        <MenuItem value={GameType.VAMPIRE_THE_MASQUERADE}>
+          Vampire The Masquerade
+        </MenuItem>
+        <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
+        <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
+        <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
+        <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
+      </TextField>
+      <Autocomplete
+        value={selectedMission}
+        onChange={handleMissionChange}
+        disablePortal={false}
+        options={filteredMissions}
+        getOptionLabel={(option) => option.nameCustom || option.name}
+        slots={{
+          paper: AutocompletePaper,
+        }}
+        sx={{ ...AutocompleteStyle, mt: 2 }}
+        renderInput={(params) => <TextField {...params} label="Mission" />}
+      />
+    </BaseMissionModal>
   );
 }
 
