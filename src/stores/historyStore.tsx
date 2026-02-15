@@ -7,6 +7,7 @@ type State = {
   // Persisted state
   interactions: Interaction[];
   playerInputOld: string;
+  llmThinking: string;
   llmOutput: string;
 
   // Transient state (not persisted)
@@ -18,6 +19,7 @@ type Action = {
   // Input management
   updatePlayerInput: (value: string) => void;
   updatePlayerInputOld: (value: string) => void;
+  updateLlmThinking: (value: string) => void;
   updateLlmOutput: (value: string) => void;
 
   // History management
@@ -25,6 +27,7 @@ type Action = {
   loadHistoryData: (data: {
     interactions: Interaction[];
     lastPlayerInput: string;
+    lastLlmThinking: string;
     lastLlmOutput: string;
   }) => void;
   clearHistory: () => void;
@@ -35,12 +38,17 @@ type Action = {
     prevInteractionContext?: Interaction;
   };
   rollbackOptimisticUpdate: (snapshot: HistorySnapshot) => void;
-  commitPlayerInput: (playerInput: string, llmOutput: string) => void;
+  commitPlayerInput: (
+    playerInput: string,
+    llmThinking: string,
+    llmOutput: string,
+  ) => void;
 };
 
 interface HistorySnapshot {
   playerInput: string;
   playerInputOld: string;
+  llmThinking: string;
   llmOutput: string;
   interactions: Interaction[];
 }
@@ -51,6 +59,7 @@ const useHistoryStore = create<State & Action>()(
       // Initial state
       interactions: [],
       playerInputOld: "",
+      llmThinking: "",
       llmOutput: "",
       playerInput: "",
 
@@ -58,6 +67,7 @@ const useHistoryStore = create<State & Action>()(
       updatePlayerInput: (value: string) => set(() => ({ playerInput: value })),
       updatePlayerInputOld: (value: string) =>
         set(() => ({ playerInputOld: value })),
+      updateLlmThinking: (value: string) => set(() => ({ llmThinking: value })),
       updateLlmOutput: (value: string) => set(() => ({ llmOutput: value })),
 
       // History management
@@ -68,11 +78,13 @@ const useHistoryStore = create<State & Action>()(
       loadHistoryData: (data: {
         interactions: Interaction[];
         lastPlayerInput: string;
+        lastLlmThinking: string;
         lastLlmOutput: string;
       }) =>
         set(() => ({
           interactions: data.interactions,
           playerInputOld: data.lastPlayerInput,
+          llmThinking: data.lastLlmThinking,
           llmOutput: data.lastLlmOutput,
           playerInput: "",
         })),
@@ -80,6 +92,7 @@ const useHistoryStore = create<State & Action>()(
         set(() => ({
           interactions: [],
           playerInputOld: "",
+          llmThinking: "",
           llmOutput: "",
           playerInput: "",
         })),
@@ -92,6 +105,7 @@ const useHistoryStore = create<State & Action>()(
         const originalState: HistorySnapshot = {
           playerInput: newPlayerInput,
           playerInputOld: currentState.playerInputOld,
+          llmThinking: currentState.llmThinking,
           llmOutput: currentState.llmOutput,
           interactions: [...currentState.interactions],
         };
@@ -99,7 +113,7 @@ const useHistoryStore = create<State & Action>()(
         // Prepare previous interaction context
         const strippedLlmOutput = currentState.llmOutput.replace(
           /\b(?:What do you want to |What would you like to )\S[\S\s]*\?\s*$/,
-          ""
+          "",
         );
 
         const prevInteractionContext =
@@ -116,6 +130,7 @@ const useHistoryStore = create<State & Action>()(
             state.interactions.push(prevInteractionContext); // Just push!
           }
           state.playerInputOld = newPlayerInput;
+          state.llmThinking = "";
           state.llmOutput = "";
           state.playerInput = "";
         });
@@ -127,13 +142,19 @@ const useHistoryStore = create<State & Action>()(
         set(() => ({
           playerInput: snapshot.playerInput,
           playerInputOld: snapshot.playerInputOld,
+          llmThinking: snapshot.llmThinking,
           llmOutput: snapshot.llmOutput,
           interactions: snapshot.interactions,
         })),
 
-      commitPlayerInput: (playerInput: string, llmOutput: string) =>
+      commitPlayerInput: (
+        playerInput: string,
+        llmThinking: string,
+        llmOutput: string,
+      ) =>
         set(() => ({
           playerInputOld: playerInput,
+          llmThinking: llmThinking,
           llmOutput: llmOutput,
           playerInput: "",
         })),
@@ -144,11 +165,12 @@ const useHistoryStore = create<State & Action>()(
       partialize: (state) => ({
         interactions: state.interactions,
         playerInputOld: state.playerInputOld,
+        llmThinking: state.llmThinking,
         llmOutput: state.llmOutput,
         playerInput: state.playerInput,
       }),
-    }
-  )
+    },
+  ),
 );
 
 export default useHistoryStore;
