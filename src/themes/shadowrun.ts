@@ -159,7 +159,6 @@ export const shadowrunTheme = createTheme({
             backgroundColor: theme.palette.primary.dark + "66",
             color: theme.palette.primary.light,
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -210,7 +209,6 @@ export const shadowrunTheme = createTheme({
               backgroundColor: mainColor + "33", // 33 specifies opacity in hex 0x33 = 0.2
               boxShadow: `0 0 10px ${mainColor}99`, // 99 specifies opacity in hex 0x99 = 0.6
             },
-            ...theme.scrollbarStyles(theme),
           };
         },
       },
@@ -228,7 +226,6 @@ export const shadowrunTheme = createTheme({
           // If defaultProps.color is "primary", ownerState.color will be "primary".
           // If it's explicitly set e.g. <Typography color="textSecondary">, ownerState.color is "textSecondary".
           // getSafePaletteColor will handle these.
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -240,7 +237,6 @@ export const shadowrunTheme = createTheme({
           [theme.breakpoints.up("lg")]: {
             maxWidth: "1700px",
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },

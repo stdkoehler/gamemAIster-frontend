@@ -279,7 +279,6 @@ export const seventhSeaTheme = createTheme({
               backgroundColor: `${theme.palette.primary.main}48`,
             },
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -324,7 +323,6 @@ export const seventhSeaTheme = createTheme({
               boxShadow: `0 0 12px ${mainColor}66, inset 0 0 10px ${mainColor}40`,
               textShadow: nauticalTextShadow(theme, ownerState.color),
             },
-            ...theme.scrollbarStyles(theme),
           };
         },
       },
@@ -358,7 +356,6 @@ export const seventhSeaTheme = createTheme({
             textShadow: ownerState.variant?.startsWith("h")
               ? weatheredTextShadow(theme, ownerState.color)
               : subtleMaritimeShadow(theme),
-            ...theme.scrollbarStyles(theme),
           };
         },
         h1: ({ theme }) => ({
@@ -395,7 +392,6 @@ export const seventhSeaTheme = createTheme({
           [theme.breakpoints.up("lg")]: {
             maxWidth: "1500px",
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
