@@ -1,12 +1,11 @@
 import {
-  ComponentProps,
   useRef,
   useEffect,
   useState,
   useCallback,
-  memo,
 } from "react";
-import { Typography, Container, Button, CircularProgress } from "@mui/material";
+import { Typography, Box, Button, CircularProgress, useTheme } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
@@ -24,17 +23,18 @@ import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
 import { useShallow } from "zustand/react/shallow";
 
-type HistoryProps = ComponentProps<typeof Container> & {
+type HistoryProps = {
   mission: number | null;
   disabled: boolean;
 };
 
 const USE_TTS_STREAM = true;
 
-const History = ({ mission, disabled, ...props }: HistoryProps) => {
+const History = ({ mission, disabled }: HistoryProps) => {
   console.log("History component rendered");
-  // ===== REFS & STORE =====
+  const theme = useTheme();
   const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // ===== STORE STATE =====
   const { playerInput, playerInputOld, llmThinking, llmOutput, interactions } =
@@ -47,7 +47,8 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         interactions: state.interactions,
       })),
     );
-  // ===== STORE SETTER =====
+
+  // ===== STORE SETTERS =====
   const updatePlayerInput = useHistoryStore((state) => state.updatePlayerInput);
   const updatePlayerInputOld = useHistoryStore(
     (state) => state.updatePlayerInputOld,
@@ -67,6 +68,14 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
+
+  // Auto-scroll to bottom when content changes
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [interactions, llmOutput, playerInputOld]);
 
   // ===== API CALLBACKS =====
   const stopGeneration = useCallback(async (): Promise<void> => {
@@ -149,8 +158,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
         llmOutput: llmOutput,
       };
 
-      commitPlayerInput(inputValue, "", ""); // Clear LLM output for regeneration
-
+      commitPlayerInput(inputValue, "", "");
       llmOutputFieldRef.current?.startStream();
 
       try {
@@ -189,21 +197,12 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
   // ===== AUDIO MANAGEMENT =====
   const cleanupAudio = useCallback(() => {
     if (audio) {
-      // Remove event listeners to prevent memory leaks
       audio.onended = null;
       audio.onerror = null;
-
-      // Pause and reset the audio
       audio.pause();
       audio.currentTime = 0;
-
-      // Store the src before clearing it
       const src = audio.src;
-
-      // Clear the src to detach MediaSource
       audio.src = "";
-
-      // Revoke the object URL if it's a blob URL
       if (src && src.startsWith("blob:")) {
         try {
           URL.revokeObjectURL(src);
@@ -211,10 +210,7 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
           console.warn("Error revoking object URL:", e);
         }
       }
-
-      // Force load to ensure the MediaSource is properly detached
       audio.load();
-
       setAudio(null);
       setIsPlaying(false);
     }
@@ -223,23 +219,18 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
   const handlePlayTTS = useCallback(async () => {
     setAudioError(null);
     setLoadingAudio(true);
-
     try {
-      // Always cleanup previous audio before creating new one
       cleanupAudio();
-
       const audioElem = USE_TTS_STREAM
         ? await sendTextToSpeechStream(llmOutput)
         : new Audio(URL.createObjectURL(await sendTextToSpeech(llmOutput)));
-
       audioElem.onended = () => setIsPlaying(false);
       audioElem.onerror = (e) => {
         console.error("Audio error:", e);
         setAudioError("Audio playback error.");
         setIsPlaying(false);
-        audioElem.onerror = null; // Prevent further error events
+        audioElem.onerror = null;
       };
-
       setAudio(audioElem);
       setIsPlaying(true);
       await audioElem.play();
@@ -259,7 +250,6 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
     cleanupAudio();
   }, [cleanupAudio]);
 
-  // ===== COMPONENT LIFECYCLE =====
   useEffect(() => {
     return cleanupAudio;
   }, [cleanupAudio]);
@@ -269,127 +259,183 @@ const History = ({ mission, disabled, ...props }: HistoryProps) => {
     (interactions: Interaction[]) => (
       <>
         {interactions.map((interaction, index) => (
-          <div key={index}>
+          <Box key={index} sx={{ mb: 2 }}>
+            {/* Player role label */}
             <Typography
-              variant="subtitle2"
-              fontStyle="italic"
+              variant="caption"
               color="secondary"
+              sx={{
+                display: "block",
+                color: alpha(theme.palette.secondary.main, 0.45),
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                fontSize: "0.65rem",
+                mt: index > 0 ? 1.5 : 0,
+                mb: 0.5,
+              }}
             >
-              <br />
               Player
-              <br />
             </Typography>
-            <MarkdownRenderer
-              value={interaction.playerInput}
-              color="secondary"
-            />
-            <Typography variant="subtitle2" fontStyle="italic" color="primary">
-              <br />
+            {/* Player action echo */}
+            <Box sx={{ mb: 1.5 }}>
+              <MarkdownRenderer value={interaction.playerInput} color="secondary" />
+            </Box>
+            {/* GM role label */}
+            <Typography
+              variant="caption"
+              sx={{
+                display: "block",
+                color: alpha(theme.palette.primary.main, 0.45),
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                fontSize: "0.65rem",
+                mt: 1.5,
+                mb: 0.5,
+              }}
+            >
               Gamemaster
-              <br />
             </Typography>
+            {/* GM narration block */}
             <MarkdownRenderer value={interaction.llmOutput} color="primary" />
-          </div>
+          </Box>
         ))}
       </>
     ),
-    [],
+    [theme],
   );
 
   return (
-    <Container
-      {...props}
+    <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        width: "95%",
-        overflow: "auto",
-        paddingTop: 0,
-        marginLeft: 0,
-        marginRight: 0,
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
+        width: "100%",
       }}
     >
-      {InteractionList(interactions)}
-
-      <MemoizedFieldContainer
-        sendCallback={sendRegenerateWithStreaming}
-        stopCallback={stopGeneration}
-        onCommit={updatePlayerInputOld}
-        value={playerInputOld}
-        instance="Player"
-        color="secondary"
-        type={FieldContainerType.PLAYER_OLD}
-        disabled={disabled}
-      />
-
-      <MemoizedFieldContainer
-        ref={llmOutputFieldRef}
-        onCommit={updateLlmOutput}
-        onStreamComplete={updateLlmOutput}
-        value={llmOutput}
-        thinking={llmThinking}
-        instance="Gamemaster"
-        color="primary"
-        type={FieldContainerType.GAMEMASTER}
-        disabled={disabled}
-      />
-
-      {/* TTS Controls */}
-      <div
-        style={{
-          width: "100%",
+      {/* Scrollable narrative area */}
+      <Box
+        ref={scrollContainerRef}
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          px: 3,
+          py: 2,
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-start",
-          marginTop: 4,
+          "&::-webkit-scrollbar": { width: "4px" },
+          "&::-webkit-scrollbar-track": { background: "transparent" },
+          "&::-webkit-scrollbar-thumb": {
+            background: alpha(theme.palette.primary.main, 0.25),
+            borderRadius: "2px",
+            "&:hover": { background: alpha(theme.palette.primary.main, 0.45) },
+          },
         }}
       >
-        {isPlaying ? (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<StopIcon />}
-            onClick={handleStopTTS}
-            disabled={disabled}
-            sx={{ mt: 1, mb: 1 }}
-          >
-            Stop
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={
-              loadingAudio ? <CircularProgress size={20} /> : <PlayArrowIcon />
-            }
-            onClick={handlePlayTTS}
-            disabled={disabled || loadingAudio || isPlaying}
-            sx={{ mt: 1, mb: 1 }}
-          >
-            {loadingAudio ? "Synthesizing..." : "Play"}
-          </Button>
-        )}
-        {audioError && (
-          <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
-            {audioError}
-          </Typography>
-        )}
-      </div>
+        {InteractionList(interactions)}
 
-      <MemoizedFieldContainer
-        sendCallback={sendPlayerInputWithStreaming}
-        onCommit={updatePlayerInput}
-        stopCallback={stopGeneration}
-        value={playerInput}
-        instance="Player"
-        color="secondary"
-        type={FieldContainerType.MAIN_SEND}
-        disabled={disabled}
-        placeholder="Begin by describing your character and what he's currently doing."
-        speechToTextCallback={speechToTextCallback}
-      />
-    </Container>
+        {/* Previous player input for current turn (editable / regeneratable) */}
+        {playerInputOld && (
+          <Box sx={{ mt: 2 }}>
+            <MemoizedFieldContainer
+              sendCallback={sendRegenerateWithStreaming}
+              stopCallback={stopGeneration}
+              onCommit={updatePlayerInputOld}
+              value={playerInputOld}
+              instance="Player"
+              color="secondary"
+              type={FieldContainerType.PLAYER_OLD}
+              disabled={disabled}
+            />
+          </Box>
+        )}
+
+        {/* Current GM output */}
+        <MemoizedFieldContainer
+          ref={llmOutputFieldRef}
+          onCommit={updateLlmOutput}
+          onStreamComplete={updateLlmOutput}
+          value={llmOutput}
+          thinking={llmThinking}
+          instance="Gamemaster"
+          color="primary"
+          type={FieldContainerType.GAMEMASTER}
+          disabled={disabled}
+        />
+
+        {/* TTS controls — only visible when there is GM output to play */}
+        {llmOutput && <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            mt: 0.5,
+          }}
+        >
+          {isPlaying ? (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<StopIcon />}
+              onClick={handleStopTTS}
+              disabled={disabled}
+              size="small"
+              sx={{ mb: 1 }}
+            >
+              Stop Audio
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={
+                loadingAudio ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <PlayArrowIcon />
+                )
+              }
+              onClick={handlePlayTTS}
+              disabled={disabled || loadingAudio || isPlaying}
+              size="small"
+              sx={{ mb: 1 }}
+            >
+              {loadingAudio ? "Synthesizing..." : "Play"}
+            </Button>
+          )}
+          {audioError && (
+            <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+              {audioError}
+            </Typography>
+          )}
+        </Box>}
+      </Box>
+
+      {/* Input bar — fixed at bottom, outside the scroll area */}
+      <Box
+        sx={{
+          borderTop: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+          flexShrink: 0,
+        }}
+        style={{ backgroundColor: theme.palette.background.default }}
+      >
+        <MemoizedFieldContainer
+          sendCallback={sendPlayerInputWithStreaming}
+          onCommit={updatePlayerInput}
+          stopCallback={stopGeneration}
+          value={playerInput}
+          instance="Player"
+          color="secondary"
+          type={FieldContainerType.MAIN_SEND}
+          disabled={disabled}
+          placeholder="Describe what your character does…"
+          speechToTextCallback={speechToTextCallback}
+        />
+      </Box>
+    </Box>
   );
 };
 
-export default memo(History);
+export default History;

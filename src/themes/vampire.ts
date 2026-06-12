@@ -288,17 +288,33 @@ export const vampireTheme = createTheme({
             fontFamily: vampireSansFontFamily,
             textShadow: subtleGothicShadow(theme),
             letterSpacing: "0.1em",
-            borderRadius: theme.shape.borderRadius,
+            borderRadius: 0,
+            // V5 WoD chamfered corners — angular, corporate-gothic
+            clipPath:
+              "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))",
             border: `1px solid ${mainColor}77`,
-            padding: "8px 20px",
+            padding: "8px 22px",
             minHeight: "44px",
             color: contrastTextColor,
             position: "relative",
             overflow: "hidden",
+            // Blood-red 2 px accent line at the top edge
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "2px",
+              background: `linear-gradient(to right, transparent, ${mainColor}CC, transparent)`,
+              pointerEvents: "none",
+            },
             "&:hover": {
               borderColor: lightColor,
-              backgroundColor: `${mainColor}26`, // Converting hex to rgba with 0.15 opacity
-              boxShadow: `0 0 10px ${mainColor}55, inset 0 0 8px ${mainColor}33`,
+              backgroundColor: `${mainColor}26`,
+              boxShadow: `0 0 16px ${mainColor}66, 0 0 32px ${mainColor}33, inset 0 0 12px ${mainColor}22`,
+              textShadow: bloodTextShadow(theme, ownerState.color),
+              letterSpacing: "0.12em",
             },
           };
         },
@@ -521,20 +537,23 @@ export const vampireTheme = createTheme({
     },
     MuiInputBase: {
       styleOverrides: {
-        root: ({ theme }) => ({
-          fontFamily: vampireModernFontFamily,
-          background: "rgba(0, 0, 0, 0.2)",
-          borderRadius: theme.shape.borderRadius,
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          transition: "all 0.3s ease",
-          "&.Mui-focused": {
-            boxShadow: `0 0 0 1px ${theme.palette.primary.main}77, 0 0 8px ${theme.palette.primary.main}33`,
-            borderColor: `${theme.palette.primary.main}77`,
-          },
-          "&:hover": {
-            borderColor: `${theme.palette.primary.main}44`,
-          },
-        }),
+        root: ({ theme, ownerState }) => {
+          const focusColor = getSafePaletteColor(theme, ownerState.color as string | undefined);
+          return {
+            fontFamily: vampireModernFontFamily,
+            background: "rgba(0, 0, 0, 0.2)",
+            borderRadius: theme.shape.borderRadius,
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            transition: "all 0.3s ease",
+            "&.Mui-focused": {
+              boxShadow: `0 0 0 1px ${focusColor}77, 0 0 8px ${focusColor}33`,
+              borderColor: `${focusColor}77`,
+            },
+            "&:hover": {
+              borderColor: `${focusColor}44`,
+            },
+          };
+        },
         input: ({ theme }) => ({
           padding: "10px 14px",
           "&::placeholder": {
@@ -550,14 +569,17 @@ export const vampireTheme = createTheme({
           borderColor: "rgba(255, 255, 255, 0.15)",
           transition: "all 0.3s ease",
         }),
-        root: ({ theme }) => ({
-          "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: `${theme.palette.primary.main}66`, // rgba(192, 0, 0, 0.4) equivalent
-          },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: `${theme.palette.primary.main}77`,
-          },
-        }),
+        root: ({ theme, ownerState }) => {
+          const focusColor = getSafePaletteColor(theme, ownerState.color as string | undefined);
+          return {
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: `${focusColor}66`,
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: `${focusColor}77`,
+            },
+          };
+        },
       },
     },
     MuiTabs: {

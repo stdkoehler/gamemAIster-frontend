@@ -192,44 +192,74 @@ export const cthulhuTheme = createTheme({
 
           const buttonPalette =
             theme.palette[colorKey] || theme.palette.primary;
-          const darkColor =
-            (buttonPalette as any).dark || theme.palette.primary.dark;
+          const mainColor = (buttonPalette as any).main || theme.palette.primary.main;
+          const darkColor = (buttonPalette as any).dark || theme.palette.primary.dark;
           const contrastTextColor =
             (buttonPalette as any).contrastText ||
             theme.palette.primary.contrastText;
 
           return {
-            fontFamily: cthulhuFontFamily,
+            // Playfair Display gives the formal, antiquarian 1920s academic look
+            fontFamily: cthulhuHeadingFontFamily,
+            fontStyle: "italic",
+            letterSpacing: "0.04em",
             textShadow:
               theme.palette.mode === "light"
                 ? "none"
                 : antiquarianTextShadow(theme, ownerState.color),
-            borderRadius: "2px",
-            border: `1px solid ${darkColor}66`,
-            padding: "8px 16px",
+            borderRadius: "1px",
+            // Double-rule border: inner rule via box-shadow, outer via border — like a printed header box
+            border: `1px solid ${darkColor}88`,
+            padding: "7px 18px",
+            minHeight: "40px",
             color:
               theme.palette.mode === "light" ? darkColor : contrastTextColor,
-            backgroundColor:
+            // Parchment/paper gradient background
+            background:
               theme.palette.mode === "light"
-                ? theme.palette.background.paper
+                ? `linear-gradient(180deg,
+                    rgba(255,255,255,0.6) 0%,
+                    ${theme.palette.background.paper} 30%,
+                    rgba(200,190,170,0.2) 100%)`
                 : "transparent",
+            // Letterpress stamp shadow — raises the button off the page
             boxShadow:
               theme.palette.mode === "light"
-                ? "0 2px 4px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.1)"
+                ? `inset 0 1px 0 rgba(255,255,255,0.8),
+                   0 2px 4px rgba(98,74,46,0.18),
+                   0 1px 1px rgba(0,0,0,0.08)`
                 : "none",
             transition: "all 0.2s ease",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              inset: "2px",
+              border: `1px solid ${darkColor}22`,
+              borderRadius: "1px",
+              pointerEvents: "none",
+            },
             "&:hover": {
-              borderColor: darkColor,
-              backgroundColor:
+              borderColor: `${mainColor}BB`,
+              background:
                 theme.palette.mode === "light"
-                  ? theme.palette.background.default
+                  ? `linear-gradient(180deg,
+                      rgba(255,255,255,0.5) 0%,
+                      rgba(200,190,170,0.35) 100%)`
                   : darkColor + "33",
-              boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
+              boxShadow:
+                theme.palette.mode === "light"
+                  ? `inset 0 1px 0 rgba(255,255,255,0.6),
+                     0 3px 8px rgba(98,74,46,0.22),
+                     0 1px 2px rgba(0,0,0,0.1)`
+                  : `0 2px 8px rgba(0,0,0,0.15)`,
               transform: "translateY(-1px)",
             },
             "&:active": {
-              transform: "translateY(1px)",
-              boxShadow: `0 1px 3px rgba(0,0,0,0.1)`,
+              transform: "translateY(0px)",
+              boxShadow:
+                theme.palette.mode === "light"
+                  ? `inset 0 1px 3px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.06)`
+                  : `0 1px 3px rgba(0,0,0,0.1)`,
             },
           };
         },

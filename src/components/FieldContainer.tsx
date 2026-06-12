@@ -7,101 +7,67 @@ import React, {
   forwardRef,
   memo,
 } from "react";
-import { Button, Typography, Box, Container } from "@mui/material";
+import {
+  Button,
+  Typography,
+  Box,
+  Container,
+  IconButton,
+  TextField,
+  useTheme,
+} from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import MicIcon from "@mui/icons-material/Mic";
+import MicOffIcon from "@mui/icons-material/MicOff";
+import StopIcon from "@mui/icons-material/Stop";
 
 import { Colors } from "../styles/styles.tsx";
 import StyledTextField from "./StyledTextField.tsx";
 import MarkdownRenderer from "./MarkdownRenderer.tsx";
 import ThinkingDisclosure from "./ThinkingDisclosure.tsx";
 
-/**
- * Enum for the different types of FieldContainer.
- * This determines the behavior and appearance of the field.
- */
 export enum FieldContainerType {
-  /** The main input field for sending messages. */
   MAIN_SEND = "main_send",
-  /** A field representing an older player message, allowing edit/view. */
   PLAYER_OLD = "player_old",
-  /** A field representing a gamemaster message, allowing edit/view. */
   GAMEMASTER = "gamemaster",
 }
 
-/**
- * Props for the FieldContainer component.
- */
 type FieldContainerProps = {
-  /** Optional callback function to be executed when a message is sent. */
   sendCallback?: (valueToSend: string) => Promise<void>;
-  /** Optional callback function called when user commits changes (blur, send, etc). */
   onCommit?: (value: string) => void;
-  /** Optional callback function to be executed when a stop action is triggered. */
   stopCallback?: () => Promise<void>;
-  /** The current value of the field. */
   value: string;
-  /** Optional current thinking text for streaming display. */
   thinking?: string;
-  /** Identifier or label for the field instance (e.g., "Player Input", "Gamemaster Output"). */
   instance: string;
-  /** The color theme for the field. See {@link Colors}. */
   color: Colors;
-  /** The type of the field container. See {@link FieldContainerType}. */
   type: FieldContainerType;
-  /** Optional flag to disable the field. Defaults to `false`. */
   disabled?: boolean;
-  /** Optional placeholder text for the input field. */
   placeholder?: string;
-  /** Optional callback function to handle speech-to-text transcription from audio. */
   speechToTextCallback?: (audioBlob: Blob) => Promise<void>;
-  /** Optional flag to use local state for typing performance. Defaults to `true`. */
   useLocalState?: boolean;
-  /** Optional callback to commit the final streamed value to context. */
   onStreamComplete?: (value: string, thinking: string) => void;
 };
 
-/**
- * Handle interface for FieldContainer imperative methods.
- */
 export interface FieldContainerHandle {
-  /** Updates the field with streaming content without triggering context updates. */
   updateStream: (content: string, thinking?: string) => void;
-  /** Completes the stream and commits the final value to context. */
   completeStream: (finalContent: string, finalThinking?: string) => void;
-  /** Starts streaming mode. */
   startStream: () => void;
 }
 
 // --- Subcomponents ---
 
-/**
- * Props for the EditableField component.
- */
 interface EditableFieldProps {
-  /** The current value of the editable field. */
   value: string;
-  /** Callback function triggered when the field value changes. */
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  /** Callback function triggered on blur events. */
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onBlur?: () => void;
-  /** Callback function triggered on a key down event. */
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  /** The color theme for the field. */
   color: Colors;
-  /** Placeholder text for the input field. */
   placeholder: string;
-  /** Flag to disable the field. */
   disabled: boolean;
-  /** Ref to the input field's underlying div element. */
   inputRef: React.RefObject<HTMLDivElement>;
 }
 
-/**
- * EditableField is a subcomponent that renders an editable text area.
- * It includes autofocus and scroll-to-bottom behavior on value change.
- *
- * @param props - The props for the component. See {@link EditableFieldProps}.
- * @returns The EditableField component.
- */
 function EditableField({
   value,
   onChange,
@@ -135,55 +101,26 @@ function EditableField({
   );
 }
 
-/**
- * Props for the DisplayField component.
- */
 interface DisplayFieldProps {
-  /** The value to be displayed as Markdown. */
   value: string;
-  /** The color theme for the field. */
   color: Colors;
 }
 
-/**
- * DisplayField is a subcomponent that renders a non-editable field for displaying Markdown content.
- *
- * @param props - The props for the component. See {@link DisplayFieldProps}.
- * @returns The DisplayField component.
- */
 function DisplayField({ value, color }: DisplayFieldProps) {
   return <MarkdownRenderer value={value} color={color} />;
 }
 
-/**
- * Props for the FieldButtonGroup component.
- */
 interface FieldButtonGroupProps {
-  /** Whether the associated field is currently editable. */
   isEditable: boolean;
-  /** Whether content is currently being generated. */
   isGenerating: boolean;
-  /** The type of the parent FieldContainer. */
   type: FieldContainerType;
-  /** The color theme for the buttons. */
   color: Colors;
-  /** Flag to disable the buttons. */
   disabled: boolean;
-  /** Callback for when the Edit/View button is clicked. */
   onEditClick: () => void;
-  /** Callback for when the Send button is clicked. */
   onSendClick: () => void;
-  /** Callback for when the Stop button is clicked. */
   onStopClick: () => void;
 }
 
-/**
- * FieldButtonGroup is a subcomponent that renders a group of action buttons (Send, Stop, Edit/View)
- * based on the current state and type of the FieldContainer.
- *
- * @param props - The props for the component. See {@link FieldButtonGroupProps}.
- * @returns The FieldButtonGroup component.
- */
 function FieldButtonGroup({
   isEditable,
   isGenerating,
@@ -202,18 +139,19 @@ function FieldButtonGroup({
           color={color}
           disabled={disabled}
           onClick={onEditClick}
+          size="small"
           sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
         >
           {isEditable ? "View" : "Edit"}
         </Button>
       )}
-      {(type === FieldContainerType.MAIN_SEND ||
-        type === FieldContainerType.PLAYER_OLD) &&
+      {type === FieldContainerType.PLAYER_OLD &&
         (isGenerating ? (
           <Button
             color={color}
             disabled={disabled}
             onClick={onStopClick}
+            size="small"
             sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
           >
             Stop
@@ -223,65 +161,18 @@ function FieldButtonGroup({
             color={color}
             disabled={disabled}
             onClick={onSendClick}
+            size="small"
             sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
           >
-            Send
+            Regen
           </Button>
         ))}
     </Box>
   );
 }
 
-/**
- * Props for the MicrophoneButton component.
- */
-interface MicrophoneButtonProps {
-  /** Whether the microphone is currently recording audio. */
-  isRecording: boolean;
-  /** The color theme for the button. */
-  color: Colors;
-  /** Flag to disable the button. */
-  disabled: boolean;
-  /** Callback for when the microphone button is clicked. */
-  onClick: () => void;
-}
-
-function MicrophoneButton({
-  isRecording,
-  color,
-  disabled,
-  onClick,
-}: MicrophoneButtonProps) {
-  return (
-    <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 1 }}>
-      <Button
-        variant={isRecording ? "contained" : "outlined"}
-        color={isRecording ? "error" : color}
-        onClick={onClick}
-        disabled={disabled}
-        startIcon={
-          <span role="img" aria-label="microphone">
-            {isRecording ? "🔴" : "🎤"}
-          </span>
-        }
-      >
-        {isRecording ? "Stop Recording" : "Record"}
-      </Button>
-    </Box>
-  );
-}
-
 // --- Main Component ---
 
-/**
- * FieldContainer is a versatile component that provides an input or display field
- * with associated action buttons. It can be configured for different roles like
- * sending messages, displaying past player messages, or gamemaster messages.
- * It handles edit/view states, message sending/stopping, and character-by-character input changes.
- *
- * @param props - The props for the component. See {@link FieldContainerProps}.
- * @returns The FieldContainer component.
- */
 const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
   (
     {
@@ -301,49 +192,35 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     },
     ref,
   ) => {
-    /** State variable to control if the field is in edit mode or display mode.
-     *  Initialized to `true` if the type is `MAIN_SEND`, `false` otherwise.
-     */
+    const theme = useTheme();
+
     const [isEditable, setIsEditable] = useState(
       type === FieldContainerType.MAIN_SEND,
     );
-    /** State variable to track if content is currently being generated (e.g., waiting for an API response). */
     const [isGenerating, setIsGenerating] = useState(false);
-    /** State variable to track if audio is currently being recorded. */
     const [isRecording, setIsRecording] = useState(false);
-    /** Local state for typing performance - only used when useLocalState is true */
     const [localValue, setLocalValue] = useState(value);
-    /** Local state for streaming content - bypasses context during streaming */
     const [streamValue, setStreamValue] = useState("");
-    /** Local state for streaming thinking content */
     const [streamThinking, setStreamThinking] = useState("");
-    /** Flag to track if currently in streaming mode */
     const [isStreamingActive, setIsStreamingActive] = useState(false);
-    /** Ref to the underlying TextField component to manage focus and scroll. */
     const textFieldRef = useRef<HTMLDivElement>(null!);
-    /** Ref to the MediaRecorder instance for audio recording. */
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    /** Ref to store audio chunks during recording. */
     const audioChunksRef = useRef<Blob[]>([]);
 
-    // Sync local value with external value when it changes (but not during streaming)
     useEffect(() => {
       if (useLocalState && !isStreamingActive) {
         setLocalValue(value);
       }
     }, [value, useLocalState, isStreamingActive]);
 
-    // Determine which value to use for display
     const displayValue = isStreamingActive
       ? streamValue
       : useLocalState
         ? localValue
         : value;
 
-    // Determine thinking for display
     const displayThinking = isStreamingActive ? streamThinking : thinking;
 
-    // Expose imperative methods for streaming
     const updateStream = useCallback(
       (content: string, newThinking?: string) => {
         setStreamValue(content);
@@ -362,7 +239,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
         }
         setIsStreamingActive(false);
         if (onStreamComplete) {
-          // Pass both back to parent
           onStreamComplete(finalContent, finalThinking || "");
         }
       },
@@ -372,37 +248,23 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     const startStream = useCallback(() => {
       setIsStreamingActive(true);
       setStreamValue("");
-      setStreamThinking(""); // Reset thinking stream
+      setStreamThinking("");
     }, []);
 
     useImperativeHandle(
       ref,
-      () => ({
-        updateStream,
-        completeStream,
-        startStream,
-      }),
+      () => ({ updateStream, completeStream, startStream }),
       [updateStream, completeStream, startStream],
     );
 
-    /**
-     * Commits the current local value to the parent component.
-     */
     const commitValue = useCallback(() => {
       if (useLocalState && onCommit && localValue !== value) {
-        console.log("commit", localValue);
         onCommit(localValue);
       }
     }, [useLocalState, onCommit, localValue, value]);
 
-    /**
-     * Handles the send action.
-     * If a `sendCallback` is provided and not currently generating, it sets `isGenerating` to true,
-     * `isEditable` to false, calls the `sendCallback`, and then resets the states.
-     */
     const handleSend = useCallback(async () => {
       if (sendCallback && !isGenerating) {
-        // Commit any pending changes before sending
         setIsGenerating(true);
         setIsEditable(false);
         const toSend = localValue;
@@ -417,80 +279,47 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
       }
     }, [sendCallback, isGenerating, localValue, type]);
 
-    /**
-     * Handles the stop action.
-     * If a `stopCallback` is provided, it calls the `stopCallback`.
-     */
     const handleStop = useCallback(async () => {
       if (stopCallback) {
         await stopCallback();
       }
     }, [stopCallback]);
 
-    /**
-     * Toggles the editable state of the field.
-     */
     const handleEditToggle = useCallback(() => {
-      // Commit changes when switching from edit to view mode
       if (isEditable && type !== FieldContainerType.MAIN_SEND) {
         commitValue();
       }
       setIsEditable((prev) => !prev);
     }, [isEditable, commitValue, type]);
 
-    /**
-     * Handles key down events in the editable field.
-     * Specifically, triggers `handleSend` if Shift + Enter is pressed.
-     * @param event - The keyboard event.
-     */
     const handleKeyDown = useCallback(
       (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter" && event.shiftKey) {
-          event.preventDefault(); // don't register the return key
+          event.preventDefault();
           handleSend();
         }
       },
       [handleSend],
     );
 
-    /**
-     * Handles the change event of the editable field.
-     * Updates local state for performance
-     * @param event - The text area change event.
-     */
     const handleChange = useCallback(
-      (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newValue = event.target.value;
-
-        // Don't allow editing during streaming
-        if (isStreamingActive) {
-          return;
-        }
-
+      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (isStreamingActive) return;
         if (useLocalState) {
-          // Update local state immediately for performance
-          setLocalValue(newValue);
+          setLocalValue(event.target.value);
         }
       },
       [useLocalState, isStreamingActive],
     );
 
-    /**
-     * Handles blur events to commit changes.
-     */
     const handleBlur = useCallback(() => {
       if (!isStreamingActive) {
         commitValue();
       }
     }, [commitValue, isStreamingActive]);
 
-    /**
-     * Handles the microphone button click.
-     * Toggles audio recording on and off using the MediaRecorder API.
-     */
     const handleMicClick = useCallback(async () => {
       if (!isRecording) {
-        // Start recording
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -505,17 +334,15 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
           };
           mediaRecorder.start();
           setIsRecording(true);
-        } catch (err) {
+        } catch {
           alert("Microphone access denied or not available.");
         }
       } else {
-        // Stop recording
         const mediaRecorder = mediaRecorderRef.current;
         if (mediaRecorder && mediaRecorder.state !== "inactive") {
           mediaRecorder.stop();
           mediaRecorder.onstop = async () => {
             setIsRecording(false);
-            // Combine audio chunks into a single blob
             const audioBlob = new Blob(audioChunksRef.current, {
               type: "audio/webm",
             });
@@ -528,42 +355,179 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
     }, [isRecording, speechToTextCallback]);
 
     const MemoizedDisplayField = memo(DisplayField);
-    const MemoizedMicrophoneButton = memo(MicrophoneButton);
+
+    // ===== MAIN_SEND: modern horizontal input bar =====
+    if (type === FieldContainerType.MAIN_SEND) {
+      const paletteColor = theme.palette[color];
+      return (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 2,
+            py: 1.25,
+          }}
+        >
+          {/* Text input — colors mirror StyledTextField's TextfieldStyle */}
+          <TextField
+            fullWidth
+            multiline
+            maxRows={4}
+            size="small"
+            color={color}
+            value={displayValue}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled || isStreamingActive}
+            inputRef={textFieldRef}
+            sx={{
+              flex: 1,
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "8px",
+                fontSize: "0.95rem",
+                color: paletteColor.light,
+                backgroundColor: theme.palette.background.paper,
+                transition: "all 0.2s ease-in-out",
+                "& fieldset": {
+                  borderColor: paletteColor.dark,
+                },
+                "&:hover fieldset": {
+                  borderColor: paletteColor.main,
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: paletteColor.dark,
+                },
+                "&.Mui-disabled fieldset": {
+                  borderColor: theme.palette.background.default,
+                },
+              },
+              "& .MuiInputBase-input": {
+                fontStyle: "italic",
+                "&::placeholder": {
+                  color: alpha(paletteColor.main, 0.45),
+                  opacity: 1,
+                  fontStyle: "italic",
+                },
+                "&.Mui-disabled": {
+                  WebkitTextFillColor: paletteColor.main,
+                },
+              },
+            }}
+          />
+
+          {/* Mic button */}
+          <IconButton
+            size="small"
+            onClick={handleMicClick}
+            disabled={disabled}
+            sx={{
+              width: 36,
+              height: 36,
+              color: isRecording
+                ? theme.palette.error.main
+                : alpha(paletteColor.main, 0.5),
+              border: `0.5px solid ${alpha(paletteColor.main, 0.2)}`,
+              borderRadius: "8px",
+              flexShrink: 0,
+              "&:hover": {
+                background: alpha(paletteColor.main, 0.1),
+                color: paletteColor.main,
+              },
+            }}
+          >
+            {isRecording ? (
+              <MicOffIcon fontSize="small" />
+            ) : (
+              <MicIcon fontSize="small" />
+            )}
+          </IconButton>
+
+          {/* Send / Stop button */}
+          <IconButton
+            size="small"
+            onClick={
+              isGenerating || isStreamingActive ? handleStop : handleSend
+            }
+            disabled={disabled && !isGenerating && !isStreamingActive}
+            sx={{
+              width: 36,
+              height: 36,
+              background: alpha(paletteColor.main, 0.2),
+              border: `0.5px solid ${alpha(paletteColor.main, 0.5)}`,
+              color: paletteColor.main,
+              borderRadius: "8px",
+              flexShrink: 0,
+              "&:hover": {
+                background: alpha(paletteColor.main, 0.35),
+              },
+              "&.Mui-disabled": { opacity: 0.35 },
+            }}
+          >
+            {isGenerating || isStreamingActive ? (
+              <StopIcon fontSize="small" />
+            ) : (
+              <ArrowUpwardIcon fontSize="small" />
+            )}
+          </IconButton>
+        </Box>
+      );
+    }
+
+    // ===== PLAYER_OLD / GAMEMASTER: narrative display =====
+
+    // Render nothing when GAMEMASTER has no content and isn't streaming —
+    // the component stays mounted so the imperative ref (streaming handle) keeps working.
+    if (
+      type === FieldContainerType.GAMEMASTER &&
+      !displayValue.trim() &&
+      !displayThinking.trim() &&
+      !isStreamingActive
+    ) {
+      return null;
+    }
 
     return (
       <>
+        {/* Subtle role label */}
         <Typography
-          variant="subtitle2"
-          fontStyle="italic"
+          variant="caption"
           color={color}
-          sx={{ display: "flex" }}
+          sx={{
+            display: "block",
+            color: alpha(theme.palette[color].main, 0.45),
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            fontSize: "0.65rem",
+            mt: 1.5,
+            mb: 0.5,
+          }}
         >
-          <br />
           {instance}
-          <br />
         </Typography>
 
         <Container
           sx={{
             display: "flex",
-            flexDirection: "row", // Main container is now a horizontal row
-            alignItems: "center", // Aligns buttons to the bottom of the field/disclosure
+            flexDirection: "row",
+            alignItems: "flex-start",
             paddingLeft: "0 !important",
             paddingRight: "0 !important",
             gap: 1,
           }}
         >
-          {/* Left Column: Vertical Stack for Thinking + Field */}
+          {/* Content column */}
           <Box
             sx={{
               display: "flex",
               flexDirection: "column",
               flex: "1 1 auto",
               minWidth: 0,
-              gap: 0.5, // Space between thinking disclosure and field
+              gap: 0.5,
             }}
           >
-            <Box sx={{ width: "100%", marginTop: 1 }}>
+            <Box sx={{ width: "100%", mt: 1 }}>
               <ThinkingDisclosure
                 content={displayThinking}
                 color={color}
@@ -583,13 +547,17 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
                   disabled={disabled || isStreamingActive}
                   inputRef={textFieldRef}
                 />
+              ) : type === FieldContainerType.PLAYER_OLD ? (
+                /* Player action echo: same markdown rendering as GM */
+                <MemoizedDisplayField value={displayValue} color={color} />
               ) : (
+                /* GM narration: full markdown prose */
                 <MemoizedDisplayField value={displayValue} color={color} />
               )}
             </Box>
           </Box>
 
-          {/* Right Column: Button Group */}
+          {/* Buttons column */}
           <Box sx={{ flex: "0 0 auto", flexShrink: 0 }}>
             <FieldButtonGroup
               isEditable={isEditable}
@@ -603,14 +571,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
             />
           </Box>
         </Container>
-        {type === FieldContainerType.MAIN_SEND && (
-          <MemoizedMicrophoneButton
-            isRecording={isRecording}
-            color={color}
-            disabled={disabled}
-            onClick={handleMicClick}
-          />
-        )}
       </>
     );
   },

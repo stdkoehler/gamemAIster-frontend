@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import { ThemeProvider, Box, Button } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { getThemeForGameType } from "./theme";
 import { signOut } from "firebase/auth";
@@ -126,7 +127,19 @@ const App: React.FC = () => {
             color={"primary"}
             scrollable
           >
-            <AppGrid container spacing={2}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                bgcolor: alpha(currentTheme.palette.background.paper, 0.35),
+                borderRight: `0.5px solid ${alpha(currentTheme.palette.primary.main, 0.12)}`,
+                px: 1.5,
+                py: 1.5,
+                height: "100%",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            >
               <MissionMenu
                 newCallback={handleNewMission}
                 saveCallback={saveMission}
@@ -135,7 +148,7 @@ const App: React.FC = () => {
                 getMissionData={getMissionData}
               />
               <CharacterManager />
-            </AppGrid>
+            </Box>
             <AppGrid
               container
               spacing={2}

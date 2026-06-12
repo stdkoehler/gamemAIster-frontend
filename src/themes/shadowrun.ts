@@ -257,8 +257,7 @@ export const shadowrunTheme = createTheme({
     },
     "&::-webkit-scrollbar-thumb": {
       backgroundColor: theme.palette.background.default,
-      outline: "1px solid",
-      color: theme.palette.primary.main,
+      border: `1px solid ${theme.palette.primary.main}`,
       "&:hover": {
         backgroundColor: theme.palette.primary.dark + "AA",
       },
