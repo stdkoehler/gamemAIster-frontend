@@ -105,23 +105,8 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
   const theme = useTheme();
   const panelBtnSx = {
     width: "100%",
-    bgcolor: alpha(theme.palette.primary.main, 0.07),
-    border: `0.5px solid ${alpha(theme.palette.primary.main, 0.22)}`,
-    borderRadius: "6px",
-    py: 0.875,
-    px: 1.25,
-    color: theme.palette.primary.light,
-    fontSize: "0.7rem",
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
     justifyContent: "flex-start",
     mb: 0.75,
-    transition: "all 0.15s",
-    "&:hover": {
-      bgcolor: alpha(theme.palette.primary.main, 0.18),
-      color: theme.palette.primary.main,
-      borderColor: alpha(theme.palette.primary.main, 0.5),
-    },
   };
 
   return (

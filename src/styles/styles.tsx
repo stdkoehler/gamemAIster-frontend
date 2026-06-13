@@ -12,12 +12,12 @@ export function MenuStyle() {
   return {
     "& .MuiButtonBase-root.MuiMenuItem-root:hover": {
       backgroundColor: alpha(theme.palette.primary.main, 0.12),
-      textShadow: `0 0 6px ${theme.palette.primary.main}`, // Neon glow effect
+      textShadow: `0 0 6px ${theme.palette.primary.main}`,
       transition: "all 0.2s ease-in-out",
-      color: theme.palette.primary.light,
+      color: theme.palette.primary.main,
     },
     "& .MuiButtonBase-root.MuiMenuItem-root": {
-      color: theme.palette.primary.contrastText,
+      color: theme.palette.text.primary,
     },
     "& .MuiList-root.MuiMenu-list": {
       padding: "8px",
