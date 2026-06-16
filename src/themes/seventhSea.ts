@@ -279,7 +279,6 @@ export const seventhSeaTheme = createTheme({
               backgroundColor: `${theme.palette.primary.main}48`,
             },
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },
@@ -307,24 +306,52 @@ export const seventhSeaTheme = createTheme({
           const contrastTextColor = buttonPalette.contrastText;
 
           return {
-            fontFamily: seventhSeaSansFontFamily,
+            // Pirata One gives that unmistakable pirate scroll/broadside feel
+            fontFamily: seventhSeaDisplayFontFamily,
             textShadow: subtleMaritimeShadow(theme),
-            letterSpacing: "0.08em",
-            borderRadius: theme.shape.borderRadius,
-            border: `1px solid ${mainColor}88`,
-            padding: "8px 20px",
-            minHeight: "44px",
+            letterSpacing: "0.04em",
+            fontSize: "0.9rem",
+            borderRadius: "2px",
+            // Main border + heavier bottom like a carved-wood plank edge
+            border: `1px solid ${mainColor}99`,
+            borderBottom: `2px solid ${mainColor}66`,
+            padding: "7px 20px",
+            minHeight: "40px",
             color: contrastTextColor,
             position: "relative",
             overflow: "hidden",
-            background: `linear-gradient(145deg, ${mainColor}20, ${mainColor}10)`,
+            // Aged wood gradient: subtle highlight at top, dark at bottom
+            background: `linear-gradient(180deg,
+              rgba(255,255,255,0.04) 0%,
+              ${mainColor}1A 30%,
+              ${mainColor}14 70%,
+              rgba(0,0,0,0.2) 100%)`,
+            boxShadow: `
+              inset 0 1px 0 rgba(255,255,255,0.07),
+              inset 0 -1px 0 rgba(0,0,0,0.3),
+              0 2px 5px rgba(0,0,0,0.5)`,
+            // Faint gold trim line at top, like brass fittings
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: "12%",
+              right: "12%",
+              height: "1px",
+              background: `linear-gradient(to right, transparent, ${lightColor}55, transparent)`,
+              pointerEvents: "none",
+            },
             "&:hover": {
-              borderColor: lightColor,
-              backgroundColor: `${mainColor}30`,
-              boxShadow: `0 0 12px ${mainColor}66, inset 0 0 10px ${mainColor}40`,
+              borderColor: `${lightColor}BB`,
+              borderBottomColor: `${lightColor}88`,
+              background: `linear-gradient(180deg, ${mainColor}33 0%, ${mainColor}22 100%)`,
+              boxShadow: `
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                0 0 16px ${mainColor}55,
+                0 0 30px ${mainColor}22,
+                0 3px 8px rgba(0,0,0,0.5)`,
               textShadow: nauticalTextShadow(theme, ownerState.color),
             },
-            ...theme.scrollbarStyles(theme),
           };
         },
       },
@@ -358,7 +385,6 @@ export const seventhSeaTheme = createTheme({
             textShadow: ownerState.variant?.startsWith("h")
               ? weatheredTextShadow(theme, ownerState.color)
               : subtleMaritimeShadow(theme),
-            ...theme.scrollbarStyles(theme),
           };
         },
         h1: ({ theme }) => ({
@@ -395,7 +421,6 @@ export const seventhSeaTheme = createTheme({
           [theme.breakpoints.up("lg")]: {
             maxWidth: "1500px",
           },
-          ...theme.scrollbarStyles(theme),
         }),
       },
     },

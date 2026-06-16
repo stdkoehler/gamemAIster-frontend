@@ -300,7 +300,10 @@ export const expanseTheme = createTheme({
             fontFamily: expanseModernFontFamily,
             textShadow: subtleTechShadow(theme),
             letterSpacing: "0.12em",
-            borderRadius: theme.shape.borderRadius,
+            borderRadius: 0,
+            // Single top-right corner cut — classified briefing / ship schematic aesthetic
+            clipPath:
+              "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%)",
             border: `1px solid ${mainColor}88`,
             padding: "10px 24px",
             minHeight: "44px",
@@ -312,8 +315,9 @@ export const expanseTheme = createTheme({
               borderColor: lightColor,
               backgroundColor: `${mainColor}33`,
               boxShadow: `0 0 16px ${mainColor}66, inset 0 0 12px ${mainColor}22`,
-              textShadow: `0 0 8px ${lightColor}88`,
+              textShadow: techGlowShadow(theme),
             },
+            // Scan-line sweep — left to right on hover
             "&::before": {
               content: '""',
               position: "absolute",

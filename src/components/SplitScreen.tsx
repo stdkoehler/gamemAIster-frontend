@@ -56,6 +56,7 @@ export default function SplitScreen({
           flex: leftWeight,
           maxHeight: "80vh",
           overflowY: scrollable ? "auto" : "visible",
+          overflowX: "hidden",
           padding: "8px",
           minHeight: 0,
           display: "flex",

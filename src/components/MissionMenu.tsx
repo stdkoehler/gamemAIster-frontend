@@ -7,6 +7,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
 import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import BookIcon from "@mui/icons-material/Book";
+import { useTheme } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Typography from "@mui/material/Typography";
@@ -95,6 +98,7 @@ const BaseMissionModal = ({
   children,
   actions,
 }: BaseMissionModalProps) => {
+  const theme = useTheme();
   return (
     <Modal
       open={open}
@@ -105,11 +109,15 @@ const BaseMissionModal = ({
       <Box
         sx={{
           ...ModalStyle(),
-          p: 0, // Remove default padding so scrollbar can touch the edge
+          p: 0,
           maxHeight: "90vh",
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden", // Prevents the outer container from scrolling
+          overflow: "hidden",
+        }}
+        style={{
+          backgroundColor: theme.palette.background.default,
+          backgroundImage: "none",
         }}
       >
         {/* --- FIXED HEADER --- */}
@@ -286,6 +294,7 @@ const NewMissionModal = ({
         <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
         <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
+        <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
 
@@ -682,6 +691,7 @@ function FilterableLoadMissionModal({
         <MenuItem value={GameType.CALL_OF_CTHULHU}>Call of Cthulhu</MenuItem>
         <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
+        <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
       <Autocomplete
@@ -915,16 +925,40 @@ export function MissionMenu({
     }
   }, [selectedMission, loadCallback, handleModalClose]);
 
+  const theme = useTheme();
+  const panelBtnSx = {
+    width: "100%",
+    justifyContent: "flex-start",
+    mb: 0.75,
+  };
+
   return (
-    <div>
+    <Box sx={{ width: "100%", px: 0 }}>
+      {/* Section label */}
+      <Box
+        component="span"
+        sx={{
+          display: "block",
+          fontSize: "0.6rem",
+          letterSpacing: "0.2em",
+          color: alpha(theme.palette.primary.main, 0.38),
+          textTransform: "uppercase",
+          mb: 0.75,
+          mt: 0,
+        }}
+      >
+        Mission
+      </Box>
       <Button
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
+        startIcon={<BookIcon sx={{ fontSize: "14px !important" }} />}
+        sx={panelBtnSx}
       >
-        Mission
+        Manage
       </Button>
       <Menu
         id="basic-menu"
@@ -936,6 +970,12 @@ export function MissionMenu({
           list: {
             "aria-labelledby": "basic-button",
           },
+          paper: {
+            style: {
+              backgroundColor: theme.palette.background.default,
+              backgroundImage: "none",
+            },
+          },
         }}
         sx={MenuStyle()}
       >
@@ -944,6 +984,7 @@ export function MissionMenu({
         <MenuItem onClick={handleLoadMenuItem}>Load Mission</MenuItem>
       </Menu>
 
+      {/* Modals render as portals — position in tree doesn't matter */}
       <LoadingModal open={activeModal === ModalNames.LOADING} />
       <NewMissionModal
         open={activeModal === ModalNames.NEW}
@@ -980,6 +1021,6 @@ export function MissionMenu({
         setSelectedMission={setSelectedMission}
         getMissionData={getMissionData}
       />
-    </div>
+    </Box>
   );
 }

@@ -8,10 +8,12 @@ import {
   Grid,
   Accordion,
   AccordionSummary,
+  useTheme,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ClearAllIcon from "@mui/icons-material/ClearAll";
 import {
-  ActionButtonsBoxStyle,
-  ActionButtonStyle,
   AccordionGridStyle,
   CardBoxStyle,
   InfoBoxStyle,
@@ -100,27 +102,47 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
     onClear?.();
   }, [onClear]);
 
+  const theme = useTheme();
+  const panelBtnSx = {
+    width: "100%",
+    justifyContent: "flex-start",
+    mb: 0.75,
+  };
+
   return (
-    <Grid container spacing={2}>
-      <Grid>
-        <Box sx={ActionButtonsBoxStyle()}>
-          <Button
-            color="primary"
-            sx={ActionButtonStyle()}
-            onClick={handleCreateNPCs}
-          >
-            Create NPCs
-          </Button>
-          <Button
-            color="primary"
-            sx={ActionButtonStyle()}
-            onClick={handleClear}
-          >
-            Clear
-          </Button>
-        </Box>
-      </Grid>
-      <Grid sx={AccordionGridStyle()}>
+    <Box sx={{ width: "100%" }}>
+      {/* Section label */}
+      <Box
+        component="span"
+        sx={{
+          display: "block",
+          fontSize: "0.6rem",
+          letterSpacing: "0.2em",
+          color: alpha(theme.palette.primary.main, 0.38),
+          textTransform: "uppercase",
+          mb: 0.75,
+          mt: 1.5,
+        }}
+      >
+        Characters
+      </Box>
+      <Button
+        onClick={handleCreateNPCs}
+        startIcon={<PersonAddIcon sx={{ fontSize: "14px !important" }} />}
+        sx={panelBtnSx}
+      >
+        Create NPCs
+      </Button>
+      <Button
+        onClick={handleClear}
+        startIcon={<ClearAllIcon sx={{ fontSize: "14px !important" }} />}
+        sx={{ ...panelBtnSx, mb: 0 }}
+      >
+        Clear
+      </Button>
+
+      {/* NPC accordion list */}
+      <Box sx={{ mt: 1, ...AccordionGridStyle() }}>
         {characters.map((character) => (
           <Accordion key={character.id}>
             <AccordionSummary
@@ -132,8 +154,8 @@ export const CharacterManager: React.FC<CharacterManagerProps> = ({
             <CharacterCard {...character} />
           </Accordion>
         ))}
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 };
 
