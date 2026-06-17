@@ -7,3 +7,24 @@ export enum GameType {
   SLAVIC = "slavic",
   CUSTOM = "custom",
 }
+
+export enum TtsVoice {
+  Callum = "Callum",
+  CaraGee = "CaraGee",
+  JoeyCocoDiaz = "JoeyCocoDiaz",
+  MelHudson = "MelHudson",
+  ShohrehAghdashloo = "ShohrehAghdashloo",
+  StephenFry = "StephenFry",
+  DavidStrathairn = "DavidStrathairn",
+  Drummer = "Drummer",
+  NeilGaiman = "NeilGaiman",
+  LeonardNimoy = "LeonardNimoy",
+  RayPorter = "RayPorter",
+  JasonCarl = "JasonCarl",
+  PoE2_Witch = "PoE2_Witch",
+  PoE2_Shambrin = "PoE2_Shambrin",
+  PoE2_Servi = "PoE2_Servi",
+  PoE2_Doryani = "PoE2_Doryani",
+  PoE2_Tavakai = "PoE2_Tavakai",
+  Cyberpunk_Brigitte = "Cyberpunk_Brigitte",
+}

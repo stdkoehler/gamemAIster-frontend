@@ -380,14 +380,14 @@ export async function getLoadMissions(
  * @returns {Promise<Blob>} - A promise that resolves with a Blob containing the MP3 audio data.
  * @throws {Error} If the TTS request to the backend fails (e.g., network error, non-OK HTTP response).
  */
-export async function sendTextToSpeech(text: string): Promise<Blob> {
+export async function sendTextToSpeech(text: string, voice: string): Promise<Blob> {
   // Send POST request to TTS service, expecting a Blob (audio/mp3)
   const response = await fetch(`${API_BASE}/tts/tts`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, voice }),
   });
 
   if (!response.ok) {
@@ -432,13 +432,14 @@ export async function sendTextToSpeech(text: string): Promise<Blob> {
  */
 export async function sendTextToSpeechStream(
   text: string,
+  voice: string,
 ): Promise<HTMLAudioElement> {
   const response = await fetch(`${API_BASE}/tts/tts-stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, voice }),
   });
 
   if (!response.ok || !response.body) {
