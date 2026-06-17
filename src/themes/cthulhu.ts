@@ -435,4 +435,10 @@ export const cthulhuTheme = createTheme({
     },
   }),
   logo: "/src/assets/callofcthulhu/coc_00354_.png",
+  titleOverlayStyle: {
+    color: "#f0e6c8",
+    fontStyle: "italic",
+    textShadow:
+      "1px 2px 6px rgba(0,0,0,0.9), 0 1px 12px rgba(0,0,0,0.75), 2px 2px 2px rgba(0,0,0,0.8)",
+  },
 });
