@@ -14,7 +14,7 @@ import SplitScreen from "./components/SplitScreen";
 import History from "./components/History";
 
 import { MissionMenu } from "./components/MissionMenu";
-import { CharacterManager } from "./components/CharacterCard";
+import { NpcManager } from "./components/NpcCard";
 import { getMission } from "./functions/restInterface";
 import { GameType } from "./models/Types";
 
@@ -169,7 +169,7 @@ const App: React.FC = () => {
                 loadCallback={loadMission}
                 getMissionData={getMissionData}
               />
-              <CharacterManager />
+              <NpcManager />
             </Box>
             <AppGrid
               container
