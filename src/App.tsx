@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useMemo, useCallback } from "react";
-import { ThemeProvider, Box, Button } from "@mui/material";
+import { ThemeProvider, Box, Button, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { getThemeForGameType } from "./theme";
@@ -24,6 +24,16 @@ import Login from "./components/Login";
 import { useFirebaseAuth } from "./hooks/useFirebaseAuth";
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
+
+const GAME_TYPE_DISPLAY_NAMES: Record<GameType, string> = {
+  [GameType.SHADOWRUN]: "Shadowrun",
+  [GameType.VAMPIRE_THE_MASQUERADE]: "Vampire: The Masquerade",
+  [GameType.CALL_OF_CTHULHU]: "Call of Cthulhu",
+  [GameType.SEVENTH_SEA]: "7th Sea",
+  [GameType.EXPANSE]: "The Expanse",
+  [GameType.SLAVIC]: "Slavic 800 AD",
+  [GameType.CUSTOM]: "Custom",
+};
 
 const App: React.FC = () => {
   console.log("App component rendered");
@@ -96,6 +106,18 @@ const App: React.FC = () => {
           flexDirection: "column",
         }}
       >
+        <Box sx={{ position: "absolute", top: 16, left: 16, zIndex: 10 }}>
+          <Typography
+            variant="h2"
+            sx={{
+              textShadow: `0 2px 12px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.9)`,
+              lineHeight: 1,
+              ...currentTheme.titleOverlayStyle,
+            }}
+          >
+            {GAME_TYPE_DISPLAY_NAMES[gameType]}
+          </Typography>
+        </Box>
         <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
           <Button
             variant="outlined"

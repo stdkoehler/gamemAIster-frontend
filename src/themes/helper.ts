@@ -6,11 +6,13 @@ declare module "@mui/material/styles" {
     spinButtonBackgroundImage: (color: string) => string;
     scrollbarStyles: (theme: Theme) => Record<string, any>;
     logo: string;
+    titleOverlayStyle?: Record<string, any>;
   }
   interface ThemeOptions {
     spinButtonBackgroundImage?: (color: string) => string;
     scrollbarStyles?: (theme: Theme) => Record<string, any>;
     logo?: string;
+    titleOverlayStyle?: Record<string, any>;
   }
   // Allow new color names if you add them to palette
   interface PaletteOptions {

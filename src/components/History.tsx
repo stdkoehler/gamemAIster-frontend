@@ -4,7 +4,7 @@ import {
   useState,
   useCallback,
 } from "react";
-import { Typography, Box, Button, CircularProgress, useTheme } from "@mui/material";
+import { Typography, Box, Button, CircularProgress, useTheme, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -18,9 +18,11 @@ import {
   sendPlayerInputToLlm,
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
+import { TtsVoice } from "../models/Types";
 import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
+import useAppStore from "../stores/appStore";
 import { useShallow } from "zustand/react/shallow";
 
 type HistoryProps = {
@@ -62,6 +64,10 @@ const History = ({ mission, disabled }: HistoryProps) => {
     (state) => state.rollbackOptimisticUpdate,
   );
   const commitPlayerInput = useHistoryStore((state) => state.commitPlayerInput);
+
+  // ===== TTS VOICE =====
+  const ttsVoice = useAppStore((state) => state.ttsVoice);
+  const setTtsVoice = useAppStore((state) => state.setTtsVoice);
 
   // ===== LOCAL STATE =====
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -222,8 +228,8 @@ const History = ({ mission, disabled }: HistoryProps) => {
     try {
       cleanupAudio();
       const audioElem = USE_TTS_STREAM
-        ? await sendTextToSpeechStream(llmOutput)
-        : new Audio(URL.createObjectURL(await sendTextToSpeech(llmOutput)));
+        ? await sendTextToSpeechStream(llmOutput, ttsVoice)
+        : new Audio(URL.createObjectURL(await sendTextToSpeech(llmOutput, ttsVoice)));
       audioElem.onended = () => setIsPlaying(false);
       audioElem.onerror = (e) => {
         console.error("Audio error:", e);
@@ -244,7 +250,7 @@ const History = ({ mission, disabled }: HistoryProps) => {
     } finally {
       setLoadingAudio(false);
     }
-  }, [llmOutput, cleanupAudio]);
+  }, [llmOutput, ttsVoice, cleanupAudio]);
 
   const handleStopTTS = useCallback(() => {
     cleanupAudio();
@@ -369,11 +375,27 @@ const History = ({ mission, disabled }: HistoryProps) => {
         {llmOutput && <Box
           sx={{
             display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 1,
             mt: 0.5,
+            flexWrap: "wrap",
           }}
         >
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel id="tts-voice-label">Voice</InputLabel>
+            <Select
+              labelId="tts-voice-label"
+              value={ttsVoice}
+              label="Voice"
+              onChange={(e) => setTtsVoice(e.target.value as TtsVoice)}
+              disabled={disabled || isPlaying || loadingAudio}
+            >
+              {Object.values(TtsVoice).map((v) => (
+                <MenuItem key={v} value={v}>{v}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           {isPlaying ? (
             <Button
               variant="contained"
@@ -382,7 +404,6 @@ const History = ({ mission, disabled }: HistoryProps) => {
               onClick={handleStopTTS}
               disabled={disabled}
               size="small"
-              sx={{ mb: 1 }}
             >
               Stop Audio
             </Button>
@@ -400,13 +421,12 @@ const History = ({ mission, disabled }: HistoryProps) => {
               onClick={handlePlayTTS}
               disabled={disabled || loadingAudio || isPlaying}
               size="small"
-              sx={{ mb: 1 }}
             >
               {loadingAudio ? "Synthesizing..." : "Play"}
             </Button>
           )}
           {audioError && (
-            <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+            <Typography color="error" variant="caption">
               {audioError}
             </Typography>
           )}

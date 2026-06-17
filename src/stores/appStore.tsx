@@ -1,17 +1,19 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { GameType } from "../models/Types";
+import { GameType, TtsVoice } from "../models/Types";
 
 interface AppState {
   // Mission state
   mission: number | null;
   adventure: string;
   gameType: GameType;
+  ttsVoice: TtsVoice;
 
   // Actions
   setMission: (mission: number | null) => void;
   setAdventure: (adventure: string) => void;
   setGameType: (gameType: GameType) => void;
+  setTtsVoice: (voice: TtsVoice) => void;
   reset: () => void;
 }
 
@@ -22,11 +24,13 @@ const useAppStore = create<AppState>()(
       mission: null,
       adventure: "GamemAIster",
       gameType: GameType.SHADOWRUN,
+      ttsVoice: TtsVoice.PoE2_Doryani,
 
       // Actions
       setMission: (mission) => set({ mission }),
       setAdventure: (adventure) => set({ adventure }),
       setGameType: (gameType) => set({ gameType }),
+      setTtsVoice: (ttsVoice) => set({ ttsVoice }),
 
       // Simplified reset - let components handle their own cleanup
       reset: () => {
@@ -43,6 +47,7 @@ const useAppStore = create<AppState>()(
         mission: state.mission,
         adventure: state.adventure,
         gameType: state.gameType,
+        ttsVoice: state.ttsVoice,
       }),
     }
   )
