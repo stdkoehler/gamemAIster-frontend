@@ -8,6 +8,7 @@ import useCharacterStore from "../../stores/characterStore";
 import useAppStore from "../../stores/appStore";
 import { CharacterProps } from "../../models/CharacterProps";
 import { GameType } from "../../models/Types";
+import { GAME_SYSTEMS } from "../../gameSystemRegistry";
 import ShadowrunSheet from "./ShadowrunSheet";
 import VampireSheet from "./VampireSheet";
 import CthulhuSheet from "./CthulhuSheet";
@@ -15,19 +16,6 @@ import SeventhSeaSheet from "./SeventhSeaSheet";
 import ExpanseSheet from "./ExpanseSheet";
 import SlavicSheet from "./SlavicSheet";
 
-const SHEET_TITLES: Record<GameType, string> = {
-  [GameType.SHADOWRUN]: "Shadowrun 5e",
-  [GameType.VAMPIRE_THE_MASQUERADE]: "Vampire: The Masquerade V5",
-  [GameType.CALL_OF_CTHULHU]: "Call of Cthulhu 7e",
-  [GameType.SEVENTH_SEA]: "7th Sea 2e",
-  [GameType.EXPANSE]: "The Expanse RPG",
-  [GameType.SLAVIC]: "Slavic 800 AD",
-  [GameType.CUSTOM]: "Custom",
-};
-
-const SHEET_WIDTHS: Partial<Record<GameType, number>> = {
-  [GameType.VAMPIRE_THE_MASQUERADE]: 1100,
-};
 
 function renderSheet(char: CharacterProps, onUpdate: (c: CharacterProps) => void) {
   switch (char.gameType) {
@@ -80,7 +68,7 @@ export const CharacterSheetPopup: React.FC = () => {
           top: 0,
           left: 0,
           zIndex: 1300,
-          width: `min(${SHEET_WIDTHS[gameType] ?? 920}px, calc(100vw - 80px))`,
+          width: `min(${GAME_SYSTEMS[gameType].sheetWidth ?? 920}px, calc(100vw - 80px))`,
           height: 700,
           display: "flex",
           flexDirection: "column",
@@ -112,7 +100,7 @@ export const CharacterSheetPopup: React.FC = () => {
               variant="caption"
               sx={{ mr: 1, color: "text.secondary", letterSpacing: "0.08em", flexShrink: 0 }}
             >
-              {SHEET_TITLES[gameType]}
+              {GAME_SYSTEMS[gameType].sheetTitle}
             </Typography>
 
             {/* Character tabs */}

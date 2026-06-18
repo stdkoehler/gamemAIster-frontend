@@ -19,6 +19,7 @@ import { CharacterManager } from "./components/CharacterManager";
 import { CharacterSheetPopup } from "./components/CharacterSheet";
 import { getMission } from "./functions/restInterface";
 import { GameType } from "./models/Types";
+import { GAME_SYSTEMS } from "./gameSystemRegistry";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
@@ -27,15 +28,6 @@ import { useFirebaseAuth } from "./hooks/useFirebaseAuth";
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
 
-const GAME_TYPE_DISPLAY_NAMES: Record<GameType, string> = {
-  [GameType.SHADOWRUN]: "Shadowrun",
-  [GameType.VAMPIRE_THE_MASQUERADE]: "Vampire: The Masquerade",
-  [GameType.CALL_OF_CTHULHU]: "Call of Cthulhu",
-  [GameType.SEVENTH_SEA]: "7th Sea",
-  [GameType.EXPANSE]: "The Expanse",
-  [GameType.SLAVIC]: "Slavic 800 AD",
-  [GameType.CUSTOM]: "Custom",
-};
 
 const App: React.FC = () => {
   console.log("App component rendered");
@@ -117,7 +109,7 @@ const App: React.FC = () => {
               ...currentTheme.titleOverlayStyle,
             }}
           >
-            {GAME_TYPE_DISPLAY_NAMES[gameType]}
+            {GAME_SYSTEMS[gameType].title}
           </Typography>
         </Box>
         <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>

@@ -22,10 +22,10 @@ import {
   InputAdornment,
 } from "@mui/material";
 import {
-  TextfieldStyle,
-  ModalStyle,
-  MenuStyle,
-  AutocompleteStyle,
+  textfieldStyle,
+  modalStyle,
+  menuStyle,
+  autocompleteStyle,
   Colors,
   AutocompletePaper,
 } from "../styles/styles";
@@ -69,7 +69,7 @@ type StyledTextFieldProps = ComponentProps<typeof TextField> & {
 export const StyledTextField = React.memo(
   ({ color, ...props }: StyledTextFieldProps) => {
     return (
-      <TextField {...props} color={color} sx={TextfieldStyle({ color })} />
+      <TextField {...props} color={color} sx={textfieldStyle(color)} />
     );
   },
 );
@@ -107,14 +107,10 @@ const BaseMissionModal = ({
       aria-describedby="modal-modal-description"
     >
       <Box
-        sx={{
-          ...ModalStyle(),
-          p: 0,
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
+        sx={[
+          modalStyle,
+          { p: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" },
+        ]}
         style={{
           backgroundColor: theme.palette.background.default,
           backgroundImage: "none",
@@ -196,7 +192,7 @@ const LoadingModal = ({ open }: { open: boolean }) => (
     aria-labelledby="modal-modal-title"
     aria-describedby="modal-modal-description"
   >
-    <Box sx={ModalStyle()}>
+    <Box sx={modalStyle}>
       <Box
         sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
       >
@@ -703,7 +699,7 @@ function FilterableLoadMissionModal({
         slots={{
           paper: AutocompletePaper,
         }}
-        sx={{ ...AutocompleteStyle, mt: 2 }}
+        sx={[autocompleteStyle, { mt: 2 }]}
         renderInput={(params) => <TextField {...params} label="Mission" />}
       />
     </BaseMissionModal>
@@ -977,7 +973,7 @@ export function MissionMenu({
             },
           },
         }}
-        sx={MenuStyle()}
+        sx={menuStyle}
       >
         <MenuItem onClick={handleNewMenuItem}>New Mission</MenuItem>
         <MenuItem onClick={handleSaveMenuItem}>Save Mission</MenuItem>

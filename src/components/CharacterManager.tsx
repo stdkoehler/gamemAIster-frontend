@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { AccordionGridStyle } from "../styles/styles";
+import { accordionGridStyle } from "../styles/styles";
 import { NpcCard } from "./NpcCard";
 import useCharacterStore from "../stores/characterStore";
 import useAppStore from "../stores/appStore";
@@ -39,7 +39,7 @@ export const CharacterManager: React.FC = () => {
         Characters
       </Box>
 
-      <Box sx={{ mt: 1, ...AccordionGridStyle() }}>
+      <Box sx={[{ mt: 1 }, accordionGridStyle]}>
         {partyChars.map((char) => (
           <Accordion key={char.id}>
             <AccordionSummary
