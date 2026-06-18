@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Box, Typography, IconButton, TextField } from "@mui/material";
+import { Box, Typography, IconButton, TextField, Select, MenuItem, FormControl } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { VampireCharacter } from "../../models/CharacterProps";
+import { VampireCharacter, V5Nature } from "../../models/CharacterProps";
 import {
   SheetSection, FieldRow, NumInput, TextInput, DotRating,
-  ListEditor, RecordNumEditor, TwoCol, ChipListEditor,
+  ListEditor, RecordNumEditor, TwoCol,
 } from "./shared";
 
 interface Props {
@@ -28,6 +28,13 @@ const MENTAL_SKILLS = [
   "Academics", "Awareness", "Finance", "Investigation",
   "Medicine", "Occult", "Politics", "Science", "Technology",
 ] as const;
+
+const NATURE_OPTIONS: { value: V5Nature; label: string }[] = [
+  { value: "kindred", label: "Kindred" },
+  { value: "ghoul", label: "Ghoul" },
+  { value: "thin-blood", label: "Thin-blood" },
+  { value: "mortal", label: "Mortal" },
+];
 
 const AttrColumn: React.FC<{
   title: string;
@@ -55,23 +62,59 @@ const SkillColumn: React.FC<{
   title: string;
   keys: readonly string[];
   skills: VampireCharacter["skills"];
-  onChange: (k: keyof VampireCharacter["skills"], v: number) => void;
-}> = ({ title, keys, skills, onChange }) => (
-  <Box>
-    <Typography variant="caption" sx={{ fontWeight: "bold", color: "primary.light" }}>
-      {title}
-    </Typography>
-    {keys.map((k) => (
-      <Box key={k} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.25 }}>
-        <Typography variant="body2" sx={{ mr: 1, fontSize: "0.75rem" }}>{k}</Typography>
-        <DotRating
-          value={skills[k as keyof VampireCharacter["skills"]] as number}
-          onChange={(n) => onChange(k as keyof VampireCharacter["skills"], n)}
-        />
-      </Box>
-    ))}
-  </Box>
-);
+  specialties: Record<string, string>;
+  onSkillChange: (k: keyof VampireCharacter["skills"], v: number) => void;
+  onSpecChange: (k: string, v: string) => void;
+}> = ({ title, keys, skills, specialties, onSkillChange, onSpecChange }) => {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+
+  return (
+    <Box>
+      <Typography variant="caption" sx={{ fontWeight: "bold", color: "primary.light" }}>
+        {title}
+      </Typography>
+      {keys.map((k) => {
+        const spec = specialties[k] ?? "";
+        const showSpec = !!spec || !!expanded[k];
+        return (
+          <Box key={k} sx={{ mb: 0.5 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography
+                variant="body2"
+                title="Click to add specialization"
+                sx={{ mr: 1, fontSize: "0.75rem", flex: 1, cursor: "pointer", userSelect: "none" }}
+                onClick={() => setExpanded((e) => ({ ...e, [k]: !e[k] }))}
+              >
+                {k}
+              </Typography>
+              <DotRating
+                value={skills[k as keyof VampireCharacter["skills"]] as number}
+                onChange={(n) => onSkillChange(k as keyof VampireCharacter["skills"], n)}
+              />
+            </Box>
+            {showSpec && (
+              <TextField
+                value={spec}
+                onChange={(e) => onSpecChange(k, e.target.value)}
+                onBlur={() => {
+                  if (!spec) setExpanded((e) => ({ ...e, [k]: false }));
+                }}
+                size="small"
+                placeholder="specialization"
+                sx={{
+                  ml: 1,
+                  mt: 0.25,
+                  width: "calc(100% - 8px)",
+                  "& .MuiInputBase-input": { fontSize: "0.7rem", py: "3px" },
+                }}
+              />
+            )}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+};
 
 const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
   const [c, setC] = useState(character);
@@ -94,6 +137,13 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
     onUpdate(next);
   };
 
+  const upSpec = (k: string, v: string) => {
+    const next = { ...c, skillSpecialties: { ...(c.skillSpecialties ?? {}), [k]: v } };
+    if (!v) delete next.skillSpecialties![k];
+    setC(next);
+    onUpdate(next);
+  };
+
   const upHealth = (field: "current" | "max", v: number) => {
     const next = { ...c, health: { ...c.health, [field]: v } };
     setC(next);
@@ -105,6 +155,12 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
     setC(next);
     onUpdate(next);
   };
+
+  const isKindred = c.nature === "kindred";
+  const isGhoul = c.nature === "ghoul";
+  const hasDisciplines = isKindred || isGhoul;
+  const hasBlood = isKindred || c.nature === "thin-blood";
+  const isThinBlood = c.nature === "thin-blood";
 
   return (
     <Box sx={{ pb: 4 }}>
@@ -118,27 +174,42 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
                 <TextInput value={c.name} onChange={(v) => up("name", v)} />
               </FieldRow>
               <FieldRow label="Nature">
-                <TextInput value={c.nature} onChange={(v) => up("nature", v as VampireCharacter["nature"])} />
+                <FormControl size="small" fullWidth>
+                  <Select
+                    value={c.nature}
+                    onChange={(e) => up("nature", e.target.value as V5Nature)}
+                    sx={{ fontSize: "0.875rem" }}
+                  >
+                    {NATURE_OPTIONS.map((o) => (
+                      <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </FieldRow>
-              {c.clan !== undefined && (
-                <FieldRow label="Clan">
-                  <TextInput value={c.clan ?? ""} onChange={(v) => up("clan", v)} />
-                </FieldRow>
-              )}
-              {c.generation !== undefined && (
-                <FieldRow label="Generation">
-                  <NumInput value={c.generation ?? 13} onChange={(v) => up("generation", v)} min={4} max={16} />
-                </FieldRow>
-              )}
-              {c.predatorType !== undefined && (
-                <FieldRow label="Predator Type">
-                  <TextInput value={c.predatorType ?? ""} onChange={(v) => up("predatorType", v)} />
-                </FieldRow>
-              )}
-              {c.sire !== undefined && (
-                <FieldRow label="Sire">
-                  <TextInput value={c.sire ?? ""} onChange={(v) => up("sire", v)} />
-                </FieldRow>
+              {isKindred && (
+                <>
+                  <FieldRow label="Clan">
+                    <TextInput value={c.clan ?? ""} onChange={(v) => up("clan", v)} />
+                  </FieldRow>
+                  <FieldRow label="Generation">
+                    <NumInput value={c.generation ?? 13} onChange={(v) => up("generation", v)} min={4} max={16} />
+                  </FieldRow>
+                  <FieldRow label="Predator Type">
+                    <TextInput value={c.predatorType ?? ""} onChange={(v) => up("predatorType", v)} />
+                  </FieldRow>
+                  <FieldRow label="Sire">
+                    <TextInput value={c.sire ?? ""} onChange={(v) => up("sire", v)} />
+                  </FieldRow>
+                  <FieldRow label="Birthday">
+                    <TextInput value={c.birthday ?? ""} onChange={(v) => up("birthday", v)} placeholder="e.g. 14 Mar 1888" />
+                  </FieldRow>
+                  <FieldRow label="Embraced">
+                    <TextInput value={c.embraced ?? ""} onChange={(v) => up("embraced", v)} placeholder="e.g. 3 Jun 1912" />
+                  </FieldRow>
+                  <FieldRow label="Apparent Age">
+                    <NumInput value={c.apparentAge ?? 0} onChange={(v) => up("apparentAge", v)} min={0} max={999} />
+                  </FieldRow>
+                </>
               )}
               <FieldRow label="Ambition">
                 <TextInput value={c.ambition ?? ""} onChange={(v) => up("ambition", v)} />
@@ -170,16 +241,24 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
       {/* ── Skills ── */}
       <SheetSection title="Skills">
+        <Typography variant="caption" sx={{ color: "text.disabled", display: "block", mb: 0.5 }}>
+          Click a skill name to add/hide specialization
+        </Typography>
         <Box sx={{ display: "flex", gap: 3 }}>
-          <SkillColumn title="Physical" keys={PHYSICAL_SKILLS} skills={c.skills} onChange={upSkill} />
-          <SkillColumn title="Social" keys={SOCIAL_SKILLS} skills={c.skills} onChange={upSkill} />
-          <SkillColumn title="Mental" keys={MENTAL_SKILLS} skills={c.skills} onChange={upSkill} />
-        </Box>
-        <Box sx={{ mt: 1 }}>
-          <ChipListEditor
-            value={c.skillSpecialties ?? []}
-            onChange={(v) => up("skillSpecialties", v)}
-            label="Specialties (e.g. Melee (Swords))"
+          <SkillColumn
+            title="Physical" keys={PHYSICAL_SKILLS} skills={c.skills}
+            specialties={c.skillSpecialties ?? {}}
+            onSkillChange={upSkill} onSpecChange={upSpec}
+          />
+          <SkillColumn
+            title="Social" keys={SOCIAL_SKILLS} skills={c.skills}
+            specialties={c.skillSpecialties ?? {}}
+            onSkillChange={upSkill} onSpecChange={upSpec}
+          />
+          <SkillColumn
+            title="Mental" keys={MENTAL_SKILLS} skills={c.skills}
+            specialties={c.skillSpecialties ?? {}}
+            onSkillChange={upSkill} onSpecChange={upSpec}
           />
         </Box>
       </SheetSection>
@@ -188,67 +267,75 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
         left={
           <>
             {/* ── Disciplines ── */}
-            <SheetSection title="Disciplines">
-              {Object.entries(c.disciplines ?? {}).map(([disc, { level, powers }]) => (
-                <Box key={disc} sx={{ mb: 1.5 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
-                    <Typography variant="body2" sx={{ fontWeight: "bold", flex: 1 }}>{disc}</Typography>
-                    <DotRating
-                      value={level}
-                      onChange={(n) =>
-                        up("disciplines", { ...c.disciplines, [disc]: { level: n, powers } })
+            {hasDisciplines && (
+              <SheetSection title="Disciplines">
+                {Object.entries(c.disciplines ?? {}).map(([disc, { level, powers }]) => (
+                  <Box key={disc} sx={{ mb: 1.5 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
+                      <Typography variant="body2" sx={{ fontWeight: "bold", flex: 1 }}>{disc}</Typography>
+                      <DotRating
+                        value={level}
+                        onChange={(n) =>
+                          up("disciplines", { ...c.disciplines, [disc]: { level: n, powers } })
+                        }
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          const next = { ...c.disciplines };
+                          delete next[disc];
+                          up("disciplines", next);
+                        }}
+                        sx={{ p: 0.25 }}
+                      >
+                        ×
+                      </IconButton>
+                    </Box>
+                    <ListEditor
+                      value={powers}
+                      onChange={(v) =>
+                        up("disciplines", { ...c.disciplines, [disc]: { level, powers: v } })
                       }
+                      rows={2}
+                      placeholder="Powers (one per line)"
                     />
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        const next = { ...c.disciplines };
-                        delete next[disc];
-                        up("disciplines", next);
-                      }}
-                      sx={{ p: 0.25 }}
-                    >
-                      ×
-                    </IconButton>
                   </Box>
-                  <ListEditor
-                    value={powers}
-                    onChange={(v) =>
-                      up("disciplines", { ...c.disciplines, [disc]: { level, powers: v } })
-                    }
-                    rows={2}
-                    placeholder="Powers (one per line)"
-                  />
-                </Box>
-              ))}
-              <AddDisciplineRow
-                onAdd={(name) =>
-                  up("disciplines", { ...c.disciplines, [name]: { level: 1, powers: [] } })
-                }
-              />
-            </SheetSection>
+                ))}
+                <AddDisciplineRow
+                  onAdd={(name) =>
+                    up("disciplines", { ...c.disciplines, [name]: { level: 1, powers: [] } })
+                  }
+                />
+              </SheetSection>
+            )}
 
             {/* ── Blood Mechanics ── */}
-            {(c.nature === "vampire" || c.nature === "thin-blood") && (
+            {hasBlood && (
               <SheetSection title="Blood">
                 <FieldRow label="Hunger">
                   <DotRating value={c.hunger ?? 0} max={5} onChange={(v) => up("hunger", v)} />
                 </FieldRow>
-                <FieldRow label="Blood Potency">
-                  <DotRating value={c.bloodPotency ?? 0} max={10} size={9} onChange={(v) => up("bloodPotency", v)} />
-                </FieldRow>
+                {isKindred && (
+                  <FieldRow label="Blood Potency">
+                    <DotRating value={c.bloodPotency ?? 0} max={10} size={9} onChange={(v) => up("bloodPotency", v)} />
+                  </FieldRow>
+                )}
                 <FieldRow label="Resonance">
                   <TextInput value={c.resonance ?? ""} onChange={(v) => up("resonance", v)} />
                 </FieldRow>
                 <FieldRow label="Temperament">
                   <TextInput value={c.temperament ?? ""} onChange={(v) => up("temperament", v)} />
                 </FieldRow>
-                <FieldRow label="Clan Bane">
-                  <TextInput value={c.clanBane ?? ""} onChange={(v) => up("clanBane", v)} />
-                </FieldRow>
-                <FieldRow label="Compulsion">
-                  <TextInput value={c.compulsion ?? ""} onChange={(v) => up("compulsion", v)} />
-                </FieldRow>
+                {isKindred && (
+                  <>
+                    <FieldRow label="Clan Bane">
+                      <TextInput value={c.clanBane ?? ""} onChange={(v) => up("clanBane", v)} />
+                    </FieldRow>
+                    <FieldRow label="Compulsion">
+                      <TextInput value={c.compulsion ?? ""} onChange={(v) => up("compulsion", v)} />
+                    </FieldRow>
+                  </>
+                )}
               </SheetSection>
             )}
 
@@ -301,10 +388,20 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
             {/* ── Merits & Flaws ── */}
             <SheetSection title="Merits & Flaws">
               <Typography variant="caption" sx={{ color: "text.secondary" }}>Merits</Typography>
-              <ListEditor value={c.merits ?? []} onChange={(v) => up("merits", v)} rows={2} />
+              <RecordNumEditor
+                value={c.merits ?? {}}
+                onChange={(v) => up("merits", v)}
+                useDots
+                maxDots={5}
+              />
               <Box sx={{ mt: 1 }}>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>Flaws</Typography>
-                <ListEditor value={c.flaws ?? []} onChange={(v) => up("flaws", v)} rows={2} />
+                <RecordNumEditor
+                  value={c.flaws ?? {}}
+                  onChange={(v) => up("flaws", v)}
+                  useDots
+                  maxDots={5}
+                />
               </Box>
             </SheetSection>
 
@@ -322,7 +419,7 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
             <SheetSection title="Weapons">
               {(c.weapons ?? []).map((w, i) => (
                 <Box key={i} sx={{ mb: 1, p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.25 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.5 }}>
                     <TextInput value={w.name} onChange={(v) => {
                       const ws = [...(c.weapons ?? [])];
                       ws[i] = { ...ws[i], name: v };
@@ -334,21 +431,22 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
                       up("weapons", ws);
                     }} sx={{ p: 0.25 }}>×</IconButton>
                   </Box>
-                  <Box sx={{ display: "flex", gap: 1 }}>
-                    <FieldRow label="DMG">
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+                      <Typography variant="caption" sx={{ color: "text.secondary" }}>DMG</Typography>
                       <NumInput value={w.damage} onChange={(v) => {
                         const ws = [...(c.weapons ?? [])];
                         ws[i] = { ...ws[i], damage: v };
                         up("weapons", ws);
-                      }} max={6} />
-                    </FieldRow>
-                    <FieldRow label="Skill">
+                      }} max={6} width={56} />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
                       <TextInput value={w.skill} onChange={(v) => {
                         const ws = [...(c.weapons ?? [])];
                         ws[i] = { ...ws[i], skill: v as typeof w.skill };
                         up("weapons", ws);
-                      }} fullWidth={false} />
-                    </FieldRow>
+                      }} placeholder="Skill" />
+                    </Box>
                   </Box>
                 </Box>
               ))}
@@ -377,7 +475,7 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
             </SheetSection>
 
             {/* ── Thin-blood Alchemy ── */}
-            {c.nature === "thin-blood" && (
+            {isThinBlood && (
               <SheetSection title="Thin-blood Alchemy">
                 <ListEditor value={c.thinBloodAlchemy ?? []} onChange={(v) => up("thinBloodAlchemy", v)} rows={3} />
               </SheetSection>
@@ -385,6 +483,16 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
           </>
         }
       />
+
+      {/* ── Notes ── */}
+      <SheetSection title="Notes">
+        <TextInput
+          value={c.notes ?? ""}
+          onChange={(v) => up("notes", v)}
+          multiline
+          rows={4}
+        />
+      </SheetSection>
     </Box>
   );
 };

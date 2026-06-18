@@ -63,7 +63,7 @@ const DEFAULT_SR: ShadowrunCharacter = {
 const DEFAULT_VTM: VampireCharacter = {
   gameType: GameType.VAMPIRE_THE_MASQUERADE,
   id: 10002,
-  nature: "vampire",
+  nature: "kindred",
   name: "Séraphine Morel",
   clan: "Toreador",
   generation: 11,
@@ -85,7 +85,7 @@ const DEFAULT_VTM: VampireCharacter = {
     Academics: 3, Awareness: 3, Finance: 1, Investigation: 2,
     Medicine: 0, Occult: 2, Politics: 2, Science: 0, Technology: 1,
   },
-  skillSpecialties: ["Performance (Fine Art)", "Persuasion (Seduction)", "Craft (Painting)"],
+  skillSpecialties: { Performance: "Fine Art", Persuasion: "Seduction", Craft: "Painting" },
   weapons: [{ name: "Knife", damage: 1, skill: "Melee", properties: ["Concealable"] }],
   disciplines: {
     Auspex: { level: 2, powers: ["Heightened Senses", "Sense the Unseen"] },
@@ -99,8 +99,8 @@ const DEFAULT_VTM: VampireCharacter = {
   clanBane: "Aesthetic Fixation — must make a Humanity check to harm beautiful things.",
   compulsion: "Obsession — must spend time indulging their artistic passion.",
   backgrounds: { Resources: 3, Haven: 3, Allies: 2, Status: 2 },
-  merits: ["Beautiful", "Elegant"],
-  flaws: ["Prey Exclusion (Artists)"],
+  merits: { Beautiful: 2, Elegant: 2 },
+  flaws: { "Prey Exclusion (Artists)": 2 },
   loresheets: ["The Toreador Salon"],
   health: { current: 5, max: 5 },
   willpower: { current: 5, max: 5 },
@@ -308,7 +308,7 @@ export function createNpcDummy(gameType: GameType, id: number): CharacterProps |
       return {
         gameType: GameType.VAMPIRE_THE_MASQUERADE,
         id,
-        nature: "vampire",
+        nature: "kindred",
         name: "Viktor Voss",
         clan: "Ventrue",
         generation: 9,

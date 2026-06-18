@@ -162,7 +162,7 @@ const TagList: React.FC<TagListProps> = ({ title, items }) => (
 );
 
 // =====================
-// NPC views â€” combat-relevant fields only
+// NPC views — combat-relevant fields only
 // =====================
 
 // Combat skills to surface; anything not in this set is suppressed.
@@ -256,7 +256,7 @@ const V5WeaponList: React.FC<{ weapons: V5Weapon[] }> = ({ weapons }) => (
     </Typography>
     {weapons.map((w) => (
       <Typography key={w.name} variant="body2">
-        {w.name} â€” DMG +{w.damage} ({w.skill}
+        {w.name} — DMG +{w.damage} ({w.skill}
         {w.range !== undefined ? `, ${w.range}m` : ""})
         {w.properties && w.properties.length > 0
           ? ` [${w.properties.join(", ")}]`
@@ -295,8 +295,12 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
       : c.nature === "ghoul"
         ? `Ghoul${c.clan ? ` (${c.clan})` : ""}`
         : c.nature === "thin-blood"
-          ? `Thin-blood${c.clan ? ` â€” Clan ${c.clan}` : ""}`
-          : `Clan ${c.clan} Â· ${c.generation}th Gen Â· ${c.predatorType}`;
+          ? ["Thin-blood", c.clan && `Clan ${c.clan}`].filter(Boolean).join(" – ")
+          : [
+              c.clan && `Clan ${c.clan}`,
+              c.generation && `${c.generation}th Gen`,
+              c.predatorType,
+            ].filter(Boolean).join(" · ") || "Kindred";
 
   return (
     <Box sx={cardBoxStyle}>
@@ -319,7 +323,7 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
                 <Typography variant="body2" fontWeight="bold">Disciplines:</Typography>
                 {Object.entries(c.disciplines).map(([name, d]) => (
                   <Typography key={name} variant="body2">
-                    {name} {d.level} â€” {d.powers.join(", ")}
+                    {name} {d.level} — {d.powers.join(", ")}
                   </Typography>
                 ))}
               </Box>
@@ -330,7 +334,7 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
       {c.weapons && c.weapons.length > 0 && (
         <V5WeaponList weapons={c.weapons} />
       )}
-      {(c.nature === "vampire" || c.nature === "thin-blood") && (
+      {(c.nature === "kindred" || c.nature === "thin-blood") && (
         <Grid container spacing={2} justifyContent="center">
           <Grid>
             <Box sx={infoBoxStyle}>
@@ -432,7 +436,7 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
           <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
           {c.weapons.map((w: CocWeapon) => (
             <Typography key={w.name} variant="body2">
-              {w.name} â€” {w.damage} ({w.skill})
+              {w.name} — {w.damage} ({w.skill})
               {w.range ? `, ${w.range}` : ""}
               {w.ammo !== undefined ? `, ${w.ammo} rds` : ""}
               {w.malfunction !== undefined && w.malfunction < 100
@@ -509,7 +513,7 @@ const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter & WithUpdate> = (c) => {
             <Typography key={w.name} variant="body2">
               {w.name} ({w.trait}, {w.type}
               {w.properties && w.properties.length > 0
-                ? ` â€” ${w.properties.join(", ")}`
+                ? ` — ${w.properties.join(", ")}`
                 : ""})
             </Typography>
           ))}
@@ -580,7 +584,7 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
               <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
               {c.weapons.map((w: AgeWeapon) => (
                 <Typography key={w.name} variant="body2">
-                  {w.name} â€” {w.damage}
+                  {w.name} — {w.damage}
                   {w.range ? `, ${w.range}` : ""}
                   {w.qualities && w.qualities.length > 0 ? ` [${w.qualities.join(", ")}]` : ""}
                 </Typography>

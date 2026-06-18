@@ -113,6 +113,8 @@ export interface ShadowrunCharacter {
 
   // Rigger — vehicles/drones
   vehicles?: string[]; // e.g. "GMC Banshee (Pilot 3, Sensor 3)"
+
+  notes?: string;
 }
 
 // =====================
@@ -131,11 +133,11 @@ export interface V5Weapon {
 }
 
 // nature drives which optional blocks apply:
-//   "vampire"    — full Kindred sheet (clan, generation, disciplines, hunger, blood potency)
+//   "kindred"    — full Kindred sheet (clan, generation, disciplines, hunger, blood potency)
 //   "ghoul"      — disciplines (one), no hunger/blood potency
 //   "thin-blood" — thin-blood alchemy instead of disciplines, hunger present
 //   "mortal"     — no vampire-specific fields at all
-export type V5Nature = "vampire" | "ghoul" | "thin-blood" | "mortal";
+export type V5Nature = "kindred" | "ghoul" | "thin-blood" | "mortal";
 
 export interface VampireCharacter {
   gameType: GameType.VAMPIRE_THE_MASQUERADE;
@@ -149,6 +151,9 @@ export interface VampireCharacter {
   sire?: string;
   generation?: number; // 4th–16th
   predatorType?: string; // Alleycat, Sandman, Siren, Bagger, etc.
+  birthday?: string;     // mortal birth date
+  embraced?: string;     // date of embrace
+  apparentAge?: number;  // apparent age in years
 
   ambition?: string;
   desire?: string;
@@ -200,9 +205,8 @@ export interface VampireCharacter {
     Technology: number;
   };
 
-  // Skill specialties (+1 die when applicable; e.g. "Melee (Swords)")
-  // Every character starts with 3 from chargen.
-  skillSpecialties?: string[];
+  // Skill specialties (+1 die when applicable; skill name → specialty label)
+  skillSpecialties?: Record<string, string>;
 
   // Weapons with V5 corebook stats (all natures can carry weapons)
   weapons?: V5Weapon[];
@@ -215,9 +219,9 @@ export interface VampireCharacter {
     powers: string[]; // e.g. ["Cloud Memory", "Compel", "Mesmerize"]
   }>;
 
-  // Merits & Flaws (Advantages / Flaws in V5 terminology)
-  merits?: string[];
-  flaws?: string[];
+  // Merits & Flaws (Advantages / Flaws in V5 terminology); name → level 1–5
+  merits?: Record<string, number>;
+  flaws?: Record<string, number>;
 
   // Blood — Kindred and thin-bloods only
   hunger?: number; // 0–5
@@ -254,6 +258,8 @@ export interface VampireCharacter {
   // Experience
   experienceTotal?: number;
   experienceSpent?: number;
+
+  notes?: string;
 }
 
 // =====================
@@ -348,6 +354,8 @@ export interface CthulhuCharacter {
   spendingLevel?: string;
   cash?: number;
   assets?: string;
+
+  notes?: string;
 }
 
 // =====================
@@ -448,6 +456,8 @@ export interface SeventhSeaCharacter {
 
   // Background archetypes from chargen
   backgrounds?: string[];
+
+  notes?: string;
 }
 
 // =====================
@@ -511,6 +521,8 @@ export interface ExpanseCharacter {
   // Drive & Relationships
   drive?: string;
   relationships?: string[];
+
+  notes?: string;
 }
 
 // =====================
@@ -596,6 +608,8 @@ export interface SlavicCharacter {
 
   // Experience (used to unlock new skills and talents)
   experience?: number;
+
+  notes?: string;
 }
 
 // =====================

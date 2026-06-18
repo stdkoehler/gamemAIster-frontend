@@ -278,6 +278,11 @@ const SeventhSeaSheet: React.FC<Props> = ({ character, onUpdate }) => {
           </>
         }
       />
+
+      {/* ── Notes ── */}
+      <SheetSection title="Notes">
+        <TextInput value={c.notes ?? ""} onChange={(v) => up("notes", v)} multiline rows={4} />
+      </SheetSection>
     </Box>
   );
 };
