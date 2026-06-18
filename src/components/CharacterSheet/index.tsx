@@ -1,21 +1,26 @@
-import React, { useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import Draggable from "react-draggable";
-import { Box, Paper, Tabs, Tab, IconButton, Typography } from "@mui/material";
+import { Box, Paper, Tabs, Tab, IconButton, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 import useCharacterStore from "../../stores/characterStore";
 import useAppStore from "../../stores/appStore";
 import { CharacterProps } from "../../models/CharacterProps";
 import { GameType } from "../../models/Types";
 import { GAME_SYSTEMS } from "../../gameSystemRegistry";
+import {
+  upsertCharacterSheet,
+  getCharacterSheets,
+} from "../../functions/restInterface";
 import ShadowrunSheet from "./ShadowrunSheet";
 import VampireSheet from "./VampireSheet";
 import CthulhuSheet from "./CthulhuSheet";
 import SeventhSeaSheet from "./SeventhSeaSheet";
 import ExpanseSheet from "./ExpanseSheet";
 import SlavicSheet from "./SlavicSheet";
-
 
 function renderSheet(char: CharacterProps, onUpdate: (c: CharacterProps) => void) {
   switch (char.gameType) {
@@ -37,21 +42,92 @@ function renderSheet(char: CharacterProps, onUpdate: (c: CharacterProps) => void
 }
 
 export const CharacterSheetPopup: React.FC = () => {
-  const { characters, activeCharacterId, isSheetOpen, closeSheet, openSheet, updateCharacter } =
-    useCharacterStore();
+  const {
+    characters,
+    activeCharacterId,
+    isSheetOpen,
+    closeSheet,
+    openSheet,
+    updateCharacterData,
+    setCharacters,
+  } = useCharacterStore();
   const gameType = useAppStore((s) => s.gameType);
+  const missionId = useAppStore((s) => s.mission);
   const nodeRef = useRef<HTMLDivElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
-  const partyChars = characters.filter((ch) => ch.gameType === gameType);
+  const partyChars = characters.filter((r) => r.data.gameType === gameType);
 
-  if (!isSheetOpen || partyChars.length === 0) return null;
+  // Sync from backend when the popup opens
+  useEffect(() => {
+    if (!isSheetOpen || missionId === null) return;
+    getCharacterSheets(missionId)
+      .then((fresh) => {
+        if (fresh.length > 0) setCharacters(fresh);
+      })
+      .catch((err) => console.error("Failed to sync character sheets:", err));
+  }, [isSheetOpen, missionId, setCharacters]);
 
   const activeId =
-    activeCharacterId !== null && partyChars.some((ch) => ch.id === activeCharacterId)
+    activeCharacterId !== null && partyChars.some((r) => r.data.id === activeCharacterId)
       ? activeCharacterId
-      : partyChars[0].id;
+      : partyChars[0]?.data.id ?? null;
 
-  const activeChar = partyChars.find((ch) => ch.id === activeId) ?? partyChars[0];
+  const activeRecord = partyChars.find((r) => r.data.id === activeId) ?? partyChars[0];
+
+  // Save active character to backend, then close
+  const handleClose = useCallback(async () => {
+    if (activeRecord && activeRecord.sheetId !== null && missionId !== null) {
+      try {
+        await upsertCharacterSheet({
+          character_sheet_id: activeRecord.sheetId,
+          mission_id: missionId,
+          name: activeRecord.data.name,
+          game_type: gameType,
+          content: activeRecord.data,
+          is_protagonist: activeRecord.isProtagonist,
+        });
+      } catch (err) {
+        console.error("Failed to sync character sheet on close:", err);
+      }
+    }
+    closeSheet();
+  }, [activeRecord, missionId, gameType, closeSheet]);
+
+  const handleExport = useCallback(() => {
+    if (!activeRecord) return;
+    const blob = new Blob([JSON.stringify(activeRecord.data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${activeRecord.data.name.replace(/\s+/g, "_")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [activeRecord]);
+
+  const handleImport = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target?.result as string) as CharacterProps;
+          updateCharacterData(data);
+        } catch {
+          console.error("Invalid character JSON file");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    },
+    [updateCharacterData]
+  );
+
+  if (!isSheetOpen || partyChars.length === 0) return null;
+  if (!activeRecord) return null;
 
   return (
     <Draggable
@@ -76,74 +152,85 @@ export const CharacterSheetPopup: React.FC = () => {
           borderRadius: 2,
         }}
       >
-          {/* ── Title bar / drag handle ── */}
-          <Box
-            id="sheet-drag-handle"
-            sx={(theme) => ({
-              display: "flex",
-              alignItems: "center",
-              flexShrink: 0,
-              cursor: "move",
-              borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-              bgcolor: alpha(theme.palette.background.paper, 0.95),
-              userSelect: "none",
-              minHeight: 40,
-            })}
-          >
-            {/* Drag indicator */}
-            <DragIndicatorIcon
-              sx={{ mx: 0.5, color: "text.disabled", fontSize: 18, flexShrink: 0 }}
-            />
+        {/* ── Title bar / drag handle ── */}
+        <Box
+          id="sheet-drag-handle"
+          sx={(theme) => ({
+            display: "flex",
+            alignItems: "center",
+            flexShrink: 0,
+            cursor: "move",
+            borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+            bgcolor: alpha(theme.palette.background.paper, 0.95),
+            userSelect: "none",
+            minHeight: 40,
+          })}
+        >
+          <DragIndicatorIcon
+            sx={{ mx: 0.5, color: "text.disabled", fontSize: 18, flexShrink: 0 }}
+          />
 
-            {/* System label */}
-            <Typography
-              variant="caption"
-              sx={{ mr: 1, color: "text.secondary", letterSpacing: "0.08em", flexShrink: 0 }}
+          <Typography
+            variant="caption"
+            sx={{ mr: 1, color: "text.secondary", letterSpacing: "0.08em", flexShrink: 0 }}
+          >
+            {GAME_SYSTEMS[gameType].sheetTitle}
+          </Typography>
+
+          {partyChars.length > 0 && (
+            <Tabs
+              value={activeId}
+              onChange={(_, id) => openSheet(id as number)}
+              sx={{
+                flexGrow: 1,
+                minHeight: 40,
+                "& .MuiTab-root": { minHeight: 40, cursor: "pointer" },
+              }}
             >
-              {GAME_SYSTEMS[gameType].sheetTitle}
-            </Typography>
+              {partyChars.map((r) => (
+                <Tab key={r.data.id} label={r.data.name || "New Character"} value={r.data.id} />
+              ))}
+            </Tabs>
+          )}
 
-            {/* Character tabs */}
-            {partyChars.length > 0 && (
-              <Tabs
-                value={activeId}
-                onChange={(_, id) => openSheet(id as number)}
-                sx={{
-                  flexGrow: 1,
-                  minHeight: 40,
-                  "& .MuiTab-root": { minHeight: 40, cursor: "pointer" },
-                }}
-              >
-                {partyChars.map((ch) => (
-                  <Tab key={ch.id} label={ch.name} value={ch.id} />
-                ))}
-              </Tabs>
-            )}
-
-            {/* Close button */}
-            <IconButton size="small" onClick={closeSheet} sx={{ mr: 0.5 }}>
-              <CloseIcon fontSize="small" />
+          {/* Import / Export */}
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".json"
+            style={{ display: "none" }}
+            onChange={handleImport}
+          />
+          <Tooltip title="Import character from JSON">
+            <IconButton size="small" onClick={() => importInputRef.current?.click()}>
+              <FileUploadIcon fontSize="small" />
             </IconButton>
-          </Box>
+          </Tooltip>
+          <Tooltip title="Export character as JSON">
+            <IconButton size="small" onClick={handleExport}>
+              <FileDownloadIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-          {/* ── Scrollable sheet content ── */}
-          <Box
-            key={activeChar.id}
-            sx={{
-              flex: 1,
-              overflowY: "auto",
-              p: 2,
-              // thin scrollbar
-              "&::-webkit-scrollbar": { width: 6 },
-              "&::-webkit-scrollbar-track": { bgcolor: "background.default" },
-              "&::-webkit-scrollbar-thumb": {
-                bgcolor: "primary.dark",
-                borderRadius: 3,
-              },
-            }}
-          >
-            {renderSheet(activeChar, updateCharacter)}
-          </Box>
+          <IconButton size="small" onClick={handleClose} sx={{ mr: 0.5 }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+
+        {/* ── Scrollable sheet content ── */}
+        <Box
+          key={activeRecord.data.id}
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            p: 2,
+            "&::-webkit-scrollbar": { width: 6 },
+            "&::-webkit-scrollbar-track": { bgcolor: "background.default" },
+            "&::-webkit-scrollbar-thumb": { bgcolor: "primary.dark", borderRadius: 3 },
+          }}
+        >
+          {renderSheet(activeRecord.data, updateCharacterData)}
+        </Box>
       </Paper>
     </Draggable>
   );

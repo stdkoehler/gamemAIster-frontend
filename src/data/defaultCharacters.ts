@@ -366,3 +366,90 @@ export function createNpcDummy(gameType: GameType, id: number): CharacterProps |
       return null;
   }
 }
+
+// ── Blank templates (for "Create Character") ─────────────────────────────────
+// Same structural shape as the defaults but all stats zeroed / emptied.
+
+export function createBlankCharacter(gameType: GameType, id: number): CharacterProps | null {
+  switch (gameType) {
+    case GameType.SHADOWRUN:
+      return {
+        gameType: GameType.SHADOWRUN, id, name: "New Character",
+        metatype: "", archetype: "", description: "",
+        attributes: { Body: 1, Agility: 1, Reaction: 1, Strength: 1, Willpower: 1, Logic: 1, Intuition: 1, Charisma: 1, Edge: 1, Essence: 6 },
+        derived: { physicalLimit: 0, mentalLimit: 0, socialLimit: 0, composure: 0, judgeIntentions: 0, memory: 0, liftCarry: 0, initiativeBase: 0, initiativeDice: 1 },
+        skills: {}, knowledgeSkills: {},
+        qualities: { positive: [], negative: [] },
+        contacts: {},
+        armor: 0, weapons: [], cyberware: [], gear: [],
+        nuyen: 0, lifestyle: "Low", streetCred: 0, notoriety: 0, publicAwareness: 0,
+        damage: { physical: { current: 0, max: 10 }, stun: { current: 0, max: 10 } },
+      };
+
+    case GameType.VAMPIRE_THE_MASQUERADE:
+      return {
+        gameType: GameType.VAMPIRE_THE_MASQUERADE, id, name: "New Character",
+        nature: "mortal", description: "",
+        attributes: { Strength: 1, Dexterity: 1, Stamina: 1, Charisma: 1, Manipulation: 1, Composure: 1, Intelligence: 1, Wits: 1, Resolve: 1 },
+        skills: {
+          Athletics: 0, Brawl: 0, Craft: 0, Drive: 0, Firearms: 0, Melee: 0, Larceny: 0, Stealth: 0, Survival: 0,
+          "Animal Ken": 0, Etiquette: 0, Insight: 0, Intimidation: 0, Leadership: 0, Performance: 0, Persuasion: 0, Streetwise: 0, Subterfuge: 0,
+          Academics: 0, Awareness: 0, Finance: 0, Investigation: 0, Medicine: 0, Occult: 0, Politics: 0, Science: 0, Technology: 0,
+        },
+        health: { current: 4, max: 4 },
+        willpower: { current: 2, max: 2 },
+      };
+
+    case GameType.CALL_OF_CTHULHU:
+      return {
+        gameType: GameType.CALL_OF_CTHULHU, id, name: "New Character",
+        occupation: "", era: "1920s", age: 25, description: "",
+        characteristics: { STR: 50, CON: 50, SIZ: 50, DEX: 50, APP: 50, INT: 50, POW: 50, EDU: 50 },
+        derived: {
+          hpMax: 10, mpMax: 10, sanityMax: 99, build: 0, damageBonus: "0", moveRate: 8,
+          half: { STR: 25, DEX: 25, INT: 25, CON: 25, APP: 25, POW: 25, SIZ: 25, EDU: 25 },
+          fifth: { STR: 10, DEX: 10, INT: 10, CON: 10, APP: 10, POW: 10, SIZ: 10, EDU: 10 },
+        },
+        skills: {},
+        hitPoints: { current: 10, max: 10 },
+        sanity: { current: 50, max: 99 },
+        magicPoints: { current: 10, max: 10 },
+        luck: 50, cthulhuMythos: 0,
+      };
+
+    case GameType.SEVENTH_SEA:
+      return {
+        gameType: GameType.SEVENTH_SEA, id, name: "New Character",
+        nation: "", arcana: { virtue: "", hubris: "" }, description: "",
+        traits: { Brawn: 2, Finesse: 2, Resolve: 2, Wits: 2, Panache: 2 },
+        skills: { Aim: 0, Athletics: 0, Brawl: 0, Convince: 0, Empathy: 0, Hide: 0, Intimidate: 0, Notice: 0, Perform: 0, Ride: 0, Sailing: 0, Tempt: 0, Theft: 0, Warfare: 0, Weaponry: 0 },
+        advantages: [],
+        wounds: { current: 0, max: 5 },
+        heroPoints: 3,
+      };
+
+    case GameType.EXPANSE:
+      return {
+        gameType: GameType.EXPANSE, id, name: "New Character",
+        origin: "", background: "", faction: "", description: "",
+        abilities: { Accuracy: 0, Communication: 0, Constitution: 0, Dexterity: 0, Fighting: 0, Intelligence: 0, Perception: 0, Strength: 0, Willpower: 0 },
+        focuses: [],
+        speed: 10, defense: 10,
+        health: { current: 20, max: 20 },
+        fortune: 3,
+      };
+
+    case GameType.SLAVIC:
+      return {
+        gameType: GameType.SLAVIC, id, name: "New Character",
+        kin: "", kinAbility: "", calling: "", description: "",
+        attributes: { Strength: 3, Agility: 3, Wits: 3, Empathy: 3 },
+        attributeDamage: { Strength: 3, Agility: 3, Wits: 3, Empathy: 3 },
+        skills: { Endurance: 0, Fight: 0, Sneak: 0, Move: 0, Marksmanship: 0, Scout: 0, Lore: 0, Survival: 0, Craft: 0, Insight: 0, Manipulation: 0, Healing: 0, Performance: 0 },
+        talents: [],
+      };
+
+    default:
+      return null;
+  }
+}
