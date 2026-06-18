@@ -680,4 +680,5 @@ export const expanseTheme = createTheme({
     },
   }),
   logo: "/src/assets/expanse/ComfyUI_temp_rpdvh_00062_.png",
+  trackColors: { low: "#388e3c", mid: "#f57c00", high: "#d32f2f" },
 });

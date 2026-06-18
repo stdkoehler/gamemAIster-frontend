@@ -231,7 +231,7 @@ export function CyberwareBoxStyle() {
 export const SkillsBoxStyle = CyberwareBoxStyle; // Alias; if future difference, split
 
 // Damage grid and component box style
-export function DamageGridStyle() {
+export function trackGridStyle() {
   return {
     flexDirection: "row",
     alignItems: "center",
@@ -240,7 +240,7 @@ export function DamageGridStyle() {
   };
 }
 
-export function DamageComponentBoxStyle() {
+export function trackMeterBoxStyle() {
   return {
     display: "flex",
     flexDirection: "row",
@@ -261,9 +261,9 @@ function hexToRgb(hex: string) {
   return { r, g, b };
 }
 
-const color1Rgb = hexToRgb("#11ea7b");
-const color2Rgb = hexToRgb("#ffc400");
-const color3Rgb = hexToRgb("#e53f7e");
+const defaultTrackLow = hexToRgb("#11ea7b");
+const defaultTrackMid = hexToRgb("#ffc400");
+const defaultTrackHigh = hexToRgb("#e53f7e");
 
 function calculateTransition(
   startColor: { r: number; g: number; b: number },
@@ -282,19 +282,25 @@ function calculateTransition(
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-export function getDamageColor(value: number) {
+export function getTrackColor(
+  value: number,
+  colors?: { low: string; mid: string; high: string },
+) {
+  const c1 = colors ? hexToRgb(colors.low) : defaultTrackLow;
+  const c2 = colors ? hexToRgb(colors.mid) : defaultTrackMid;
+  const c3 = colors ? hexToRgb(colors.high) : defaultTrackHigh;
   const percentage = value * 100;
   if (percentage <= 50) {
-    return calculateTransition(color1Rgb, color2Rgb, percentage * 2);
+    return calculateTransition(c1, c2, percentage * 2);
   } else {
-    return calculateTransition(color2Rgb, color3Rgb, (percentage - 50) * 2);
+    return calculateTransition(c2, c3, (percentage - 50) * 2);
   }
 }
 
 // Used for TextField showing current damage percentage
-export function CreateDamageInputFieldStyle(damagePercentage: number) {
-  const damageColor = getDamageColor(damagePercentage);
+export function createTrackInputStyle(damagePercentage: number) {
   const theme = useTheme();
+  const damageColor = getTrackColor(damagePercentage, theme.trackColors);
 
   return {
     padding: "5px 5px 5px 5px",

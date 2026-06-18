@@ -1,6 +1,6 @@
 import { GameType } from "./Types";
 
-export interface HealthTrack {
+export interface StatTrack {
   current: number;
   max: number;
 }
@@ -45,11 +45,14 @@ export interface ShadowrunCharacter {
     memory: number; // LOG + WIL
     liftCarry: number; // BOD + STR
     initiativeBase: number; // REA + INT
-    initiativeDice: number; // 1d6 normally; more with wired reflexes etc.
+    initiativeDice: number; // 1d6 normally; +1d6 per Wired Reflexes level, etc.
   };
 
   // Active skills (name → rating 1–12)
   skills: Record<string, number>;
+
+  // Skill specializations grant +2 dice; expertises grant +4 (skill → spec name)
+  skillSpecializations?: Record<string, string>;
 
   // Knowledge & language skills (name → rating)
   knowledgeSkills: Record<string, number>;
@@ -70,28 +73,46 @@ export interface ShadowrunCharacter {
   bioware?: string[];
   gear: string[];
 
-  // Resources
+  // Resources & reputation
   nuyen: number;
   lifestyle: string; // Squatter / Low / Middle / High / Luxury
   streetCred: number;
   notoriety: number;
   publicAwareness: number;
+  karma?: number; // unspent karma pool
 
   // Damage monitors
   // max physical = 8 + ceil(Body / 2)
   // max stun     = 8 + ceil(Willpower / 2)
   damage: {
-    physical: HealthTrack;
-    stun: HealthTrack;
+    physical: StatTrack;
+    stun: StatTrack;
   };
 
-  // Awakened
+  // Awakened (Mages / Shamans)
   spells?: string[];
   rituals?: string[];
   mentorSpirit?: string;
 
+  // Physical Adept powers (separate from spells)
+  adeptPowers?: string[];
+
   // Technomancer
   complexForms?: string[];
+  registeredSprites?: string[]; // sprite type + level, e.g. "Machine Sprite 4"
+
+  // Decker — cyberdeck/commlink matrix attributes
+  matrixStats?: {
+    device: string; // e.g. "Microtrónica Azteca 200"
+    Attack: number;
+    Sleaze: number;
+    DataProcessing: number;
+    Firewall: number;
+    matrixConditionMonitor: StatTrack; // max = 8 + ceil(Device Rating / 2)
+  };
+
+  // Rigger — vehicles/drones
+  vehicles?: string[]; // e.g. "GMC Banshee (Pilot 3, Sensor 3)"
 }
 
 // =====================
@@ -179,11 +200,24 @@ export interface VampireCharacter {
     Technology: number;
   };
 
+  // Skill specialties (+1 die when applicable; e.g. "Melee (Swords)")
+  // Every character starts with 3 from chargen.
+  skillSpecialties?: string[];
+
   // Weapons with V5 corebook stats (all natures can carry weapons)
   weapons?: V5Weapon[];
 
-  // Disciplines (name → level 1–5); absent for mortals
-  disciplines?: Record<string, number>;
+  // Disciplines — level plus the specific powers chosen within that discipline.
+  // V5 requires explicitly selecting powers; having Dominate 3 does not mean
+  // all three level-1/2/3 powers are known — they must be purchased individually.
+  disciplines?: Record<string, {
+    level: number; // highest level purchased (1–5)
+    powers: string[]; // e.g. ["Cloud Memory", "Compel", "Mesmerize"]
+  }>;
+
+  // Merits & Flaws (Advantages / Flaws in V5 terminology)
+  merits?: string[];
+  flaws?: string[];
 
   // Blood — Kindred and thin-bloods only
   hunger?: number; // 0–5
@@ -191,7 +225,10 @@ export interface VampireCharacter {
   resonance?: string; // Choleric / Melancholy / Phlegmatic / Sanguine / Animal / Bagged
   temperament?: string; // Fleeting / Acute / Resonant
 
-  // Morality (tracked for Kindred; mortals rarely deviate from 10)
+  // Thin-blood only — alchemy formulae (replaces disciplines for thin-bloods)
+  thinBloodAlchemy?: string[];
+
+  // Morality (tracked for Kindred; mortals start at 10)
   humanity?: number; // 0–10
 
   // Chronicle-level fields
@@ -202,14 +239,17 @@ export interface VampireCharacter {
   clanBane?: string;
   compulsion?: string;
 
-  // Backgrounds (name → rating)
+  // Backgrounds (name → rating, e.g. Resources: 3, Haven: 2)
   backgrounds?: Record<string, number>;
+
+  // Loresheets (optional special background benefits tied to clan/organisation)
+  loresheets?: string[];
 
   // Derived
   // Health max    = Stamina + 3
   // Willpower max = Composure + Resolve
-  health: HealthTrack;
-  willpower: HealthTrack;
+  health: StatTrack;
+  willpower: StatTrack;
 
   // Experience
   experienceTotal?: number;
@@ -220,17 +260,31 @@ export interface VampireCharacter {
 // Call of Cthulhu 7th Ed
 // =====================
 
+// CoC 7e weapon table stats.
+// damage may include "db" meaning the character's damage bonus is added.
+// malfunction: firearm jams on a roll >= this number (100 = never jams).
+export interface CocWeapon {
+  name: string;
+  skill: string; // e.g. "Fighting (Brawl)", "Firearms (Handgun)", "Firearms (Rifle)"
+  damage: string; // e.g. "1d3+db", "1d8", "1d10+2"
+  range?: string; // yards (ranged only), e.g. "15 yds" or "15/30/50 yds"
+  attacksPerRound?: number;
+  ammo?: number; // magazine/cylinder capacity
+  malfunction?: number; // 100 = reliable; lower = more prone to jam
+}
+
 export interface CthulhuCharacter {
   gameType: GameType.CALL_OF_CTHULHU;
   id: number;
   name: string;
   occupation: string;
+  era: string; // "1920s" | "Modern" | "Dark Ages" | custom
   age: number;
   residence?: string;
   birthplace?: string;
   description: string;
 
-  // Characteristics (5×roll or point-buy; 15–90 range)
+  // Characteristics (5×roll or point-buy; 15–90 range typical)
   characteristics: {
     STR: number;
     CON: number;
@@ -242,27 +296,43 @@ export interface CthulhuCharacter {
     EDU: number;
   };
 
-  // Derived
+  // Derived — half and fifth values are used for Hard / Extreme success thresholds
+  // in every dice roll, so they belong on the character sheet.
   derived: {
     hpMax: number; // floor((CON + SIZ) / 10)
     mpMax: number; // floor(POW / 5)
     sanityMax: number; // 99 − Cthulhu Mythos
     build: number; // −2 to +2 based on STR+SIZ
-    damageBonus: string; // e.g. "+1d4"
-    moveRate: number; // 7–9 based on DEX/STR vs SIZ
+    damageBonus: string; // e.g. "+1d4", "−1", "0"
+    moveRate: number; // 7–9 based on STR/DEX vs SIZ
+    // Half and Fifth values for each characteristic
+    half: {
+      STR: number; DEX: number; INT: number; CON: number;
+      APP: number; POW: number; SIZ: number; EDU: number;
+    };
+    fifth: {
+      STR: number; DEX: number; INT: number; CON: number;
+      APP: number; POW: number; SIZ: number; EDU: number;
+    };
   };
 
-  // Skills (name → current %)
+  // Skills (name → regular %; Hard = half, Extreme = fifth — derived at use time)
   skills: Record<string, number>;
 
   // Tracks
-  hitPoints: HealthTrack;
-  sanity: HealthTrack;
-  magicPoints: HealthTrack;
+  hitPoints: StatTrack;
+  sanity: StatTrack;
+  magicPoints: StatTrack;
   luck: number;
-  cthulhuMythos: number; // reduces sanity max
+  cthulhuMythos: number; // reduces sanity max; increases as Mythos is encountered
 
-  // Background
+  // Spells learned from Mythos tomes / entities
+  spells?: string[];
+
+  // Mythos tomes studied (affects Cthulhu Mythos skill gain)
+  tomesStudied?: string[];
+
+  // Backstory (official CoC 7e character sheet sections)
   personalDescription?: string;
   traits?: string[];
   ideologyBeliefs?: string[];
@@ -273,7 +343,7 @@ export interface CthulhuCharacter {
   treasuredPossessions?: string[];
 
   // Equipment
-  weapons?: string[];
+  weapons?: CocWeapon[];
   gear?: string[];
   spendingLevel?: string;
   cash?: number;
@@ -283,6 +353,16 @@ export interface CthulhuCharacter {
 // =====================
 // Seventh Sea 2nd Ed
 // =====================
+
+// In 7th Sea 2e, weapons determine which Trait backs the attack roll
+// and whether the weapon qualifies for a Duelist School style.
+// Damage is resolved via Raises (each Raise = 1 Wound) — no separate damage dice.
+export interface SeventhSeaWeapon {
+  name: string;
+  trait: "Brawn" | "Finesse" | "Wits"; // Trait used with Weaponry or Aim
+  type: "fencing" | "heavy" | "firearm" | "improvised" | "thrown";
+  properties?: Array<"Dueling" | "Paired" | "Reload" | "Reach" | "Gunpowder" | "Defensive">;
+}
 
 export interface SeventhSeaCharacter {
   gameType: GameType.SEVENTH_SEA;
@@ -324,33 +404,64 @@ export interface SeventhSeaCharacter {
     Weaponry: number;
   };
 
-  // Advantages (special abilities; names only)
+  // Advantages (special purchased abilities; e.g. "Sea Legs", "Valroux Duelist")
   advantages: string[];
 
-  // Sorcery (optional; Porté, Laerdom, El Fuego Adentro, etc.)
+  // Sorcery (optional; Porté, Laerdom, El Fuego Adentro, Sorte, etc.)
   sorcery?: {
     type: string;
     knacks: string[];
   };
 
-  // Dueling style
+  // Dueling style (from a Duelist Academy advantage)
   duelingStyle?: string;
 
-  // Stories
+  // Secret society membership
+  secretSociety?: {
+    name: string; // Explorer's Society, Sophia's Daughters, Invisible College, etc.
+    rank: string; // e.g. "Recruit", "Member", "Advocate"
+  };
+
+  // Social standing
+  // reputation: positive = heroic, negative = villainous
+  reputation?: number;
+  // Corruption from dark pacts or forbidden sorcery
+  corruption?: number;
+  // Wealth trait 0–5: determines purchasing power and spending dice
+  wealth?: number;
+
+  // Languages spoken (beyond native)
+  languages?: string[];
+
+  // Equipment
+  weapons?: SeventhSeaWeapon[];
+  gear?: string[];
+
+  // Stories & Goals
   stories?: string[];
   goals?: string[];
 
   // State
-  wounds: HealthTrack; // Dramatic Wounds; max = Resolve × 5 (or similar variant)
+  // Dramatic Wounds — Helpless when wounds = Resolve trait (not Resolve × 5)
+  wounds: StatTrack;
   heroPoints: number;
 
-  // Background
+  // Background archetypes from chargen
   backgrounds?: string[];
 }
 
 // =====================
 // The Expanse RPG — AGE System
 // =====================
+
+// AGE weapon stats (The Expanse corebook weapons table)
+export interface AgeWeapon {
+  name: string;
+  damage: string; // e.g. "2d6+3", "1d6+5"
+  minStr?: number; // minimum Strength to use without penalty
+  range?: string; // e.g. "Short/Long 10/30m"
+  qualities?: string[]; // e.g. "Accurate", "Burst Fire", "Piercing 2"
+}
 
 export interface ExpanseCharacter {
   gameType: GameType.EXPANSE;
@@ -381,43 +492,64 @@ export interface ExpanseCharacter {
   talents?: Record<string, number>;
 
   // Derived
-  speed: number; // 10 + Dexterity (in meters)
+  speed: number; // 10 + Dexterity
   defense: number; // 10 + Dexterity
-  toughness?: number; // from armor/talents
+  toughness?: number; // from armor / talents
 
   // State
-  health: HealthTrack;
+  health: StatTrack;
   fortune: number; // Fortune points for player agency
 
+  // Active conditions (Injured, Fatigued, Frightened, etc.)
+  conditions?: string[];
+
   // Equipment
-  weapons?: string[];
+  weapons?: AgeWeapon[];
   armor?: string;
   gear?: string[];
 
   // Drive & Relationships
-  drive?: string; // Character motivation
+  drive?: string;
   relationships?: string[];
 }
 
 // =====================
 // Slavic 800 AD
 // Based on Forbidden Lands (Free League Publishing) —
-// a Year Zero Engine OSR game; simple 4-attribute + skill design
-// fits dark mythological pre-medieval settings perfectly.
+// Year Zero Engine; 4 attributes each act as both stat and health pool.
+// Damage is dealt to the governing attribute directly (not a separate HP pool).
+// Broken when any attribute is reduced to 0.
 // =====================
+
+export interface SlavicArmor {
+  name: string;
+  rating: number; // armor protection value (reduces damage)
+}
 
 export interface SlavicCharacter {
   gameType: GameType.SLAVIC;
   id: number;
   name: string;
-  kin: string; // Human, Völva-born, Warrior-born, etc. (homebrew kin types)
+  kin: string; // e.g. Human, Völva-born, Warrior-born (homebrew kin types)
+  kinAbility: string; // each kin has a unique special ability
   calling: string; // Warrior, Hunter, Volkhv (shaman), Skald, Kupets (merchant)
-  age?: string; // Young / Middle-aged / Old (affects starting attributes in FL)
+  age?: string; // Young / Middle-aged / Old (affects starting attribute values)
   description: string;
 
   // Attributes 2–5 (one die per point: d6/d8/d10/d12)
+  // In Forbidden Lands each attribute is also its own damage track.
+  // A character is Broken in an aspect when that attribute's current value = 0.
   attributes: {
     Strength: number;
+    Agility: number;
+    Wits: number;
+    Empathy: number;
+  };
+
+  // Attribute damage — tracks current value after taking damage.
+  // Broken conditions: Strength/Agility → Exhausted; Wits → Confused; Empathy → Hopeless.
+  attributeDamage: {
+    Strength: number; // current (starts equal to attributes.Strength)
     Agility: number;
     Wits: number;
     Empathy: number;
@@ -444,26 +576,26 @@ export interface SlavicCharacter {
     Performance: number;
   };
 
-  // Talents (special abilities; names only)
+  // Talents (special abilities from calling or general pool)
   talents: string[];
 
-  // Wyrd — spiritual power / fate points (optional, for mystic callings)
-  wyrd?: HealthTrack;
-
-  // State
-  // In Forbidden Lands, damage is dealt to the governing attribute directly.
-  // We track it as a combined health pool for simplicity.
-  willpower: HealthTrack; // Wits-based, used for pushing rolls and abilities
-  health: HealthTrack; // Strength-based; Broken when reduced to 0
+  // Wyrd — spiritual power / fate points (for mystic callings like Volkhv)
+  wyrd?: StatTrack;
 
   // Equipment
   weapons?: string[];
-  armor?: string;
+  armor?: SlavicArmor;
   gear?: string[];
 
-  // Pride & Dark Secret (core FL character traits)
-  pride?: string;
+  // Core Forbidden Lands character traits
+  pride?: string; // once per session, re-roll all dice if it applies
   darkSecret?: string;
+
+  // Relationships / bonds with other player characters
+  relationships?: string[];
+
+  // Experience (used to unlock new skills and talents)
+  experience?: number;
 }
 
 // =====================

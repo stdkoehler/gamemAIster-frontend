@@ -10,7 +10,6 @@ import {
   AccordionSummary,
   Chip,
   Divider,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -27,15 +26,18 @@ import {
   InfoBoxStyle,
   InfoInnerBoxStyle,
   SkillsBoxStyle,
-  DamageGridStyle,
-  DamageComponentBoxStyle,
-  getDamageColor,
-  CreateDamageInputFieldStyle,
+  trackGridStyle,
+  trackMeterBoxStyle,
+  getTrackColor,
+  createTrackInputStyle,
 } from "../styles/styles";
 import {
   CharacterProps,
-  HealthTrack,
+  StatTrack,
   V5Weapon,
+  CocWeapon,
+  AgeWeapon,
+  SeventhSeaWeapon,
   ShadowrunCharacter,
   VampireCharacter,
   CthulhuCharacter,
@@ -50,17 +52,28 @@ import useAppStore from "../stores/appStore";
 // Shared sub-components
 // =====================
 
-interface HealthTrackComponentProps {
+interface StatMeterProps {
   label: string;
-  track: HealthTrack;
+  track: StatTrack;
+  onChange?: (current: number) => void;
+  /** When true, high values are good (remaining HP/resource). Low values become red. */
+  inverse?: boolean;
 }
 
-const HealthTrackComponent: React.FC<HealthTrackComponentProps> = ({
+const StatMeter: React.FC<StatMeterProps> = ({
   label,
   track,
+  onChange,
+  inverse = false,
 }) => {
+  const theme = useTheme();
   const [current, setCurrent] = useState(track.current);
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // Sync local state when the store updates (e.g. character sheet edit)
+  React.useEffect(() => {
+    setCurrent(track.current);
+  }, [track.current]);
 
   React.useEffect(() => {
     const inputEl = inputRef.current;
@@ -73,31 +86,35 @@ const HealthTrackComponent: React.FC<HealthTrackComponentProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value);
-    if (val >= 0 && val <= track.max) setCurrent(val);
+    if (val >= 0 && val <= track.max) {
+      setCurrent(val);
+      onChange?.(val);
+    }
   };
 
   const percentage = current / track.max;
+  const colorPercentage = inverse ? 1 - percentage : percentage;
 
   return (
     <>
       <Typography>{label}:</Typography>
-      <Box sx={DamageComponentBoxStyle()}>
+      <Box sx={trackMeterBoxStyle()}>
         <TextField
           type="number"
           value={current}
           onChange={handleChange}
           size="small"
           inputRef={inputRef}
-          sx={CreateDamageInputFieldStyle(percentage)}
+          sx={createTrackInputStyle(colorPercentage)}
         />
         <CircularProgress
           variant="determinate"
           value={percentage * 100}
           size={60}
           thickness={4}
-          sx={{ color: getDamageColor(percentage), padding: "5px" }}
+          sx={{ color: getTrackColor(colorPercentage, theme.trackColors), padding: "5px" }}
         />
-        <Typography sx={{ color: getDamageColor(percentage) }}>
+        <Typography sx={{ color: getTrackColor(colorPercentage, theme.trackColors) }}>
           {`${current}/${track.max}`}
         </Typography>
       </Box>
@@ -166,7 +183,10 @@ const SR_COMBAT_SKILLS = new Set([
   "Pilot Aircraft",
 ]);
 
-const ShadowrunNpcCard: React.FC<ShadowrunCharacter> = (c) => {
+type WithUpdate = { onCharacterUpdate?: (c: CharacterProps) => void };
+
+const ShadowrunNpcCard: React.FC<ShadowrunCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
     Object.entries(c.skills).filter(([k]) => SR_COMBAT_SKILLS.has(k)),
   );
@@ -207,12 +227,20 @@ const ShadowrunNpcCard: React.FC<ShadowrunCharacter> = (c) => {
         </Grid>
       </Grid>
       <Divider sx={{ my: 1 }} />
-      <Grid container spacing={2} sx={DamageGridStyle()}>
+      <Grid container spacing={2} sx={trackGridStyle()}>
         <Grid>
-          <HealthTrackComponent label="Physical" track={c.damage.physical} />
+          <StatMeter
+            label="Physical"
+            track={c.damage.physical}
+            onChange={(val) => onCharacterUpdate?.({ ...c, damage: { ...c.damage, physical: { ...c.damage.physical, current: val } } })}
+          />
         </Grid>
         <Grid>
-          <HealthTrackComponent label="Stun" track={c.damage.stun} />
+          <StatMeter
+            label="Stun"
+            track={c.damage.stun}
+            onChange={(val) => onCharacterUpdate?.({ ...c, damage: { ...c.damage, stun: { ...c.damage.stun, current: val } } })}
+          />
         </Grid>
       </Grid>
     </Box>
@@ -247,7 +275,8 @@ const VTM_COMBAT_SKILLS: Array<keyof VampireCharacter["skills"]> = [
   "Awareness",
 ];
 
-const VampireNpcCard: React.FC<VampireCharacter> = (c) => {
+const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
     VTM_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(([, v]) => (v as number) > 0),
   );
@@ -284,7 +313,16 @@ const VampireNpcCard: React.FC<VampireCharacter> = (c) => {
         </Grid>
         {c.disciplines && Object.keys(c.disciplines).length > 0 && (
           <Grid>
-            <KeyValueList title="Disciplines" entries={c.disciplines} />
+            <Box sx={InfoBoxStyle()}>
+              <Box sx={InfoInnerBoxStyle()}>
+                <Typography variant="body2" fontWeight="bold">Disciplines:</Typography>
+                {Object.entries(c.disciplines).map(([name, d]) => (
+                  <Typography key={name} variant="body2">
+                    {name} {d.level} — {d.powers.join(", ")}
+                  </Typography>
+                ))}
+              </Box>
+            </Box>
           </Grid>
         )}
       </Grid>
@@ -311,12 +349,22 @@ const VampireNpcCard: React.FC<VampireCharacter> = (c) => {
         </Grid>
       )}
       <Divider sx={{ my: 1 }} />
-      <Grid container spacing={2} sx={DamageGridStyle()}>
+      <Grid container spacing={2} sx={trackGridStyle()}>
         <Grid>
-          <HealthTrackComponent label="Health" track={c.health} />
+          <StatMeter
+            label="Health"
+            track={c.health}
+            onChange={(val) => onCharacterUpdate?.({ ...c, health: { ...c.health, current: val } })}
+            inverse
+          />
         </Grid>
         <Grid>
-          <HealthTrackComponent label="Willpower" track={c.willpower} />
+          <StatMeter
+            label="Willpower"
+            track={c.willpower}
+            onChange={(val) => onCharacterUpdate?.({ ...c, willpower: { ...c.willpower, current: val } })}
+            inverse
+          />
         </Grid>
       </Grid>
     </Box>
@@ -333,7 +381,8 @@ const COC_COMBAT_SKILLS = new Set([
   "Throw",
 ]);
 
-const CthulhuNpcCard: React.FC<CthulhuCharacter> = (c) => {
+const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
     Object.entries(c.skills).filter(([k]) => COC_COMBAT_SKILLS.has(k)),
   );
@@ -377,13 +426,37 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter> = (c) => {
           </Box>
         </Grid>
       </Grid>
+      {c.weapons && c.weapons.length > 0 && (
+        <Box sx={{ my: 1 }}>
+          <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
+          {c.weapons.map((w: CocWeapon) => (
+            <Typography key={w.name} variant="body2">
+              {w.name} — {w.damage} ({w.skill})
+              {w.range ? `, ${w.range}` : ""}
+              {w.ammo !== undefined ? `, ${w.ammo} rds` : ""}
+              {w.malfunction !== undefined && w.malfunction < 100
+                ? `, malf ${w.malfunction}` : ""}
+            </Typography>
+          ))}
+        </Box>
+      )}
       <Divider sx={{ my: 1 }} />
-      <Grid container spacing={2} sx={DamageGridStyle()}>
+      <Grid container spacing={2} sx={trackGridStyle()}>
         <Grid>
-          <HealthTrackComponent label="Hit Points" track={c.hitPoints} />
+          <StatMeter
+            label="Hit Points"
+            track={c.hitPoints}
+            onChange={(val) => onCharacterUpdate?.({ ...c, hitPoints: { ...c.hitPoints, current: val } })}
+            inverse
+          />
         </Grid>
         <Grid>
-          <HealthTrackComponent label="Sanity" track={c.sanity} />
+          <StatMeter
+            label="Sanity"
+            track={c.sanity}
+            onChange={(val) => onCharacterUpdate?.({ ...c, sanity: { ...c.sanity, current: val } })}
+            inverse
+          />
         </Grid>
       </Grid>
     </Box>
@@ -400,7 +473,8 @@ const SS_COMBAT_SKILLS: Array<keyof SeventhSeaCharacter["skills"]> = [
   "Weaponry",
 ];
 
-const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter> = (c) => {
+const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
     SS_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(([, v]) => (v as number) > 0),
   );
@@ -427,10 +501,27 @@ const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter> = (c) => {
           Dueling Style: {c.duelingStyle}
         </Typography>
       )}
+      {c.weapons && c.weapons.length > 0 && (
+        <Box sx={{ my: 1 }}>
+          <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
+          {c.weapons.map((w: SeventhSeaWeapon) => (
+            <Typography key={w.name} variant="body2">
+              {w.name} ({w.trait}, {w.type}
+              {w.properties && w.properties.length > 0
+                ? ` — ${w.properties.join(", ")}`
+                : ""})
+            </Typography>
+          ))}
+        </Box>
+      )}
       <Divider sx={{ my: 1 }} />
-      <Grid container spacing={2} sx={DamageGridStyle()}>
+      <Grid container spacing={2} sx={trackGridStyle()}>
         <Grid>
-          <HealthTrackComponent label="Wounds" track={c.wounds} />
+          <StatMeter
+            label="Wounds"
+            track={c.wounds}
+            onChange={(val) => onCharacterUpdate?.({ ...c, wounds: { ...c.wounds, current: val } })}
+          />
         </Grid>
       </Grid>
     </Box>
@@ -446,7 +537,8 @@ const EXPANSE_COMBAT_ABILITIES: Array<keyof ExpanseCharacter["abilities"]> = [
   "Strength",
 ];
 
-const ExpanseNpcCard: React.FC<ExpanseCharacter> = (c) => {
+const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
   const combatAbilities = Object.fromEntries(
     EXPANSE_COMBAT_ABILITIES.map((k) => [k, c.abilities[k]]),
   );
@@ -483,14 +575,28 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter> = (c) => {
         </Grid>
         {c.weapons && c.weapons.length > 0 && (
           <Grid>
-            <TagList title="Weapons" items={c.weapons} />
+            <Box sx={{ my: 1 }}>
+              <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
+              {c.weapons.map((w: AgeWeapon) => (
+                <Typography key={w.name} variant="body2">
+                  {w.name} — {w.damage}
+                  {w.range ? `, ${w.range}` : ""}
+                  {w.qualities && w.qualities.length > 0 ? ` [${w.qualities.join(", ")}]` : ""}
+                </Typography>
+              ))}
+            </Box>
           </Grid>
         )}
       </Grid>
       <Divider sx={{ my: 1 }} />
-      <Grid container spacing={2} sx={DamageGridStyle()}>
+      <Grid container spacing={2} sx={trackGridStyle()}>
         <Grid>
-          <HealthTrackComponent label="Health" track={c.health} />
+          <StatMeter
+            label="Health"
+            track={c.health}
+            onChange={(val) => onCharacterUpdate?.({ ...c, health: { ...c.health, current: val } })}
+            inverse
+          />
         </Grid>
       </Grid>
     </Box>
@@ -506,10 +612,23 @@ const SLAVIC_COMBAT_SKILLS: Array<keyof SlavicCharacter["skills"]> = [
   "Scout",
 ];
 
-const SlavicNpcCard: React.FC<SlavicCharacter> = (c) => {
+const SlavicNpcCard: React.FC<SlavicCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
     SLAVIC_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(([, v]) => (v as number) > 0),
   );
+
+  // Build per-attribute damage tracks from attributeDamage vs attributes
+  const attrTracks: { label: string; track: StatTrack; onChange?: (val: number) => void; inverse: boolean }[] = (
+    ["Strength", "Agility", "Wits", "Empathy"] as const
+  ).map((attr) => ({
+    label: attr,
+    track: { current: c.attributeDamage[attr], max: c.attributes[attr] },
+    onChange: onCharacterUpdate
+      ? (val: number) => onCharacterUpdate({ ...c, attributeDamage: { ...c.attributeDamage, [attr]: val } })
+      : undefined,
+    inverse: true,
+  }));
 
   return (
     <Box sx={CardBoxStyle()}>
@@ -532,19 +651,20 @@ const SlavicNpcCard: React.FC<SlavicCharacter> = (c) => {
         <TagList title="Weapons" items={c.weapons} />
       )}
       {c.armor && (
-        <Typography variant="body2">Armor: {c.armor}</Typography>
+        <Typography variant="body2">
+          Armor: {c.armor.name} (Rating {c.armor.rating})
+        </Typography>
       )}
       {c.talents.length > 0 && (
         <TagList title="Talents" items={c.talents} />
       )}
       <Divider sx={{ my: 1 }} />
-      <Grid container spacing={2} sx={DamageGridStyle()}>
-        <Grid>
-          <HealthTrackComponent label="Health" track={c.health} />
-        </Grid>
-        <Grid>
-          <HealthTrackComponent label="Willpower" track={c.willpower} />
-        </Grid>
+      <Grid container spacing={2} sx={trackGridStyle()}>
+        {attrTracks.map(({ label, track, onChange, inverse }) => (
+          <Grid key={label}>
+            <StatMeter label={label} track={track} onChange={onChange} inverse={inverse} />
+          </Grid>
+        ))}
       </Grid>
     </Box>
   );
@@ -554,7 +674,7 @@ const SlavicNpcCard: React.FC<SlavicCharacter> = (c) => {
 // NpcCard dispatcher
 // =====================
 
-export const NpcCard: React.FC<CharacterProps> = (props) => {
+export const NpcCard: React.FC<CharacterProps & WithUpdate> = (props) => {
   switch (props.gameType) {
     case GameType.SHADOWRUN:
       return <ShadowrunNpcCard {...props} />;
@@ -713,7 +833,11 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
             properties: ["Loud"],
           },
         ],
-        disciplines: { Dominate: 3, Fortitude: 2, Presence: 2 },
+        disciplines: {
+          Dominate: { level: 3, powers: ["Cloud Memory", "Compel", "Mesmerize"] },
+          Fortitude: { level: 2, powers: ["Resilience", "Unswayable Mind"] },
+          Presence: { level: 2, powers: ["Awe", "Daunt"] },
+        },
         hunger: 2,
         bloodPotency: 3,
         resonance: "Sanguine",
@@ -736,6 +860,7 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
         id,
         name: "Dr. Evelyn Shaw",
         occupation: "Archaeologist",
+        era: "1920s",
         age: 38,
         residence: "Boston, Massachusetts",
         birthplace: "Oxford, England",
@@ -752,12 +877,14 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
           EDU: 85,
         },
         derived: {
-          hpMax: 11, // floor((CON+SIZ)/10) = floor(110/10)
-          mpMax: 14, // floor(POW/5) = 14
-          sanityMax: 67, // 99 - Cthulhu Mythos (8) = 91... wait, starting sanity = POW = 70, reduced by events
+          hpMax: 11,    // floor((CON 60 + SIZ 50) / 10)
+          mpMax: 14,    // floor(POW 70 / 5)
+          sanityMax: 91, // 99 − Cthulhu Mythos (8)
           build: 0,
           damageBonus: "+0",
           moveRate: 8,
+          half:  { STR: 25, CON: 30, SIZ: 25, DEX: 32, APP: 30, INT: 40, POW: 35, EDU: 42 },
+          fifth: { STR: 10, CON: 12, SIZ: 10, DEX: 13, APP: 12, INT: 16, POW: 14, EDU: 17 },
         },
         skills: {
           "Archaeology": 75,
@@ -783,7 +910,23 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
         traits: ["Methodical", "Cautiously curious"],
         ideologyBeliefs: ["Science can explain everything, eventually"],
         personalDescription: "Wiry and weathered, perpetually ink-stained fingers.",
-        weapons: ["Revolver (.38)"],
+        weapons: [
+          {
+            name: "Revolver (.38)",
+            skill: "Firearms (Handgun)",
+            damage: "1d8",
+            range: "15 yds",
+            attacksPerRound: 1,
+            ammo: 6,
+            malfunction: 100,
+          },
+          {
+            name: "Fist",
+            skill: "Fighting (Brawl)",
+            damage: "1d3+db",
+            attacksPerRound: 1,
+          },
+        ],
         gear: ["Archaeology Tools", "Leather Satchel", "Notebook", "Electric Torch"],
         spendingLevel: "$10/day",
         cash: 85,
@@ -826,6 +969,12 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
         },
         advantages: ["Commander", "Sea Legs", "Valroux Duelist Academy", "Friend at Court"],
         duelingStyle: "Valroux (Feint & Riposte)",
+        weapons: [
+          { name: "Rapier", trait: "Finesse", type: "fencing", properties: ["Dueling"] },
+          { name: "Main Gauche", trait: "Finesse", type: "fencing", properties: ["Dueling", "Paired", "Defensive"] },
+          { name: "Flintlock Pistol", trait: "Finesse", type: "firearm", properties: ["Reload", "Gunpowder"] },
+        ],
+        gear: ["Spyglass", "Navigator's Charts", "Fine Clothes"],
         stories: ["Recover the Leblanc family signet ring"],
         goals: ["Become the most feared captain in the Théan Sea"],
         wounds: { current: 0, max: 15 }, // Resolve (3) × 5
@@ -868,7 +1017,11 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
         toughness: 1,
         health: { current: 50, max: 50 },
         fortune: 3,
-        weapons: ["Kang HVAR Assault Rifle", "Sidearm (Glock 9mm)", "Combat Knife"],
+        weapons: [
+          { name: "Kang HVAR Assault Rifle", damage: "3d6+4", range: "Short/Long 30/150m", qualities: ["Burst Fire", "Two-Handed"] },
+          { name: "Sidearm (9mm)", damage: "2d6+2", range: "Short/Long 10/30m", qualities: ["Concealable"] },
+          { name: "Combat Knife", damage: "1d6+3", qualities: ["Stealthy"] },
+        ],
         armor: "MCRN Infantry Battle Dress",
         gear: ["Tactical Helmet (HUD)", "Medpatch ×3", "Encrypted Communit"],
         drive: "Prove her worth outside the MCRN structure",
@@ -881,11 +1034,18 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
         id,
         name: "Mstislav Medvezhy",
         kin: "Human",
+        kinAbility: "Adaptable — may re-roll one die when pushing a roll",
         calling: "Volkhv",
         age: "Middle-aged",
         description:
           "A wandering shaman who walks between the world of the living and the realm of Nav, carrying secrets of the old gods.",
         attributes: {
+          Strength: 2,
+          Agility: 3,
+          Wits: 4,
+          Empathy: 4,
+        },
+        attributeDamage: {
           Strength: 2,
           Agility: 3,
           Wits: 4,
@@ -908,13 +1068,12 @@ function createNpcDummy(gameType: GameType, id: number): CharacterProps | null {
         },
         talents: ["Spirit Caller", "Herb Lore", "Dream Walker"],
         wyrd: { current: 3, max: 3 },
-        willpower: { current: 4, max: 4 },
-        health: { current: 3, max: 3 }, // Strength attribute value
         weapons: ["Oak Staff"],
-        armor: "Linen Robe (no protection)",
+        armor: { name: "Linen Robe", rating: 0 },
         gear: ["Herbalist Pouch", "Carved Runes", "Waterskin", "Tallow Candles"],
         pride: "Never refused to heal a person in need",
         darkSecret: "Bargained with a Navian spirit to save his daughter — owes a debt not yet collected",
+        experience: 0,
       };
 
     default:
@@ -987,16 +1146,36 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
               sx={{ "& .MuiAccordionSummary-content": { alignItems: "center" } }}
             >
               <Typography sx={{ flexGrow: 1 }}>{npc.name}</Typography>
-              <IconButton
-                size="small"
+              <Box
+                component="span"
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
                   setPendingDeleteId(npc.id);
                 }}
-                sx={{ ml: 1, color: alpha(theme.palette.primary.main, 0.5) }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                    setPendingDeleteId(npc.id);
+                  }
+                }}
+                sx={{
+                  ml: 1,
+                  cursor: "pointer",
+                  color: alpha(theme.palette.primary.main, 0.5),
+                  display: "inline-flex",
+                  alignItems: "center",
+                  borderRadius: "50%",
+                  padding: "4px",
+                  "&:hover": {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                    color: theme.palette.primary.main,
+                  },
+                }}
               >
                 <CloseIcon fontSize="small" />
-              </IconButton>
+              </Box>
             </AccordionSummary>
             <NpcCard {...npc} />
           </Accordion>

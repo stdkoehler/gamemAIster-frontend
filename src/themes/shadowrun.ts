@@ -265,4 +265,5 @@ export const shadowrunTheme = createTheme({
     },
   }),
   logo: "/src/assets/shadowrun/sr_00096_.png", // User's original logo
+  trackColors: { low: "#11ea7b", mid: "#ffc400", high: "#e53f7e" },
 });

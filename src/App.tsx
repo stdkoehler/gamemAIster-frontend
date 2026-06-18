@@ -15,6 +15,8 @@ import History from "./components/History";
 
 import { MissionMenu } from "./components/MissionMenu";
 import { NpcManager } from "./components/NpcCard";
+import { CharacterManager } from "./components/CharacterManager";
+import { CharacterSheetPopup } from "./components/CharacterSheet";
 import { getMission } from "./functions/restInterface";
 import { GameType } from "./models/Types";
 
@@ -157,7 +159,6 @@ const App: React.FC = () => {
                 borderRight: `0.5px solid ${alpha(currentTheme.palette.primary.main, 0.12)}`,
                 px: 1.5,
                 py: 1.5,
-                height: "100%",
                 width: "100%",
                 boxSizing: "border-box",
               }}
@@ -169,6 +170,7 @@ const App: React.FC = () => {
                 loadCallback={loadMission}
                 getMissionData={getMissionData}
               />
+              <CharacterManager />
               <NpcManager />
             </Box>
             <AppGrid
@@ -199,6 +201,7 @@ const App: React.FC = () => {
           </SplitScreen>
         </Box>
       </Box>
+      <CharacterSheetPopup />
     </ThemeProvider>
   );
 };

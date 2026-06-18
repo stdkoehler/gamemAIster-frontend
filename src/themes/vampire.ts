@@ -678,4 +678,5 @@ export const vampireTheme = createTheme({
     },
   }),
   logo: "/src/assets/vampire/vtm_00004_.png",
+  trackColors: { low: "#4a7a54", mid: "#a98f5b", high: "#c00000" },
 });

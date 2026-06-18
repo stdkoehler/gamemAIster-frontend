@@ -653,4 +653,5 @@ export const slavicTheme = createTheme({
     },
   }),
   logo: "/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
+  trackColors: { low: "#3a7a3a", mid: "#9a6030", high: "#8a1818" },
 });
