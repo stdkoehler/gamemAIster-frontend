@@ -49,6 +49,27 @@ The app will be available at `http://localhost:5173` by default.
 - The frontend expects a backend LLM server running at the address configured in `src/functions/restInterface.tsx` (default: `http://localhost:8000`).
 - The backend will provide `/mission/` and `/interaction/` endpoints compatible with the frontend's API calls.
 
+## NPC sheet schema contract
+
+The hand-crafted `*Character` TS interfaces in `src/models/CharacterProps.tsx`
+(and the `NpcCard.tsx` components that render them) are the design source of
+truth for what an NPC sheet must look like — the backend's NPC generation
+pipeline (`gamemAIster-backend`) must conform to them, not the other way
+around.
+
+`npm run gen:npc-schemas` generates a JSON Schema per game system directly
+from those TS interfaces and writes them into the backend repo at
+`gamemAIster-backend/tests/schemas/<game_type>.schema.json` (requires the
+backend repo to be checked out as a sibling directory, i.e.
+`../gamemAIster-backend`). The backend's
+`tests/test_npc_schema_contract.py` validates its NPC-merge output against
+these generated schemas.
+
+**Whenever you change a `*Character` interface in `CharacterProps.tsx`,
+re-run `npm run gen:npc-schemas` and commit the regenerated schema files in
+the backend repo alongside your frontend change**, otherwise the backend's
+contract test will silently keep checking against a stale shape.
+
 ## Customization
 
 - **Themes:**
