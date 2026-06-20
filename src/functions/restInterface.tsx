@@ -367,6 +367,7 @@ export async function getLoadMissions(
     ? data.character_sheets.map((s) => ({
         sheetId: s.character_sheet_id,
         isProtagonist: s.is_protagonist,
+        isNpc: s.is_npc,
         data: s.content,
       }))
     : [];
@@ -391,9 +392,25 @@ export async function upsertCharacterSheet(payload: {
   game_type: string;
   content: CharacterProps;
   is_protagonist: boolean;
+  is_npc?: boolean;
 }): Promise<CharacterSheetPayload> {
   return await apiRequest<CharacterSheetPayload>(
     "/mission/upsert-character-sheet",
+    "POST",
+    { ...payload, is_npc: payload.is_npc ?? false },
+  );
+}
+
+/**
+ * Generates a new NPC via the backend's LLM pipeline (profile -> stats -> equipment)
+ * and persists it as a character sheet for the given mission.
+ */
+export async function createNpc(payload: {
+  mission_id: number;
+  name: string;
+}): Promise<CharacterSheetPayload> {
+  return await apiRequest<CharacterSheetPayload>(
+    "/mission/create-npc",
     "POST",
     payload,
   );
@@ -419,6 +436,7 @@ export async function getCharacterSheets(
   return sheets.map((s) => ({
     sheetId: s.character_sheet_id,
     isProtagonist: s.is_protagonist,
+    isNpc: s.is_npc,
     data: s.content,
   }));
 }

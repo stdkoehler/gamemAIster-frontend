@@ -46,8 +46,14 @@ import {
   SlavicCharacter,
 } from "../models/CharacterProps";
 import { GameType } from "../models/Types";
+import { CharacterRecord } from "../models/MissionModels";
 import useAppStore from "../stores/appStore";
 import { createNpcDummy } from "../data/defaultCharacters";
+import {
+  createNpc,
+  deleteCharacterSheet,
+  getCharacterSheets,
+} from "../functions/restInterface";
 
 // =====================
 // Shared sub-components
@@ -708,25 +714,90 @@ interface NpcManagerProps {
 
 export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
   const gameType = useAppStore((s) => s.gameType);
-  const [npcs, setNpcs] = useState<CharacterProps[]>([]);
-  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const missionId = useAppStore((s) => s.mission);
+  const [npcs, setNpcs] = useState<CharacterRecord[]>([]);
+  const [pendingDeleteRecord, setPendingDeleteRecord] =
+    useState<CharacterRecord | null>(null);
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  React.useEffect(() => {
+    if (missionId === null) {
+      setNpcs([]);
+      return;
+    }
+    (async () => {
+      try {
+        const sheets = await getCharacterSheets(missionId);
+        setNpcs(sheets.filter((s) => s.isNpc));
+      } catch (err) {
+        console.error("Failed to load NPCs:", err);
+      }
+    })();
+  }, [missionId]);
 
   const handleCreate = useCallback(() => {
-    const dummy = createNpcDummy(gameType, Date.now());
-    if (dummy) setNpcs((prev) => [...prev, dummy]);
-    onCreateNPCs?.();
-  }, [gameType, onCreateNPCs]);
+    setNameInput("");
+    setNameDialogOpen(true);
+  }, []);
 
-  const confirmDelete = useCallback(() => {
-    if (pendingDeleteId !== null) {
-      setNpcs((prev) => prev.filter((n) => n.id !== pendingDeleteId));
+  const cancelCreate = useCallback(() => {
+    setNameDialogOpen(false);
+    setNameInput("");
+  }, []);
+
+  const handleConfirmCreate = useCallback(async () => {
+    const name = nameInput.trim();
+    if (!name) return;
+
+    setNameDialogOpen(false);
+    setNameInput("");
+
+    if (missionId === null) {
+      const dummy = createNpcDummy(gameType, Date.now());
+      if (dummy) {
+        setNpcs((prev) => [
+          ...prev,
+          { sheetId: null, isProtagonist: false, isNpc: true, data: { ...dummy, name } },
+        ]);
+      }
+      onCreateNPCs?.();
+      return;
     }
-    setPendingDeleteId(null);
-  }, [pendingDeleteId]);
 
-  const cancelDelete = useCallback(() => setPendingDeleteId(null), []);
+    setCreating(true);
+    try {
+      const saved = await createNpc({ mission_id: missionId, name });
+      setNpcs((prev) => [
+        ...prev,
+        { sheetId: saved.character_sheet_id, isProtagonist: false, isNpc: true, data: saved.content },
+      ]);
+      onCreateNPCs?.();
+    } catch (err) {
+      console.error("Failed to create NPC:", err);
+    } finally {
+      setCreating(false);
+    }
+  }, [nameInput, missionId, gameType, onCreateNPCs]);
 
-  const pendingName = npcs.find((n) => n.id === pendingDeleteId)?.name ?? "";
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDeleteRecord) return;
+    const { sheetId } = pendingDeleteRecord;
+    if (sheetId !== null && missionId !== null) {
+      try {
+        await deleteCharacterSheet(sheetId, missionId);
+      } catch (err) {
+        console.error("Failed to delete NPC sheet:", err);
+      }
+    }
+    setNpcs((prev) => prev.filter((r) => r !== pendingDeleteRecord));
+    setPendingDeleteRecord(null);
+  }, [pendingDeleteRecord, missionId]);
+
+  const cancelDelete = useCallback(() => setPendingDeleteRecord(null), []);
+
+  const pendingName = pendingDeleteRecord?.data.name ?? "";
 
   const theme = useTheme();
 
@@ -748,33 +819,40 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
       </Box>
       <Button
         onClick={handleCreate}
-        startIcon={<PersonAddIcon sx={{ fontSize: "14px !important" }} />}
+        disabled={creating}
+        startIcon={
+          creating ? (
+            <CircularProgress size={14} />
+          ) : (
+            <PersonAddIcon sx={{ fontSize: "14px !important" }} />
+          )
+        }
         sx={{ width: "100%", justifyContent: "flex-start", mb: 0 }}
       >
-        Create NPC
+        {creating ? "Generating NPC..." : "Create NPC"}
       </Button>
 
       <Box sx={[{ mt: 1 }, accordionGridStyle]}>
-        {npcs.map((npc) => (
-          <Accordion key={npc.id}>
+        {npcs.map((record) => (
+          <Accordion key={record.sheetId ?? record.data.id}>
             <AccordionSummary
-              aria-controls={`panel${npc.id}-content`}
-              id={`panel${npc.id}-header`}
+              aria-controls={`panel${record.data.id}-content`}
+              id={`panel${record.data.id}-header`}
               sx={{ "& .MuiAccordionSummary-content": { alignItems: "center" } }}
             >
-              <Typography sx={{ flexGrow: 1 }}>{npc.name}</Typography>
+              <Typography sx={{ flexGrow: 1 }}>{record.data.name}</Typography>
               <Box
                 component="span"
                 role="button"
                 tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setPendingDeleteId(npc.id);
+                  setPendingDeleteRecord(record);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.stopPropagation();
-                    setPendingDeleteId(npc.id);
+                    setPendingDeleteRecord(record);
                   }
                 }}
                 sx={{
@@ -794,12 +872,39 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
                 <CloseIcon fontSize="small" />
               </Box>
             </AccordionSummary>
-            <NpcCard {...npc} />
+            <NpcCard {...record.data} />
           </Accordion>
         ))}
       </Box>
 
-      <Dialog open={pendingDeleteId !== null} onClose={cancelDelete}>
+      <Dialog open={nameDialogOpen} onClose={cancelCreate}>
+        <DialogTitle>Create NPC</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Name the new NPC. Their description, stats, and equipment will be
+            generated from the mission's recent events.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            fullWidth
+            margin="dense"
+            label="Name"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleConfirmCreate();
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelCreate}>Cancel</Button>
+          <Button onClick={handleConfirmCreate} disabled={!nameInput.trim() || creating}>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={pendingDeleteRecord !== null} onClose={cancelDelete}>
         <DialogTitle>Remove NPC?</DialogTitle>
         <DialogContent>
           <DialogContentText>

@@ -17,6 +17,7 @@ export type Interaction = {
 export interface CharacterRecord {
   sheetId: number | null;
   isProtagonist: boolean;
+  isNpc?: boolean;
   data: CharacterProps;
 }
 
