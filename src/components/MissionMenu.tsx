@@ -22,10 +22,10 @@ import {
   InputAdornment,
 } from "@mui/material";
 import {
-  TextfieldStyle,
-  ModalStyle,
-  MenuStyle,
-  AutocompleteStyle,
+  textfieldStyle,
+  modalStyle,
+  menuStyle,
+  autocompleteStyle,
   Colors,
   AutocompletePaper,
 } from "../styles/styles";
@@ -33,6 +33,7 @@ import {
 // Import MissionOption from centralized model
 import { Mission } from "../models/MissionModels";
 import { GameType } from "../models/Types";
+import useNotificationStore from "../stores/notificationStore";
 
 /**
  * Enum for managing the state of active modals within the MissionMenu.
@@ -69,7 +70,7 @@ type StyledTextFieldProps = ComponentProps<typeof TextField> & {
 export const StyledTextField = React.memo(
   ({ color, ...props }: StyledTextFieldProps) => {
     return (
-      <TextField {...props} color={color} sx={TextfieldStyle({ color })} />
+      <TextField {...props} color={color} sx={textfieldStyle(color)} />
     );
   },
 );
@@ -107,14 +108,10 @@ const BaseMissionModal = ({
       aria-describedby="modal-modal-description"
     >
       <Box
-        sx={{
-          ...ModalStyle(),
-          p: 0,
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
+        sx={[
+          modalStyle,
+          { p: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" },
+        ]}
         style={{
           backgroundColor: theme.palette.background.default,
           backgroundImage: "none",
@@ -196,7 +193,7 @@ const LoadingModal = ({ open }: { open: boolean }) => (
     aria-labelledby="modal-modal-title"
     aria-describedby="modal-modal-description"
   >
-    <Box sx={ModalStyle()}>
+    <Box sx={modalStyle}>
       <Box
         sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
       >
@@ -703,7 +700,7 @@ function FilterableLoadMissionModal({
         slots={{
           paper: AutocompletePaper,
         }}
-        sx={{ ...AutocompleteStyle, mt: 2 }}
+        sx={[autocompleteStyle, { mt: 2 }]}
         renderInput={(params) => <TextField {...params} label="Mission" />}
       />
     </BaseMissionModal>
@@ -768,6 +765,7 @@ export function MissionMenu({
   const [selectedMission, setSelectedMission] = React.useState<Mission | null>(
     null,
   );
+  const showError = useNotificationStore((s) => s.showError);
 
   /** Boolean indicating whether the mission dropdown menu is open. */
   const open = Boolean(anchorEl);
@@ -825,12 +823,17 @@ export function MissionMenu({
           setSelectedMission(missions.length > 0 ? missions[0] : null);
         } catch (error) {
           console.error("An error occurred while fetching missions:", error);
+          showError(
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch mission list.",
+          );
           setMissionList([]); // Ensure missionList is not null
         }
       }
       setActiveModal(modalName);
     },
-    [listCallback],
+    [listCallback, showError],
   );
 
   /**
@@ -870,10 +873,15 @@ export function MissionMenu({
         );
       } catch (error) {
         console.error("An error occurred during new mission creation:", error);
+        showError(
+          error instanceof Error
+            ? error.message
+            : "Failed to create new mission.",
+        );
       }
       setActiveModal(ModalNames.CLOSED);
     },
-    [newCallback, handleModalClose],
+    [newCallback, handleModalClose, showError],
   );
 
   /**
@@ -888,9 +896,12 @@ export function MissionMenu({
       await saveCallback(saveModalValue);
     } catch (error) {
       console.error("An error occurred during mission save:", error);
+      showError(
+        error instanceof Error ? error.message : "Failed to save mission.",
+      );
     }
     setActiveModal(ModalNames.CLOSED);
-  }, [saveCallback, saveModalValue, handleModalClose]);
+  }, [saveCallback, saveModalValue, handleModalClose, showError]);
 
   /**
    * Handles changes to the mission name input field in the "Save Mission" modal.
@@ -917,13 +928,16 @@ export function MissionMenu({
         await loadCallback(selectedMission.missionId);
       } catch (error) {
         console.error("An error occurred during mission load:", error);
+        showError(
+          error instanceof Error ? error.message : "Failed to load mission.",
+        );
       }
       setActiveModal(ModalNames.CLOSED);
     } else {
       console.warn("Load confirmed without a selected mission.");
       setActiveModal(ModalNames.CLOSED); // Still close loading if no mission selected
     }
-  }, [selectedMission, loadCallback, handleModalClose]);
+  }, [selectedMission, loadCallback, handleModalClose, showError]);
 
   const theme = useTheme();
   const panelBtnSx = {
@@ -977,7 +991,7 @@ export function MissionMenu({
             },
           },
         }}
-        sx={MenuStyle()}
+        sx={menuStyle}
       >
         <MenuItem onClick={handleNewMenuItem}>New Mission</MenuItem>
         <MenuItem onClick={handleSaveMenuItem}>Save Mission</MenuItem>

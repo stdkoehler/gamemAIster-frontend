@@ -14,32 +14,30 @@ import SplitScreen from "./components/SplitScreen";
 import History from "./components/History";
 
 import { MissionMenu } from "./components/MissionMenu";
-import { CharacterManager } from "./components/CharacterCard";
-import { getMission } from "./functions/restInterface";
+import { NpcManager } from "./components/NpcCard";
+import { CharacterManager } from "./components/CharacterManager";
+import { CharacterSheetPopup } from "./components/CharacterSheet";
+import { GlobalSnackbar } from "./components/GlobalSnackbar";
+import { getMission, getCharacterSheets } from "./functions/restInterface";
 import { GameType } from "./models/Types";
+import { GAME_SYSTEMS } from "./gameSystemRegistry";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
+import useCharacterStore from "./stores/characterStore";
+import useNotificationStore from "./stores/notificationStore";
 import Login from "./components/Login";
 import { useFirebaseAuth } from "./hooks/useFirebaseAuth";
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
 
-const GAME_TYPE_DISPLAY_NAMES: Record<GameType, string> = {
-  [GameType.SHADOWRUN]: "Shadowrun",
-  [GameType.VAMPIRE_THE_MASQUERADE]: "Vampire: The Masquerade",
-  [GameType.CALL_OF_CTHULHU]: "Call of Cthulhu",
-  [GameType.SEVENTH_SEA]: "7th Sea",
-  [GameType.EXPANSE]: "The Expanse",
-  [GameType.SLAVIC]: "Slavic 800 AD",
-  [GameType.CUSTOM]: "Custom",
-};
 
 const App: React.FC = () => {
   console.log("App component rendered");
   // Get state from consolidated app store
   const { mission, adventure, gameType, setGameType, reset } = useAppStore();
   const { user, loading } = useFirebaseAuth();
+  const showError = useNotificationStore((s) => s.showError);
 
   // Memoized theme calculation - only recalculates when gameType changes
   const currentTheme = useMemo(() => getThemeForGameType(gameType), [gameType]);
@@ -56,11 +54,38 @@ const App: React.FC = () => {
               reset();
             }
           })
-          .catch(() => {});
+          .catch((err) => {
+            console.error("Failed to validate current mission:", err);
+            showError(
+              err instanceof Error
+                ? err.message
+                : "Failed to reach the server to validate the current mission.",
+            );
+          });
       }
       isFirstRender.current = false;
     }
-  }, [reset, mission]);
+  }, [reset, mission, showError]);
+
+  // Keep the character store (PCs + NPCs) in sync with the backend whenever
+  // the active mission changes. This is the single place that refreshes
+  // character sheets for a mission - components only ever read from
+  // characterStore and filter by `isNpc`, so PCs and NPCs can't drift apart
+  // by being fetched/stored independently of each other.
+  const setCharacters = useCharacterStore((s) => s.setCharacters);
+  useEffect(() => {
+    if (mission === null) return;
+    getCharacterSheets(mission)
+      .then(setCharacters)
+      .catch((err) => {
+        console.error("Failed to sync character sheets:", err);
+        showError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load characters and NPCs for this mission.",
+        );
+      });
+  }, [mission, setCharacters, showError]);
 
   // Mission control callbacks - simplified with new store
   const {
@@ -115,7 +140,7 @@ const App: React.FC = () => {
               ...currentTheme.titleOverlayStyle,
             }}
           >
-            {GAME_TYPE_DISPLAY_NAMES[gameType]}
+            {GAME_SYSTEMS[gameType].title}
           </Typography>
         </Box>
         <Box sx={{ position: "absolute", top: 16, right: 16, zIndex: 10 }}>
@@ -157,7 +182,6 @@ const App: React.FC = () => {
                 borderRight: `0.5px solid ${alpha(currentTheme.palette.primary.main, 0.12)}`,
                 px: 1.5,
                 py: 1.5,
-                height: "100%",
                 width: "100%",
                 boxSizing: "border-box",
               }}
@@ -170,6 +194,7 @@ const App: React.FC = () => {
                 getMissionData={getMissionData}
               />
               <CharacterManager />
+              <NpcManager />
             </Box>
             <AppGrid
               container
@@ -199,6 +224,8 @@ const App: React.FC = () => {
           </SplitScreen>
         </Box>
       </Box>
+      <CharacterSheetPopup />
+      <GlobalSnackbar />
     </ThemeProvider>
   );
 };

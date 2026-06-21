@@ -3,7 +3,7 @@ import React, {
   } from "react";
   import { TextField } from "@mui/material";
     
-  import { Colors, TextfieldStyle } from "../styles/styles.tsx";
+  import { Colors, textfieldStyle } from "../styles/styles.tsx";
 
 /**
  * Props for the StyledTextField component.
@@ -29,5 +29,5 @@ type StyledTextFieldProps = ComponentProps<typeof TextField> & {
     color,
     ...props
   }: StyledTextFieldProps) {
-    return <TextField {...props} color={color} ref={innerRef} sx={TextfieldStyle({ color })} />;
+    return <TextField {...props} color={color} ref={innerRef} sx={textfieldStyle(color)} />;
   };

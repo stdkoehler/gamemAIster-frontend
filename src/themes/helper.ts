@@ -7,12 +7,14 @@ declare module "@mui/material/styles" {
     scrollbarStyles: (theme: Theme) => Record<string, any>;
     logo: string;
     titleOverlayStyle?: Record<string, any>;
+    trackColors: { low: string; mid: string; high: string };
   }
   interface ThemeOptions {
     spinButtonBackgroundImage?: (color: string) => string;
     scrollbarStyles?: (theme: Theme) => Record<string, any>;
     logo?: string;
     titleOverlayStyle?: Record<string, any>;
+    trackColors?: { low: string; mid: string; high: string };
   }
   // Allow new color names if you add them to palette
   interface PaletteOptions {

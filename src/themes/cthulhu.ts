@@ -441,4 +441,5 @@ export const cthulhuTheme = createTheme({
     textShadow:
       "1px 2px 6px rgba(0,0,0,0.9), 0 1px 12px rgba(0,0,0,0.75), 2px 2px 2px rgba(0,0,0,0.8)",
   },
+  trackColors: { low: "#52796f", mid: "#a07855", high: "#9a031e" },
 });

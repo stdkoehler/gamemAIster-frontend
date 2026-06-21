@@ -1,3 +1,4 @@
+import { CharacterProps } from "./CharacterProps";
 import { GameType } from "./Types";
 
 export interface MissionPayload {
@@ -8,9 +9,20 @@ export interface MissionPayload {
   game_type: GameType;
 }
 
+export interface CharacterSheetPayload {
+  character_sheet_id: number;
+  mission_id: number;
+  name: string;
+  game_type: string;
+  content: CharacterProps;
+  is_protagonist: boolean;
+  is_npc: boolean;
+}
+
 export interface MissionLoadPayload {
   mission: MissionPayload;
   interactions: { user_input: string; llm_output: string }[];
+  character_sheets: CharacterSheetPayload[];
 }
 
 /**

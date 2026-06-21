@@ -724,4 +724,5 @@ export const seventhSeaTheme = createTheme({
     },
   }),
   logo: "/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
+  trackColors: { low: "#4a8a6a", mid: "#d68730", high: "#7a3020" },
 });

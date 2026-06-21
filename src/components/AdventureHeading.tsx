@@ -16,11 +16,15 @@ type AdventureHeadingProps = ComponentProps<typeof Typography>;
  */
 export default function AdventureHeading(props: AdventureHeadingProps) {
   const theme = useTheme();
+  const { fontStyle } = theme.titleOverlayStyle ?? {};
   return (
     <Typography
       {...props}
       variant="h1"
-      sx={{ color: theme.palette.primary.main }}
+      sx={{
+        color: theme.palette.primary.main,
+        ...(fontStyle ? { fontStyle } : {}),
+      }}
     />
   );
 }

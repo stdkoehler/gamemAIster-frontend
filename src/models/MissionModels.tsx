@@ -1,3 +1,4 @@
+import { CharacterProps } from "./CharacterProps";
 import { GameType } from "./Types";
 
 export interface Mission {
@@ -13,13 +14,15 @@ export type Interaction = {
   llmOutput: string;
 };
 
-/**
- * Mission load payload with low-level interaction format (API shape).
- * @typedef {object} MissionLoadData
- * @property {Mission} mission - Mission metadata.
- * @property {Interaction[]} interactions - List of structured interactions.
- */
+export interface CharacterRecord {
+  sheetId: number | null;
+  isProtagonist: boolean;
+  isNpc?: boolean;
+  data: CharacterProps;
+}
+
 export type MissionLoadData = {
   mission: Mission;
   interactions: Interaction[];
+  characterSheets: CharacterRecord[];
 };

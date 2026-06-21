@@ -15,7 +15,8 @@ function subtleSlavicShadow(): string {
   return `0px 1px 2px rgba(0,0,0,0.8)`;
 }
 
-const slavicBodyFontFamily = '"IM Fell English", "Georgia", "Times New Roman", serif';
+const slavicBodyFontFamily =
+  '"IM Fell English", "Georgia", "Times New Roman", serif';
 const slavicHeadingFontFamily = '"Uncial Antiqua", "Georgia", serif';
 const slavicMonoFontFamily = '"Courier Prime", "Courier New", monospace';
 
@@ -24,48 +25,48 @@ export const slavicTheme = createTheme({
     mode: "dark",
     primary: {
       light: "#a8b8b0", // polished iron
-      main: "#6a7e78",  // aged iron
-      dark: "#3a4e48",  // dark iron
+      main: "#6a7e78", // aged iron
+      dark: "#3a4e48", // dark iron
       contrastText: "#e8d8b0", // aged linen
     },
     secondary: {
       light: "#e8901a", // bright flame
-      main: "#c06818",  // ember glow
-      dark: "#7a3a0a",  // dying coal
+      main: "#c06818", // ember glow
+      dark: "#7a3a0a", // dying coal
       contrastText: "#ffe8c0", // candlelight
     },
     warning: {
       light: "#c8905a", // river clay
-      main: "#9a6030",  // dried mud
-      dark: "#683808",  // dark earth
+      main: "#9a6030", // dried mud
+      dark: "#683808", // dark earth
       contrastText: "#ffe8d0",
     },
     error: {
       light: "#c04040", // fresh blood
-      main: "#8a1818",  // dried blood
-      dark: "#500808",  // dark maroon
+      main: "#8a1818", // dried blood
+      dark: "#500808", // dark maroon
       contrastText: "#ffe0d0",
     },
     info: {
       light: "#7aa8b8", // clear river
-      main: "#507888",  // deep river
-      dark: "#284858",  // river depth
+      main: "#507888", // deep river
+      dark: "#284858", // river depth
       contrastText: "#d8f0f8",
     },
     success: {
       light: "#70a870", // pine needle
-      main: "#3a7a3a",  // deep forest
-      dark: "#185018",  // old growth
+      main: "#3a7a3a", // deep forest
+      dark: "#185018", // old growth
       contrastText: "#d0f0d0",
     },
     background: {
       default: "#0d0b07", // forest night
-      paper: "#1a1508",   // smoldering hearth
+      paper: "#1a1508", // smoldering hearth
     },
     text: {
-      primary: "#d8c898",   // aged linen
+      primary: "#d8c898", // aged linen
       secondary: "#a89870", // worn leather
-      disabled: "#584828",  // faded ash
+      disabled: "#584828", // faded ash
     },
   },
   typography: {
@@ -257,14 +258,20 @@ export const slavicTheme = createTheme({
         root: ({ theme, ownerState }) => {
           const colorKey =
             ownerState.color &&
-            ["primary", "secondary", "error", "warning", "info", "success"].includes(
-              ownerState.color,
-            ) &&
+            [
+              "primary",
+              "secondary",
+              "error",
+              "warning",
+              "info",
+              "success",
+            ].includes(ownerState.color) &&
             ownerState.color !== "inherit"
               ? (ownerState.color as ThemeColorWithMain)
               : "primary";
 
-          const buttonPalette = theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette =
+            theme.palette[colorKey] || theme.palette.primary;
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -327,9 +334,14 @@ export const slavicTheme = createTheme({
         root: ({ theme, ownerState }) => {
           const colorKey =
             ownerState.color &&
-            ["primary", "secondary", "error", "warning", "info", "success"].includes(
-              ownerState.color,
-            ) &&
+            [
+              "primary",
+              "secondary",
+              "error",
+              "warning",
+              "info",
+              "success",
+            ].includes(ownerState.color) &&
             ownerState.color !== "inherit"
               ? (ownerState.color as ThemeColorWithMain)
               : "primary";
@@ -652,5 +664,6 @@ export const slavicTheme = createTheme({
       backgroundColor: theme.palette.background.default,
     },
   }),
-  logo: "/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
+  logo: "/src/assets/slavic800ad/ComfyUI_temp_pzmrj_00017_.png",
+  trackColors: { low: "#3a7a3a", mid: "#9a6030", high: "#8a1818" },
 });

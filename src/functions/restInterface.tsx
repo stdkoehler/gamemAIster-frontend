@@ -25,10 +25,11 @@
  * @author YourName/YourTeam
  */
 
-import { Interaction, Mission, MissionLoadData } from "../models/MissionModels";
-import { MissionPayload, PromptPayload } from "../models/RestInterface";
+import { CharacterRecord, Interaction, Mission, MissionLoadData } from "../models/MissionModels";
+import { CharacterSheetPayload, MissionPayload, PromptPayload } from "../models/RestInterface";
 import { PlayerInputData } from "../models/PlayerInputData";
 import { MissionLoadPayload } from "../models/RestInterface";
+import { CharacterProps } from "../models/CharacterProps";
 import { GameType } from "../models/Types";
 import { auth } from "../auth/firebase";
 
@@ -105,6 +106,14 @@ async function apiRequest<T>(
     const json = (await res.json()) as T;
     return json;
   } catch (err) {
+    if (err instanceof TypeError) {
+      // fetch() rejects with a TypeError (e.g. "Failed to fetch") when the
+      // network request itself never completes, as opposed to the server
+      // responding with a non-OK status.
+      throw new Error(
+        `Could not reach the server at ${API_BASE}. Is the backend running?`,
+      );
+    }
     throw new Error(
       `API request to "${path}" failed: ${
         err instanceof Error ? err.message : String(err)
@@ -347,7 +356,6 @@ export async function getLoadMissions(
     "GET",
   );
 
-  // Transform Mission data from MissionLoadPayload.mission to Mission
   const mission: Mission = {
     missionId: data.mission.mission_id,
     name: data.mission.name,
@@ -356,18 +364,23 @@ export async function getLoadMissions(
     gameType: data.mission.game_type,
   };
 
-  // Transform interactions from MissionLoadPayload.interactions to Interaction[]
   const interactions: Interaction[] = Array.isArray(data.interactions)
     ? data.interactions.map(({ user_input, llm_output }) => ({
-        playerInput: user_input, // Map API's snake_case to client's camelCase
-        llmOutput: llm_output, // Map API's snake_case to client's camelCase
+        playerInput: user_input,
+        llmOutput: llm_output,
       }))
-    : []; // Default to an empty array if data.interactions is not an array
+    : [];
 
-  return {
-    mission,
-    interactions,
-  };
+  const characterSheets: CharacterRecord[] = Array.isArray(data.character_sheets)
+    ? data.character_sheets.map((s) => ({
+        sheetId: s.character_sheet_id,
+        isProtagonist: s.is_protagonist,
+        isNpc: s.is_npc,
+        data: s.content,
+      }))
+    : [];
+
+  return { mission, interactions, characterSheets };
 }
 
 /**
@@ -380,6 +393,62 @@ export async function getLoadMissions(
  * @returns {Promise<Blob>} - A promise that resolves with a Blob containing the MP3 audio data.
  * @throws {Error} If the TTS request to the backend fails (e.g., network error, non-OK HTTP response).
  */
+export async function upsertCharacterSheet(payload: {
+  character_sheet_id: number | null;
+  mission_id: number;
+  name: string;
+  game_type: string;
+  content: CharacterProps;
+  is_protagonist: boolean;
+  is_npc?: boolean;
+}): Promise<CharacterSheetPayload> {
+  return await apiRequest<CharacterSheetPayload>(
+    "/mission/upsert-character-sheet",
+    "POST",
+    { ...payload, is_npc: payload.is_npc ?? false },
+  );
+}
+
+/**
+ * Generates a new NPC via the backend's LLM pipeline (profile -> stats -> equipment)
+ * and persists it as a character sheet for the given mission.
+ */
+export async function createNpc(payload: {
+  mission_id: number;
+  name: string;
+}): Promise<CharacterSheetPayload> {
+  return await apiRequest<CharacterSheetPayload>(
+    "/mission/create-npc",
+    "POST",
+    payload,
+  );
+}
+
+export async function deleteCharacterSheet(
+  character_sheet_id: number,
+  mission_id: number,
+): Promise<void> {
+  await apiRequest<void>("/mission/delete-character-sheet", "POST", {
+    character_sheet_id,
+    mission_id,
+  });
+}
+
+export async function getCharacterSheets(
+  mission_id: number,
+): Promise<CharacterRecord[]> {
+  const sheets = await apiRequest<CharacterSheetPayload[]>(
+    `/mission/character-sheets/${mission_id}`,
+    "GET",
+  );
+  return sheets.map((s) => ({
+    sheetId: s.character_sheet_id,
+    isProtagonist: s.is_protagonist,
+    isNpc: s.is_npc,
+    data: s.content,
+  }));
+}
+
 export async function sendTextToSpeech(text: string, voice: string): Promise<Blob> {
   // Send POST request to TTS service, expecting a Blob (audio/mp3)
   const response = await fetch(`${API_BASE}/tts/tts`, {

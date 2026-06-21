@@ -10,6 +10,7 @@ import { MissionPayload } from "../models/RestInterface";
 import { GameType } from "../models/Types";
 import useAppStore from "../stores/appStore";
 import useHistoryStore from "../stores/historyStore";
+import useCharacterStore from "../stores/characterStore";
 
 export type MissionControlCallbacks = {
   sendNewMissionGenerate: (
@@ -42,9 +43,11 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
     ): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
 
-      // Reset both stores
+      // Reset all per-mission state, including any leftover PCs/NPCs from
+      // a previously loaded mission.
       reset();
       clearHistory();
+      useCharacterStore.getState().resetCharacters();
 
       const response = await postNewMission({
         game_type: gameType,
@@ -83,6 +86,7 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
   const loadMission = useCallback(
     async (missionId: number): Promise<void> => {
       const { setMission, setAdventure, setGameType } = useAppStore.getState();
+      const { setCharacters } = useCharacterStore.getState();
 
       // Clear history first
       clearHistory();
@@ -92,6 +96,8 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
       setMission(loaded.mission.missionId);
       setAdventure(loaded.mission.nameCustom || loaded.mission.name);
       setGameType(loaded.mission.gameType);
+
+      setCharacters(loaded.characterSheets);
 
       const loadedInteractions = loaded.interactions;
 
