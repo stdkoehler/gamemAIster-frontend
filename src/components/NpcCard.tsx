@@ -20,6 +20,7 @@ import {
 import { alpha } from "@mui/material/styles";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import CloseIcon from "@mui/icons-material/Close";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   accordionGridStyle,
   cardBoxStyle,
@@ -799,7 +800,8 @@ interface NpcManagerProps {
 export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
   const gameType = useAppStore((s) => s.gameType);
   const missionId = useAppStore((s) => s.mission);
-  const { characters, addCharacter, removeCharacter } = useCharacterStore();
+  const { characters, addCharacter, removeCharacter, openSheet: openCharacterSheet } =
+    useCharacterStore();
   const npcs = characters.filter(
     (r) => r.isNpc && r.data.gameType === gameType,
   );
@@ -924,6 +926,36 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
               }}
             >
               <Typography sx={{ flexGrow: 1 }}>{record.data.name}</Typography>
+              <Box
+                component="span"
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openCharacterSheet(record.data.id);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                    openCharacterSheet(record.data.id);
+                  }
+                }}
+                sx={{
+                  ml: 1,
+                  cursor: "pointer",
+                  color: alpha(theme.palette.primary.main, 0.5),
+                  display: "inline-flex",
+                  alignItems: "center",
+                  borderRadius: "50%",
+                  padding: "4px",
+                  "&:hover": {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                    color: theme.palette.primary.main,
+                  },
+                }}
+              >
+                <OpenInNewIcon fontSize="small" />
+              </Box>
               <Box
                 component="span"
                 role="button"

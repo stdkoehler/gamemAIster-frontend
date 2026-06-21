@@ -45,6 +45,7 @@ export const CharacterSheetPopup: React.FC = () => {
   const {
     characters,
     activeCharacterId,
+    activeIsNpc,
     isSheetOpen,
     closeSheet,
     openSheet,
@@ -56,7 +57,11 @@ export const CharacterSheetPopup: React.FC = () => {
   const nodeRef = useRef<HTMLDivElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
-  const partyChars = characters.filter((r) => r.data.gameType === gameType);
+  // Only show the kind of sheet (PC or NPC) the popup was opened for, so
+  // the tabs never mix party members and NPCs together.
+  const visibleChars = characters.filter(
+    (r) => r.data.gameType === gameType && !!r.isNpc === activeIsNpc,
+  );
 
   // Sync from backend when the popup opens
   useEffect(() => {
@@ -69,11 +74,11 @@ export const CharacterSheetPopup: React.FC = () => {
   }, [isSheetOpen, missionId, setCharacters]);
 
   const activeId =
-    activeCharacterId !== null && partyChars.some((r) => r.data.id === activeCharacterId)
+    activeCharacterId !== null && visibleChars.some((r) => r.data.id === activeCharacterId)
       ? activeCharacterId
-      : partyChars[0]?.data.id ?? null;
+      : visibleChars[0]?.data.id ?? null;
 
-  const activeRecord = partyChars.find((r) => r.data.id === activeId) ?? partyChars[0];
+  const activeRecord = visibleChars.find((r) => r.data.id === activeId) ?? visibleChars[0];
 
   // Save active character to backend, then close
   const handleClose = useCallback(async () => {
@@ -86,6 +91,7 @@ export const CharacterSheetPopup: React.FC = () => {
           game_type: gameType,
           content: activeRecord.data,
           is_protagonist: activeRecord.isProtagonist,
+          is_npc: activeRecord.isNpc ?? false,
         });
       } catch (err) {
         console.error("Failed to sync character sheet on close:", err);
@@ -126,7 +132,7 @@ export const CharacterSheetPopup: React.FC = () => {
     [updateCharacterData]
   );
 
-  if (!isSheetOpen || partyChars.length === 0) return null;
+  if (!isSheetOpen || visibleChars.length === 0) return null;
   if (!activeRecord) return null;
 
   return (
@@ -174,10 +180,10 @@ export const CharacterSheetPopup: React.FC = () => {
             variant="caption"
             sx={{ mr: 1, color: "text.secondary", letterSpacing: "0.08em", flexShrink: 0 }}
           >
-            {GAME_SYSTEMS[gameType].sheetTitle}
+            {activeIsNpc ? "NPCs" : GAME_SYSTEMS[gameType].partyLabel}
           </Typography>
 
-          {partyChars.length > 0 && (
+          {visibleChars.length > 0 && (
             <Tabs
               value={activeId}
               onChange={(_, id) => openSheet(id as number)}
@@ -187,7 +193,7 @@ export const CharacterSheetPopup: React.FC = () => {
                 "& .MuiTab-root": { minHeight: 40, cursor: "pointer" },
               }}
             >
-              {partyChars.map((r) => (
+              {visibleChars.map((r) => (
                 <Tab key={r.data.id} label={r.data.name || "New Character"} value={r.data.id} />
               ))}
             </Tabs>

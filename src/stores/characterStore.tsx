@@ -20,6 +20,9 @@ const DEFAULT_RECORDS: CharacterRecord[] = DEFAULT_CHARACTERS.map((data) => ({
 interface CharacterState {
   characters: CharacterRecord[];
   activeCharacterId: number | null;
+  /** Whether the sheet popup was opened for an NPC or a PC; determines which
+   *  subset of `characters` the popup shows and tabs through. */
+  activeIsNpc: boolean;
   isSheetOpen: boolean;
   openSheet: (characterId: number) => void;
   closeSheet: () => void;
@@ -47,10 +50,15 @@ const useCharacterStore = create<CharacterState>()(
     (set) => ({
       characters: DEFAULT_RECORDS,
       activeCharacterId: null,
+      activeIsNpc: false,
       isSheetOpen: false,
 
       openSheet: (characterId) =>
-        set({ activeCharacterId: characterId, isSheetOpen: true }),
+        set((state) => ({
+          activeCharacterId: characterId,
+          activeIsNpc: state.characters.find((r) => r.data.id === characterId)?.isNpc ?? false,
+          isSheetOpen: true,
+        })),
 
       closeSheet: () => set({ isSheetOpen: false }),
 
