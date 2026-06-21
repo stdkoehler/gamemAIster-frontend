@@ -39,7 +39,9 @@ export const CharacterManager: React.FC = () => {
 
   const [pendingDeleteRecord, setPendingDeleteRecord] = useState<CharacterRecord | null>(null);
 
-  const partyChars = characters.filter((r) => r.data.gameType === gameType);
+  const partyChars = characters.filter(
+    (r) => !r.isNpc && r.data.gameType === gameType,
+  );
 
   const handleCreate = useCallback(async () => {
     const id = Date.now();
@@ -75,7 +77,7 @@ export const CharacterManager: React.FC = () => {
         console.error("Failed to delete character sheet:", err);
       }
     }
-    removeCharacter(sheetId!);
+    removeCharacter(pendingDeleteRecord.data.id);
     setPendingDeleteRecord(null);
   }, [pendingDeleteRecord, missionId, removeCharacter]);
 

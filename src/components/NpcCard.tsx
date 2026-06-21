@@ -48,13 +48,10 @@ import {
 import { GameType } from "../models/Types";
 import { CharacterRecord } from "../models/MissionModels";
 import useAppStore from "../stores/appStore";
+import useCharacterStore from "../stores/characterStore";
 import useNotificationStore from "../stores/notificationStore";
 import { createNpcDummy } from "../data/defaultCharacters";
-import {
-  createNpc,
-  deleteCharacterSheet,
-  getCharacterSheets,
-} from "../functions/restInterface";
+import { createNpc, deleteCharacterSheet } from "../functions/restInterface";
 
 // =====================
 // Shared sub-components
@@ -716,34 +713,16 @@ interface NpcManagerProps {
 export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
   const gameType = useAppStore((s) => s.gameType);
   const missionId = useAppStore((s) => s.mission);
-  const [npcs, setNpcs] = useState<CharacterRecord[]>([]);
+  const { characters, addCharacter, removeCharacter } = useCharacterStore();
+  const npcs = characters.filter(
+    (r) => r.isNpc && r.data.gameType === gameType,
+  );
   const [pendingDeleteRecord, setPendingDeleteRecord] =
     useState<CharacterRecord | null>(null);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [creating, setCreating] = useState(false);
   const showError = useNotificationStore((s) => s.showError);
-
-  React.useEffect(() => {
-    if (missionId === null) {
-      setNpcs([]);
-      return;
-    }
-    (async () => {
-      try {
-        const sheets = await getCharacterSheets(missionId);
-        setNpcs(sheets.filter((s) => s.isNpc));
-      } catch (err) {
-        console.error("Failed to load NPCs:", err);
-        showError(
-          err instanceof Error ? err.message : "Failed to load NPCs.",
-        );
-        // Leave the previously loaded NPC list in place rather than
-        // clearing it, so a transient backend outage doesn't make
-        // existing NPCs disappear from the UI.
-      }
-    })();
-  }, [missionId, showError]);
 
   const handleCreate = useCallback(() => {
     setNameInput("");
@@ -765,10 +744,12 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
     if (missionId === null) {
       const dummy = createNpcDummy(gameType, Date.now());
       if (dummy) {
-        setNpcs((prev) => [
-          ...prev,
-          { sheetId: null, isProtagonist: false, isNpc: true, data: { ...dummy, name } },
-        ]);
+        addCharacter({
+          sheetId: null,
+          isProtagonist: false,
+          isNpc: true,
+          data: { ...dummy, name },
+        });
       }
       onCreateNPCs?.();
       return;
@@ -777,10 +758,12 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
     setCreating(true);
     try {
       const saved = await createNpc({ mission_id: missionId, name });
-      setNpcs((prev) => [
-        ...prev,
-        { sheetId: saved.character_sheet_id, isProtagonist: false, isNpc: true, data: saved.content },
-      ]);
+      addCharacter({
+        sheetId: saved.character_sheet_id,
+        isProtagonist: false,
+        isNpc: true,
+        data: saved.content,
+      });
       onCreateNPCs?.();
     } catch (err) {
       console.error("Failed to create NPC:", err);
@@ -790,7 +773,7 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
     } finally {
       setCreating(false);
     }
-  }, [nameInput, missionId, gameType, onCreateNPCs, showError]);
+  }, [nameInput, missionId, gameType, onCreateNPCs, showError, addCharacter]);
 
   const confirmDelete = useCallback(async () => {
     if (!pendingDeleteRecord) return;
@@ -807,9 +790,9 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
         return;
       }
     }
-    setNpcs((prev) => prev.filter((r) => r !== pendingDeleteRecord));
+    removeCharacter(pendingDeleteRecord.data.id);
     setPendingDeleteRecord(null);
-  }, [pendingDeleteRecord, missionId, showError]);
+  }, [pendingDeleteRecord, missionId, showError, removeCharacter]);
 
   const cancelDelete = useCallback(() => setPendingDeleteRecord(null), []);
 

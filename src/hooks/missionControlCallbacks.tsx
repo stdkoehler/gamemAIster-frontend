@@ -43,9 +43,11 @@ export function useMissionControlCallbacks(): MissionControlCallbacks {
     ): Promise<void> => {
       const { reset, setMission, setAdventure } = useAppStore.getState();
 
-      // Reset both stores
+      // Reset all per-mission state, including any leftover PCs/NPCs from
+      // a previously loaded mission.
       reset();
       clearHistory();
+      useCharacterStore.getState().resetCharacters();
 
       const response = await postNewMission({
         game_type: gameType,

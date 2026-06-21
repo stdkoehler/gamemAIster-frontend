@@ -18,12 +18,13 @@ import { NpcManager } from "./components/NpcCard";
 import { CharacterManager } from "./components/CharacterManager";
 import { CharacterSheetPopup } from "./components/CharacterSheet";
 import { GlobalSnackbar } from "./components/GlobalSnackbar";
-import { getMission } from "./functions/restInterface";
+import { getMission, getCharacterSheets } from "./functions/restInterface";
 import { GameType } from "./models/Types";
 import { GAME_SYSTEMS } from "./gameSystemRegistry";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
+import useCharacterStore from "./stores/characterStore";
 import useNotificationStore from "./stores/notificationStore";
 import Login from "./components/Login";
 import { useFirebaseAuth } from "./hooks/useFirebaseAuth";
@@ -65,6 +66,26 @@ const App: React.FC = () => {
       isFirstRender.current = false;
     }
   }, [reset, mission, showError]);
+
+  // Keep the character store (PCs + NPCs) in sync with the backend whenever
+  // the active mission changes. This is the single place that refreshes
+  // character sheets for a mission - components only ever read from
+  // characterStore and filter by `isNpc`, so PCs and NPCs can't drift apart
+  // by being fetched/stored independently of each other.
+  const setCharacters = useCharacterStore((s) => s.setCharacters);
+  useEffect(() => {
+    if (mission === null) return;
+    getCharacterSheets(mission)
+      .then(setCharacters)
+      .catch((err) => {
+        console.error("Failed to sync character sheets:", err);
+        showError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load characters and NPCs for this mission.",
+        );
+      });
+  }, [mission, setCharacters, showError]);
 
   // Mission control callbacks - simplified with new store
   const {

@@ -10,6 +10,13 @@ const DEFAULT_RECORDS: CharacterRecord[] = DEFAULT_CHARACTERS.map((data) => ({
   data,
 }));
 
+/**
+ * Holds every character sheet (both player characters and NPCs) for the
+ * currently active mission. PCs and NPCs are distinguished solely by the
+ * `isNpc` flag on each `CharacterRecord` - consumers (CharacterManager,
+ * NpcManager, CharacterSheetPopup) derive their own party/NPC subset by
+ * filtering on that flag rather than fetching or storing them separately.
+ */
 interface CharacterState {
   characters: CharacterRecord[];
   activeCharacterId: number | null;
@@ -19,8 +26,20 @@ interface CharacterState {
   updateCharacterData: (updated: CharacterProps) => void;
   setCharacters: (records: CharacterRecord[]) => void;
   addCharacter: (record: CharacterRecord) => void;
-  removeCharacter: (sheetId: number) => void;
+  removeCharacter: (characterId: number) => void;
   setProtagonist: (characterId: number) => void;
+  resetCharacters: () => void;
+}
+
+// If exactly one non-NPC record exists and none is yet flagged as the
+// protagonist, treat it as the protagonist by default. NPCs never qualify.
+function withAutoProtagonist(records: CharacterRecord[]): CharacterRecord[] {
+  const pcs = records.filter((r) => !r.isNpc);
+  if (pcs.length === 1 && !pcs[0].isProtagonist) {
+    const soloPc = pcs[0];
+    return records.map((r) => (r === soloPc ? { ...r, isProtagonist: true } : r));
+  }
+  return records;
 }
 
 const useCharacterStore = create<CharacterState>()(
@@ -42,35 +61,26 @@ const useCharacterStore = create<CharacterState>()(
           ),
         })),
 
-      setCharacters: (records) =>
-        set({
-          characters:
-            records.length === 1 && !records[0].isProtagonist
-              ? [{ ...records[0], isProtagonist: true }]
-              : records,
-        }),
+      setCharacters: (records) => set({ characters: withAutoProtagonist(records) }),
 
       addCharacter: (record) =>
-        set((state) => {
-          const next = [...state.characters, record];
-          return {
-            characters:
-              next.length === 1 ? [{ ...record, isProtagonist: true }] : next,
-          };
-        }),
-
-      removeCharacter: (sheetId) =>
         set((state) => ({
-          characters: state.characters.filter((r) => r.sheetId !== sheetId),
+          characters: withAutoProtagonist([...state.characters, record]),
+        })),
+
+      removeCharacter: (characterId) =>
+        set((state) => ({
+          characters: state.characters.filter((r) => r.data.id !== characterId),
         })),
 
       setProtagonist: (characterId) =>
         set((state) => ({
-          characters: state.characters.map((r) => ({
-            ...r,
-            isProtagonist: r.data.id === characterId,
-          })),
+          characters: state.characters.map((r) =>
+            r.isNpc ? r : { ...r, isProtagonist: r.data.id === characterId },
+          ),
         })),
+
+      resetCharacters: () => set({ characters: [] }),
     }),
     {
       name: "character-storage",
