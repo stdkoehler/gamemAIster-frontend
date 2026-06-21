@@ -8,6 +8,7 @@ import Modal from "@mui/material/Modal";
 import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import BookIcon from "@mui/icons-material/Book";
+import CasinoIcon from "@mui/icons-material/Casino";
 import { useTheme } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 
@@ -34,6 +35,7 @@ import {
 import { Mission } from "../models/MissionModels";
 import { GameType } from "../models/Types";
 import useNotificationStore from "../stores/notificationStore";
+import useDiceStore from "../stores/diceStore";
 
 /**
  * Enum for managing the state of active modals within the MissionMenu.
@@ -939,6 +941,7 @@ export function MissionMenu({
     }
   }, [selectedMission, loadCallback, handleModalClose, showError]);
 
+  const openDice = useDiceStore((s) => s.open);
   const theme = useTheme();
   const panelBtnSx = {
     width: "100%",
@@ -973,6 +976,13 @@ export function MissionMenu({
         sx={panelBtnSx}
       >
         Manage
+      </Button>
+      <Button
+        startIcon={<CasinoIcon sx={{ fontSize: "14px !important" }} />}
+        onClick={openDice}
+        sx={panelBtnSx}
+      >
+        Dice
       </Button>
       <Menu
         id="basic-menu"
