@@ -284,8 +284,7 @@ function slavicSuccessCount(value: number): number {
   return 0;
 }
 
-const slavicGearFace: (value: number) => DieFace = (v) => {
-  if (v === 1) return { kind: "symbol", id: "slavic-bane" };
+const slavicArtifactFace: (value: number) => DieFace = (v) => {
   const successes = slavicSuccessCount(v);
   return successes > 0
     ? { kind: "symbol", id: "slavic-success", badge: String(successes) }
@@ -328,7 +327,7 @@ const slavicDice: DieTypeConfig[] = [
     face: slavicSkillFace,
   },
   {
-    id: "sl-weapon",
+    id: "sl-gear",
     label: "d6",
     group: "Gear / Weapon",
     sides: 6,
@@ -359,7 +358,7 @@ const slavicDice: DieTypeConfig[] = [
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
     roll: rollRange(8),
-    face: slavicGearFace,
+    face: slavicArtifactFace,
   },
   {
     id: "sl-d10",
@@ -376,7 +375,7 @@ const slavicDice: DieTypeConfig[] = [
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
     roll: rollRange(10),
-    face: slavicGearFace,
+    face: slavicArtifactFace,
   },
   {
     id: "sl-d12",
@@ -393,7 +392,7 @@ const slavicDice: DieTypeConfig[] = [
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
     roll: rollRange(12),
-    face: slavicGearFace,
+    face: slavicArtifactFace,
   },
 ];
 
@@ -407,7 +406,9 @@ function summarizeSlavic(rolls: RolledDie[]): string {
     (sum, r) => sum + slavicSuccessCount(r.value),
     0,
   );
-  const banes = rolls.filter((r) => r.value === 1).length;
+  const banes = rolls.filter(
+    (r) => ["sl-base", "sl-gear"].includes(r.dieId) && r.value === 1,
+  ).length;
   const parts = [pluralize(successes, "success", "successes")];
   if (banes > 0) parts.push(pluralize(banes, "bane"));
   return parts.join(" · ");
