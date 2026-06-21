@@ -33,6 +33,7 @@ import {
 // Import MissionOption from centralized model
 import { Mission } from "../models/MissionModels";
 import { GameType } from "../models/Types";
+import useNotificationStore from "../stores/notificationStore";
 
 /**
  * Enum for managing the state of active modals within the MissionMenu.
@@ -764,6 +765,7 @@ export function MissionMenu({
   const [selectedMission, setSelectedMission] = React.useState<Mission | null>(
     null,
   );
+  const showError = useNotificationStore((s) => s.showError);
 
   /** Boolean indicating whether the mission dropdown menu is open. */
   const open = Boolean(anchorEl);
@@ -821,12 +823,17 @@ export function MissionMenu({
           setSelectedMission(missions.length > 0 ? missions[0] : null);
         } catch (error) {
           console.error("An error occurred while fetching missions:", error);
+          showError(
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch mission list.",
+          );
           setMissionList([]); // Ensure missionList is not null
         }
       }
       setActiveModal(modalName);
     },
-    [listCallback],
+    [listCallback, showError],
   );
 
   /**
@@ -866,10 +873,15 @@ export function MissionMenu({
         );
       } catch (error) {
         console.error("An error occurred during new mission creation:", error);
+        showError(
+          error instanceof Error
+            ? error.message
+            : "Failed to create new mission.",
+        );
       }
       setActiveModal(ModalNames.CLOSED);
     },
-    [newCallback, handleModalClose],
+    [newCallback, handleModalClose, showError],
   );
 
   /**
@@ -884,9 +896,12 @@ export function MissionMenu({
       await saveCallback(saveModalValue);
     } catch (error) {
       console.error("An error occurred during mission save:", error);
+      showError(
+        error instanceof Error ? error.message : "Failed to save mission.",
+      );
     }
     setActiveModal(ModalNames.CLOSED);
-  }, [saveCallback, saveModalValue, handleModalClose]);
+  }, [saveCallback, saveModalValue, handleModalClose, showError]);
 
   /**
    * Handles changes to the mission name input field in the "Save Mission" modal.
@@ -913,13 +928,16 @@ export function MissionMenu({
         await loadCallback(selectedMission.missionId);
       } catch (error) {
         console.error("An error occurred during mission load:", error);
+        showError(
+          error instanceof Error ? error.message : "Failed to load mission.",
+        );
       }
       setActiveModal(ModalNames.CLOSED);
     } else {
       console.warn("Load confirmed without a selected mission.");
       setActiveModal(ModalNames.CLOSED); // Still close loading if no mission selected
     }
-  }, [selectedMission, loadCallback, handleModalClose]);
+  }, [selectedMission, loadCallback, handleModalClose, showError]);
 
   const theme = useTheme();
   const panelBtnSx = {

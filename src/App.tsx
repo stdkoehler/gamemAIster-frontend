@@ -17,12 +17,14 @@ import { MissionMenu } from "./components/MissionMenu";
 import { NpcManager } from "./components/NpcCard";
 import { CharacterManager } from "./components/CharacterManager";
 import { CharacterSheetPopup } from "./components/CharacterSheet";
+import { GlobalSnackbar } from "./components/GlobalSnackbar";
 import { getMission } from "./functions/restInterface";
 import { GameType } from "./models/Types";
 import { GAME_SYSTEMS } from "./gameSystemRegistry";
 
 import { useMissionControlCallbacks } from "./hooks/missionControlCallbacks";
 import useAppStore from "./stores/appStore";
+import useNotificationStore from "./stores/notificationStore";
 import Login from "./components/Login";
 import { useFirebaseAuth } from "./hooks/useFirebaseAuth";
 
@@ -34,6 +36,7 @@ const App: React.FC = () => {
   // Get state from consolidated app store
   const { mission, adventure, gameType, setGameType, reset } = useAppStore();
   const { user, loading } = useFirebaseAuth();
+  const showError = useNotificationStore((s) => s.showError);
 
   // Memoized theme calculation - only recalculates when gameType changes
   const currentTheme = useMemo(() => getThemeForGameType(gameType), [gameType]);
@@ -50,11 +53,18 @@ const App: React.FC = () => {
               reset();
             }
           })
-          .catch(() => {});
+          .catch((err) => {
+            console.error("Failed to validate current mission:", err);
+            showError(
+              err instanceof Error
+                ? err.message
+                : "Failed to reach the server to validate the current mission.",
+            );
+          });
       }
       isFirstRender.current = false;
     }
-  }, [reset, mission]);
+  }, [reset, mission, showError]);
 
   // Mission control callbacks - simplified with new store
   const {
@@ -194,6 +204,7 @@ const App: React.FC = () => {
         </Box>
       </Box>
       <CharacterSheetPopup />
+      <GlobalSnackbar />
     </ThemeProvider>
   );
 };

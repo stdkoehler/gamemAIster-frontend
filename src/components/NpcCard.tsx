@@ -48,6 +48,7 @@ import {
 import { GameType } from "../models/Types";
 import { CharacterRecord } from "../models/MissionModels";
 import useAppStore from "../stores/appStore";
+import useNotificationStore from "../stores/notificationStore";
 import { createNpcDummy } from "../data/defaultCharacters";
 import {
   createNpc,
@@ -721,6 +722,7 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [creating, setCreating] = useState(false);
+  const showError = useNotificationStore((s) => s.showError);
 
   React.useEffect(() => {
     if (missionId === null) {
@@ -733,9 +735,15 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
         setNpcs(sheets.filter((s) => s.isNpc));
       } catch (err) {
         console.error("Failed to load NPCs:", err);
+        showError(
+          err instanceof Error ? err.message : "Failed to load NPCs.",
+        );
+        // Leave the previously loaded NPC list in place rather than
+        // clearing it, so a transient backend outage doesn't make
+        // existing NPCs disappear from the UI.
       }
     })();
-  }, [missionId]);
+  }, [missionId, showError]);
 
   const handleCreate = useCallback(() => {
     setNameInput("");
@@ -776,10 +784,13 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
       onCreateNPCs?.();
     } catch (err) {
       console.error("Failed to create NPC:", err);
+      showError(
+        err instanceof Error ? err.message : "Failed to create NPC.",
+      );
     } finally {
       setCreating(false);
     }
-  }, [nameInput, missionId, gameType, onCreateNPCs]);
+  }, [nameInput, missionId, gameType, onCreateNPCs, showError]);
 
   const confirmDelete = useCallback(async () => {
     if (!pendingDeleteRecord) return;
@@ -789,11 +800,16 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
         await deleteCharacterSheet(sheetId, missionId);
       } catch (err) {
         console.error("Failed to delete NPC sheet:", err);
+        showError(
+          err instanceof Error ? err.message : "Failed to delete NPC.",
+        );
+        setPendingDeleteRecord(null);
+        return;
       }
     }
     setNpcs((prev) => prev.filter((r) => r !== pendingDeleteRecord));
     setPendingDeleteRecord(null);
-  }, [pendingDeleteRecord, missionId]);
+  }, [pendingDeleteRecord, missionId, showError]);
 
   const cancelDelete = useCallback(() => setPendingDeleteRecord(null), []);
 

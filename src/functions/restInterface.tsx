@@ -106,6 +106,14 @@ async function apiRequest<T>(
     const json = (await res.json()) as T;
     return json;
   } catch (err) {
+    if (err instanceof TypeError) {
+      // fetch() rejects with a TypeError (e.g. "Failed to fetch") when the
+      // network request itself never completes, as opposed to the server
+      // responding with a non-OK status.
+      throw new Error(
+        `Could not reach the server at ${API_BASE}. Is the backend running?`,
+      );
+    }
     throw new Error(
       `API request to "${path}" failed: ${
         err instanceof Error ? err.message : String(err)
