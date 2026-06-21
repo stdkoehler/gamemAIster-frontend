@@ -49,8 +49,27 @@ export interface RolledDie {
   value: number;
 }
 
+/**
+ * A subset of a system's dice that rolls independently of the rest — its
+ * own picker, its own Roll button, its own preview/result — for systems
+ * where different rolls don't belong in the same pool (CoC's percentile
+ * skill check vs. a Sanity loss roll on d4/d6/d8 have nothing to do with
+ * each other). Log entries from every section still land in the same
+ * shared roll log. Systems without `sections` keep today's single
+ * flat picker + one Roll button for all their dice.
+ */
+export interface DiceSection {
+  label: string;
+  diceIds: string[];
+  /** Skips the count picker for dice with a fixed, non-adjustable count
+   *  (e.g. CoC's percentile pair is always exactly one tens + one ones). */
+  hidePicker?: boolean;
+  summarize: (rolls: RolledDie[], dice: DieTypeConfig[]) => string;
+}
+
 export interface GameDiceConfig {
   dice: DieTypeConfig[];
+  sections?: DiceSection[];
   summarize: (rolls: RolledDie[], dice: DieTypeConfig[]) => string;
 }
 
@@ -494,6 +513,43 @@ function summarizeCoc(rolls: RolledDie[], dice: DieTypeConfig[]): string {
   return parts.join(" · ") || "no dice selected";
 }
 
+function summarizeCocSkillCheck(rolls: RolledDie[]): string {
+  const tens = rolls.find((r) => r.dieId === "coc-tens");
+  const ones = rolls.find((r) => r.dieId === "coc-ones");
+  if (!tens || !ones) return "no dice selected";
+  const percentile =
+    tens.value + ones.value === 0 ? 100 : tens.value + ones.value;
+  // Same CoC 7e rule as summarizeCoc: 01 always succeeds critically; 100 is
+  // only a fumble if it's also a failure against skill, which isn't tracked
+  // here, so it's left as a plain percentile.
+  let result = `${percentile}%`;
+  if (percentile === 1) result += " — critical success";
+  return result;
+}
+
+function summarizeCocSanity(rolls: RolledDie[], dice: DieTypeConfig[]): string {
+  if (rolls.length === 0) return "no dice selected";
+  const sum = rolls.reduce((s, r) => s + r.value, 0);
+  const labels = rolls.map(
+    (r) => `${dieById(dice, r.dieId)?.label ?? r.dieId}:${r.value}`,
+  );
+  return `${sum} (${labels.join(", ")})`;
+}
+
+const cocSections: DiceSection[] = [
+  {
+    label: "Skill Check",
+    diceIds: ["coc-tens", "coc-ones"],
+    hidePicker: true,
+    summarize: summarizeCocSkillCheck,
+  },
+  {
+    label: "Sanity",
+    diceIds: ["coc-d4", "coc-d6", "coc-d8"],
+    summarize: summarizeCocSanity,
+  },
+];
+
 // ───────────────────────── Custom / fallback ─────────────────────────
 const customDice: DieTypeConfig[] = [
   {
@@ -560,7 +616,11 @@ function summarizeGeneric(rolls: RolledDie[]): string {
 export const GAME_DICE: Record<GameType, GameDiceConfig> = {
   [GameType.SHADOWRUN]: { dice: shadowrunDice, summarize: summarizeShadowrun },
   [GameType.VAMPIRE_THE_MASQUERADE]: { dice: vtmDice, summarize: summarizeVtm },
-  [GameType.CALL_OF_CTHULHU]: { dice: cocDice, summarize: summarizeCoc },
+  [GameType.CALL_OF_CTHULHU]: {
+    dice: cocDice,
+    sections: cocSections,
+    summarize: summarizeCoc,
+  },
   [GameType.SEVENTH_SEA]: {
     dice: seventhSeaDice,
     summarize: summarizeSeventhSea,

@@ -16,8 +16,9 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CasinoIcon from "@mui/icons-material/Casino";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { GameType } from "../../models/Types";
 import useAppStore from "../../stores/appStore";
-import useDiceStore from "../../stores/diceStore";
+import useDiceStore, { DiceLogEntry } from "../../stores/diceStore";
 import { GAME_SYSTEMS } from "../../gameSystemRegistry";
 import { GAME_DICE, DieTypeConfig, RolledDie, describeRolls } from "../../dice/diceConfig";
 import Die, { DiePlaceholder } from "./Die";
@@ -61,11 +62,40 @@ function dieColorSx(color: DieTypeConfig["color"]): string {
 // every die has actually settled.
 const ROLL_SETTLE_MS = 850;
 
-export const DiceRollerPopup: React.FC = () => {
-  const gameType = useAppStore((s) => s.gameType);
-  const { isOpen, counts, log, close, setCount, addLogEntry, removeLogEntry, clearLog } =
-    useDiceStore();
-  const nodeRef = useRef<HTMLDivElement>(null);
+interface DiceSectionPanelProps {
+  /** Shown above the Roll button — omitted for systems with no sections,
+   *  which just get one flat picker for all their dice, as before. */
+  title?: string;
+  /** Skips the count picker — for a section whose dice have a fixed,
+   *  non-adjustable count (e.g. CoC's percentile pair is always exactly
+   *  one tens + one ones, so there's nothing to pick). */
+  hidePicker?: boolean;
+  dice: DieTypeConfig[];
+  summarize: (rolls: RolledDie[], dice: DieTypeConfig[]) => string;
+  gameType: GameType;
+  counts: Record<string, number>;
+  setCount: (dieId: string, count: number) => void;
+  addLogEntry: (entry: Omit<DiceLogEntry, "id">) => void;
+}
+
+/**
+ * One independent roll scope: its own picker, Roll button, and
+ * preview/result. A system with no `sections` gets exactly one of these for
+ * all its dice (reproducing the original single-flow popup exactly); a
+ * system with `sections` (e.g. CoC's "Skill Check" vs. "Sanity") gets one
+ * per section, each rolling only its own dice without disturbing the
+ * others' in-progress or settled results.
+ */
+const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
+  title,
+  hidePicker,
+  dice,
+  summarize,
+  gameType,
+  counts,
+  setCount,
+  addLogEntry,
+}) => {
   const [currentRoll, setCurrentRoll] = useState<CurrentRoll | null>(null);
   // Gates the text summary so it only appears once the dice have actually
   // finished shuffling, instead of alongside them the instant Roll is
@@ -73,24 +103,24 @@ export const DiceRollerPopup: React.FC = () => {
   // so the summary needs its own delay matched to that animation.
   const [resultSettled, setResultSettled] = useState(false);
 
-  const config = GAME_DICE[gameType];
+  const countFor = useCallback(
+    (die: DieTypeConfig) => counts[die.id] ?? die.defaultCount ?? 0,
+    [counts, dice]
+  );
 
   // A roll's dice and summary logic are only meaningful for the system that
   // produced them, and only for the exact picker counts it was rolled
   // with — drop any in-progress/just-settled roll as soon as either changes
   // so a stale result isn't re-summarized under the new rules or shown
-  // alongside a picker selection it no longer matches.
+  // alongside a picker selection it no longer matches. Scoped to just this
+  // panel's own dice, so a sibling section's stepper doesn't clear this one.
+  const countsKey = dice.map((d) => countFor(d)).join(",");
   useEffect(() => {
     setCurrentRoll(null);
     setResultSettled(false);
-  }, [gameType, counts]);
+  }, [gameType, countsKey]);
 
-  const countFor = useCallback(
-    (die: DieTypeConfig) => counts[die.id] ?? die.defaultCount ?? 0,
-    [counts]
-  );
-
-  const diceGroups = groupByField(config.dice, (d) => d.group);
+  const diceGroups = groupByField(dice, (d) => d.group);
 
   // Picker layout only: collapse a die that appears in multiple named
   // groups under the same label (e.g. "d6" in Base, Skill, and Gear /
@@ -119,11 +149,11 @@ export const DiceRollerPopup: React.FC = () => {
   // What will be rolled if the user hits Roll right now, in picker order —
   // drives the live preview rows so changing a stepper is reflected
   // instantly. flatIndex is this item's position in the flat `rolls` array
-  // handleRoll produces (same config.dice + count order), so a grouped
-  // layout can still look up each die's settled value after rolling.
+  // handleRoll produces (same dice + count order), so a grouped layout can
+  // still look up each die's settled value after rolling.
   let runningIndex = 0;
   const previewItems: { die: DieTypeConfig; flatIndex: number }[] = [];
-  config.dice.forEach((die) => {
+  dice.forEach((die) => {
     const n = countFor(die);
     for (let i = 0; i < n; i++) {
       previewItems.push({ die, flatIndex: runningIndex });
@@ -131,8 +161,6 @@ export const DiceRollerPopup: React.FC = () => {
     }
   });
   const previewGroups = groupByField(previewItems, (item) => item.die.group);
-
-  const gameLog = log.filter((entry) => entry.gameType === gameType);
 
   const stepper = (die: DieTypeConfig) => (
     <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -170,7 +198,7 @@ export const DiceRollerPopup: React.FC = () => {
 
   const handleRoll = useCallback(() => {
     const rolls: RolledDie[] = [];
-    config.dice.forEach((die) => {
+    dice.forEach((die) => {
       const n = countFor(die);
       for (let i = 0; i < n; i++) rolls.push({ dieId: die.id, value: die.roll() });
     });
@@ -186,14 +214,115 @@ export const DiceRollerPopup: React.FC = () => {
         gameType,
         timestamp: Date.now(),
         rolls,
-        summary: config.summarize(rolls, config.dice),
+        summary: summarize(rolls, dice),
       });
     }, ROLL_SETTLE_MS);
-  }, [config, countFor, gameType, addLogEntry]);
+  }, [dice, countFor, gameType, addLogEntry, summarize]);
+
+  const hasAnyCount = dice.some((d) => countFor(d) > 0);
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      {title && (
+        <Typography variant="subtitle2" sx={{ color: "text.primary", fontWeight: 600 }}>
+          {title}
+        </Typography>
+      )}
+
+      {!hidePicker && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          {matrixRows.map(([label, entries]) => (
+            <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Typography variant="body2" sx={{ color: "text.secondary", minWidth: 24 }}>
+                {label}
+              </Typography>
+              {entries.map(({ groupName, die }) => dieColumn(die, groupName))}
+            </Box>
+          ))}
+          {remainingGroups.map((group, gi) =>
+            group.name ? (
+              <Box key={group.name} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                {!matrixedGroupNames.has(group.name) && (
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "text.secondary", textTransform: "uppercase", letterSpacing: "0.08em" }}
+                  >
+                    {group.name}
+                  </Typography>
+                )}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                  {group.items.map((die) => dieColumn(die, die.label))}
+                </Box>
+              </Box>
+            ) : (
+              <Box key={gi} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                {group.items.map((die) => (
+                  <Box key={die.id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="body2" sx={{ flex: 1, color: "text.secondary" }}>
+                      {die.label}
+                    </Typography>
+                    {stepper(die)}
+                  </Box>
+                ))}
+              </Box>
+            )
+          )}
+        </Box>
+      )}
+
+      <Button variant="contained" onClick={handleRoll} disabled={!hasAnyCount} sx={{ alignSelf: "flex-start" }}>
+        Roll
+      </Button>
+
+      {/* Preview of what will be rolled, or the live/settled result */}
+      {previewItems.length > 0 && (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+            {previewGroups.map((group, gi) => (
+              <Box key={group.name ?? gi} sx={{ display: "flex", gap: 0.75, flexWrap: "wrap" }}>
+                {group.items.map(({ die, flatIndex }) => {
+                  const r = currentRoll?.rolls[flatIndex];
+                  return r ? (
+                    <Die
+                      key={flatIndex}
+                      value={r.value}
+                      rollKey={currentRoll!.token}
+                      face={die.face}
+                      roll={die.roll}
+                      sides={die.sides}
+                      showValueBadge={die.showValueBadge}
+                      symbolScale={die.symbolScale}
+                      valueBadgeScale={die.valueBadgeScale}
+                      color={die.color}
+                    />
+                  ) : (
+                    <DiePlaceholder key={flatIndex} sides={die.sides} color={die.color} />
+                  );
+                })}
+              </Box>
+            ))}
+          </Box>
+          {currentRoll && resultSettled && (
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              {summarize(currentRoll.rolls, dice)}
+            </Typography>
+          )}
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+export const DiceRollerPopup: React.FC = () => {
+  const gameType = useAppStore((s) => s.gameType);
+  const { isOpen, counts, log, close, setCount, addLogEntry, removeLogEntry, clearLog } =
+    useDiceStore();
+  const nodeRef = useRef<HTMLDivElement>(null);
+
+  const config = GAME_DICE[gameType];
+  const gameLog = log.filter((entry) => entry.gameType === gameType);
 
   if (!isOpen) return null;
-
-  const hasAnyCount = config.dice.some((d) => countFor(d) > 0);
 
   return (
     <Draggable
@@ -248,84 +377,29 @@ export const DiceRollerPopup: React.FC = () => {
 
         {/* ── Body ── */}
         <Box sx={{ flex: 1, overflowY: "auto", p: 2, display: "flex", flexDirection: "column", gap: 1.5 }}>
-          {/* Dice picker */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {matrixRows.map(([label, entries]) => (
-              <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                <Typography variant="body2" sx={{ color: "text.secondary", minWidth: 24 }}>
-                  {label}
-                </Typography>
-                {entries.map(({ groupName, die }) => dieColumn(die, groupName))}
-              </Box>
-            ))}
-            {remainingGroups.map((group, gi) =>
-              group.name ? (
-                <Box key={group.name} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                  {!matrixedGroupNames.has(group.name) && (
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "text.secondary", textTransform: "uppercase", letterSpacing: "0.08em" }}
-                    >
-                      {group.name}
-                    </Typography>
-                  )}
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    {group.items.map((die) => dieColumn(die, die.label))}
-                  </Box>
-                </Box>
-              ) : (
-                <Box key={gi} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                  {group.items.map((die) => (
-                    <Box key={die.id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography variant="body2" sx={{ flex: 1, color: "text.secondary" }}>
-                        {die.label}
-                      </Typography>
-                      {stepper(die)}
-                    </Box>
-                  ))}
-                </Box>
-              )
-            )}
-          </Box>
-
-          <Button variant="contained" onClick={handleRoll} disabled={!hasAnyCount} sx={{ alignSelf: "flex-start" }}>
-            Roll
-          </Button>
-
-          {/* Preview of what will be rolled, or the live/settled result */}
-          {previewItems.length > 0 && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-                {previewGroups.map((group, gi) => (
-                  <Box key={group.name ?? gi} sx={{ display: "flex", gap: 0.75, flexWrap: "wrap" }}>
-                    {group.items.map(({ die, flatIndex }) => {
-                      const r = currentRoll?.rolls[flatIndex];
-                      return r ? (
-                        <Die
-                          key={flatIndex}
-                          value={r.value}
-                          rollKey={currentRoll!.token}
-                          face={die.face}
-                          roll={die.roll}
-                          sides={die.sides}
-                          showValueBadge={die.showValueBadge}
-                          symbolScale={die.symbolScale}
-                          valueBadgeScale={die.valueBadgeScale}
-                          color={die.color}
-                        />
-                      ) : (
-                        <DiePlaceholder key={flatIndex} sides={die.sides} color={die.color} />
-                      );
-                    })}
-                  </Box>
-                ))}
-              </Box>
-              {currentRoll && resultSettled && (
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  {config.summarize(currentRoll.rolls, config.dice)}
-                </Typography>
-              )}
-            </Box>
+          {config.sections ? (
+            config.sections.map((section) => (
+              <DiceSectionPanel
+                key={section.label}
+                title={section.label}
+                hidePicker={section.hidePicker}
+                dice={config.dice.filter((d) => section.diceIds.includes(d.id))}
+                summarize={section.summarize}
+                gameType={gameType}
+                counts={counts}
+                setCount={setCount}
+                addLogEntry={addLogEntry}
+              />
+            ))
+          ) : (
+            <DiceSectionPanel
+              dice={config.dice}
+              summarize={config.summarize}
+              gameType={gameType}
+              counts={counts}
+              setCount={setCount}
+              addLogEntry={addLogEntry}
+            />
           )}
 
           <Divider />
