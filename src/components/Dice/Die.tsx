@@ -191,6 +191,13 @@ interface DieProps {
    *  a symbol or blank — for rolls where the raw number still matters
    *  (e.g. Shadowrun initiative), so it isn't hidden behind the hit icon. */
   showValueBadge?: boolean;
+  /** Scales the symbol icon relative to its normal size (1 = default) —
+   *  for systems whose artwork reads better a bit smaller. */
+  symbolScale?: number;
+  /** Scales the corner value badge's font size relative to its normal size
+   *  (1 = default) — for systems where the raw number needs to stand out
+   *  more, e.g. to offset a less contrasty accent color. */
+  valueBadgeScale?: number;
   color?: DieColor;
   size?: number;
 }
@@ -209,6 +216,8 @@ const Die: React.FC<DieProps> = ({
   roll,
   sides = 6,
   showValueBadge = false,
+  symbolScale = 1,
+  valueBadgeScale = 1,
   color = "default",
   size = 52,
 }) => {
@@ -275,23 +284,22 @@ const Die: React.FC<DieProps> = ({
             style={{
               position: "relative",
               display: "inline-flex",
-              width: size * 0.45,
-              height: size * 0.45,
+              width: size * 0.52 * symbolScale,
+              height: size * 0.52 * symbolScale,
             }}
           >
-            <DiceSymbol id={f.id} size={size * 0.45} />
+            <DiceSymbol id={f.id} size={size * 0.52 * symbolScale} />
             {f.badge && (
               <span
                 style={{
                   position: "absolute",
                   // Dead center on the success icon is the solid crossguard
                   // where the blades meet — same color as the badge text,
-                  // so it'd be illegible there. The actual gap between the
-                  // blade tips and the guard sits higher, around 30% down.
-                  top: "0%",
+                  // so it'd be illegible there.
+                  top: "-20%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  fontSize: size * 0.22,
+                  fontSize: size * 0.22 * valueBadgeScale,
                   fontWeight: 700,
                   lineHeight: 1,
                 }}
@@ -312,7 +320,7 @@ const Die: React.FC<DieProps> = ({
               position: "absolute",
               bottom: size * 0.06,
               right: size * 0.08,
-              fontSize: size * 0.22,
+              fontSize: size * 0.22 * valueBadgeScale,
               fontWeight: 500,
               lineHeight: 1,
               opacity: 0.75,
@@ -330,7 +338,7 @@ const Die: React.FC<DieProps> = ({
               bottom: size * 0.08,
               left: "50%",
               transform: "translateX(-50%)",
-              fontSize: size * 0.22,
+              fontSize: size * 0.22 * valueBadgeScale,
               fontWeight: 500,
               lineHeight: 1,
               opacity: 0.75,

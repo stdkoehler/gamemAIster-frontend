@@ -309,6 +309,8 @@ export const DiceRollerPopup: React.FC = () => {
                           roll={die.roll}
                           sides={die.sides}
                           showValueBadge={die.showValueBadge}
+                          symbolScale={die.symbolScale}
+                          valueBadgeScale={die.valueBadgeScale}
                           color={die.color}
                         />
                       ) : (

@@ -35,6 +35,13 @@ export interface DieTypeConfig {
    * number for initiative, so it shouldn't be hidden behind the hit icon.
    */
   showValueBadge?: boolean;
+  /** Scales the symbol icon relative to its normal size (1 = default) —
+   *  for systems whose artwork reads better a bit smaller. */
+  symbolScale?: number;
+  /** Scales the corner value badge's font size relative to its normal size
+   *  (1 = default) — for systems where the raw number needs to stand out
+   *  more, e.g. to offset a less contrasty accent color. */
+  valueBadgeScale?: number;
 }
 
 export interface RolledDie {
@@ -295,6 +302,11 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 2,
     maxCount: 10,
     showValueBadge: true,
+    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
+    // make the badge read a bit weaker against the icon, so it's nudged
+    // larger here while the icon itself shrinks slightly to balance it.
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
     roll: rollRange(6),
     face: slavicPoolFace,
   },
@@ -307,6 +319,11 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 1,
     maxCount: 10,
     showValueBadge: true,
+    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
+    // make the badge read a bit weaker against the icon, so it's nudged
+    // larger here while the icon itself shrinks slightly to balance it.
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
     roll: rollRange(6),
     face: slavicSkillFace,
   },
@@ -319,6 +336,11 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 1,
     maxCount: 10,
     showValueBadge: true,
+    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
+    // make the badge read a bit weaker against the icon, so it's nudged
+    // larger here while the icon itself shrinks slightly to balance it.
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
     roll: rollRange(6),
     face: slavicPoolFace,
   },
@@ -331,6 +353,11 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 0,
     maxCount: 10,
     showValueBadge: true,
+    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
+    // make the badge read a bit weaker against the icon, so it's nudged
+    // larger here while the icon itself shrinks slightly to balance it.
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
     roll: rollRange(8),
     face: slavicGearFace,
   },
@@ -343,6 +370,11 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 0,
     maxCount: 10,
     showValueBadge: true,
+    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
+    // make the badge read a bit weaker against the icon, so it's nudged
+    // larger here while the icon itself shrinks slightly to balance it.
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
     roll: rollRange(10),
     face: slavicGearFace,
   },
@@ -355,6 +387,11 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 0,
     maxCount: 10,
     showValueBadge: true,
+    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
+    // make the badge read a bit weaker against the icon, so it's nudged
+    // larger here while the icon itself shrinks slightly to balance it.
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
     roll: rollRange(12),
     face: slavicGearFace,
   },
