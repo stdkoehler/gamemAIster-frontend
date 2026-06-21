@@ -117,9 +117,14 @@ const StatMeter: React.FC<StatMeterProps> = ({
           value={percentage * 100}
           size={60}
           thickness={4}
-          sx={{ color: getTrackColor(colorPercentage, theme.trackColors), padding: "5px" }}
+          sx={{
+            color: getTrackColor(colorPercentage, theme.trackColors),
+            padding: "5px",
+          }}
         />
-        <Typography sx={{ color: getTrackColor(colorPercentage, theme.trackColors) }}>
+        <Typography
+          sx={{ color: getTrackColor(colorPercentage, theme.trackColors) }}
+        >
           {`${current}/${track.max}`}
         </Typography>
       </Box>
@@ -200,7 +205,7 @@ const ShadowrunNpcCard: React.FC<ShadowrunCharacter & WithUpdate> = (c) => {
     <Box sx={cardBoxStyle}>
       <Typography variant="h5">{c.name}</Typography>
       <Typography variant="body2">
-        {c.metatype} Â· {c.archetype}
+        {c.metatype} — {c.archetype}
       </Typography>
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} justifyContent="center">
@@ -237,14 +242,30 @@ const ShadowrunNpcCard: React.FC<ShadowrunCharacter & WithUpdate> = (c) => {
           <StatMeter
             label="Physical"
             track={c.damage.physical}
-            onChange={(val) => onCharacterUpdate?.({ ...c, damage: { ...c.damage, physical: { ...c.damage.physical, current: val } } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                damage: {
+                  ...c.damage,
+                  physical: { ...c.damage.physical, current: val },
+                },
+              })
+            }
           />
         </Grid>
         <Grid>
           <StatMeter
             label="Stun"
             track={c.damage.stun}
-            onChange={(val) => onCharacterUpdate?.({ ...c, damage: { ...c.damage, stun: { ...c.damage.stun, current: val } } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                damage: {
+                  ...c.damage,
+                  stun: { ...c.damage.stun, current: val },
+                },
+              })
+            }
           />
         </Grid>
       </Grid>
@@ -283,7 +304,9 @@ const VTM_COMBAT_SKILLS: Array<keyof VampireCharacter["skills"]> = [
 const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
   const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
-    VTM_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(([, v]) => (v as number) > 0),
+    VTM_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(
+      ([, v]) => (v as number) > 0,
+    ),
   );
 
   const physicalAttrs = {
@@ -299,12 +322,16 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
       : c.nature === "ghoul"
         ? `Ghoul${c.clan ? ` (${c.clan})` : ""}`
         : c.nature === "thin-blood"
-          ? ["Thin-blood", c.clan && `Clan ${c.clan}`].filter(Boolean).join(" – ")
+          ? ["Thin-blood", c.clan && `Clan ${c.clan}`]
+              .filter(Boolean)
+              .join(" – ")
           : [
               c.clan && `Clan ${c.clan}`,
               c.generation && `${c.generation}th Gen`,
               c.predatorType,
-            ].filter(Boolean).join(" · ") || "Kindred";
+            ]
+              .filter(Boolean)
+              .join(" · ") || "Kindred";
 
   return (
     <Box sx={cardBoxStyle}>
@@ -324,7 +351,9 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
           <Grid>
             <Box sx={infoBoxStyle}>
               <Box sx={infoInnerBoxStyle}>
-                <Typography variant="body2" fontWeight="bold">Disciplines:</Typography>
+                <Typography variant="body2" fontWeight="bold">
+                  Disciplines:
+                </Typography>
                 {Object.entries(c.disciplines).map(([name, d]) => (
                   <Typography key={name} variant="body2">
                     {name} {d.level} — {d.powers.join(", ")}
@@ -347,10 +376,14 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
                   <Typography variant="body2">Hunger: {c.hunger}/5</Typography>
                 )}
                 {c.humanity !== undefined && (
-                  <Typography variant="body2">Humanity: {c.humanity}/10</Typography>
+                  <Typography variant="body2">
+                    Humanity: {c.humanity}/10
+                  </Typography>
                 )}
                 {c.bloodPotency !== undefined && (
-                  <Typography variant="body2">Blood Potency: {c.bloodPotency}</Typography>
+                  <Typography variant="body2">
+                    Blood Potency: {c.bloodPotency}
+                  </Typography>
                 )}
               </Box>
             </Box>
@@ -363,7 +396,12 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
           <StatMeter
             label="Health"
             track={c.health}
-            onChange={(val) => onCharacterUpdate?.({ ...c, health: { ...c.health, current: val } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                health: { ...c.health, current: val },
+              })
+            }
             inverse
           />
         </Grid>
@@ -371,7 +409,12 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
           <StatMeter
             label="Willpower"
             track={c.willpower}
-            onChange={(val) => onCharacterUpdate?.({ ...c, willpower: { ...c.willpower, current: val } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                willpower: { ...c.willpower, current: val },
+              })
+            }
             inverse
           />
         </Grid>
@@ -422,9 +465,7 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
         <Grid>
           <Box sx={infoBoxStyle}>
             <Box sx={infoInnerBoxStyle}>
-              <Typography variant="body2">
-                Build: {c.derived.build}
-              </Typography>
+              <Typography variant="body2">Build: {c.derived.build}</Typography>
               <Typography variant="body2">
                 Damage Bonus: {c.derived.damageBonus}
               </Typography>
@@ -437,14 +478,16 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
       </Grid>
       {c.weapons && c.weapons.length > 0 && (
         <Box sx={{ my: 1 }}>
-          <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
+          <Typography variant="body2" fontWeight="bold">
+            Weapons:
+          </Typography>
           {c.weapons.map((w: CocWeapon) => (
             <Typography key={w.name} variant="body2">
-              {w.name} — {w.damage} ({w.skill})
-              {w.range ? `, ${w.range}` : ""}
+              {w.name} — {w.damage} ({w.skill}){w.range ? `, ${w.range}` : ""}
               {w.ammo !== undefined ? `, ${w.ammo} rds` : ""}
               {w.malfunction !== undefined && w.malfunction < 100
-                ? `, malf ${w.malfunction}` : ""}
+                ? `, malf ${w.malfunction}`
+                : ""}
             </Typography>
           ))}
         </Box>
@@ -455,7 +498,12 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
           <StatMeter
             label="Hit Points"
             track={c.hitPoints}
-            onChange={(val) => onCharacterUpdate?.({ ...c, hitPoints: { ...c.hitPoints, current: val } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                hitPoints: { ...c.hitPoints, current: val },
+              })
+            }
             inverse
           />
         </Grid>
@@ -463,7 +511,12 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
           <StatMeter
             label="Sanity"
             track={c.sanity}
-            onChange={(val) => onCharacterUpdate?.({ ...c, sanity: { ...c.sanity, current: val } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                sanity: { ...c.sanity, current: val },
+              })
+            }
             inverse
           />
         </Grid>
@@ -485,14 +538,16 @@ const SS_COMBAT_SKILLS: Array<keyof SeventhSeaCharacter["skills"]> = [
 const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter & WithUpdate> = (c) => {
   const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
-    SS_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(([, v]) => (v as number) > 0),
+    SS_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(
+      ([, v]) => (v as number) > 0,
+    ),
   );
 
   return (
     <Box sx={cardBoxStyle}>
       <Typography variant="h5">{c.name}</Typography>
       <Typography variant="body2">
-        {c.nation} Â· Virtue: {c.arcana.virtue} Â· Hubris: {c.arcana.hubris}
+        {c.nation} — Virtue: {c.arcana.virtue} — Hubris: {c.arcana.hubris}
       </Typography>
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} justifyContent="center">
@@ -512,13 +567,16 @@ const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter & WithUpdate> = (c) => {
       )}
       {c.weapons && c.weapons.length > 0 && (
         <Box sx={{ my: 1 }}>
-          <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
+          <Typography variant="body2" fontWeight="bold">
+            Weapons:
+          </Typography>
           {c.weapons.map((w: SeventhSeaWeapon) => (
             <Typography key={w.name} variant="body2">
               {w.name} ({w.trait}, {w.type}
               {w.properties && w.properties.length > 0
                 ? ` — ${w.properties.join(", ")}`
-                : ""})
+                : ""}
+              )
             </Typography>
           ))}
         </Box>
@@ -529,7 +587,12 @@ const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter & WithUpdate> = (c) => {
           <StatMeter
             label="Wounds"
             track={c.wounds}
-            onChange={(val) => onCharacterUpdate?.({ ...c, wounds: { ...c.wounds, current: val } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                wounds: { ...c.wounds, current: val },
+              })
+            }
           />
         </Grid>
       </Grid>
@@ -553,14 +616,16 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
   );
 
   const combatFocuses = c.focuses.filter((f) =>
-    /weapon|combat|fight|tactical|heavy|pistol|rifle|blade|unarmed|athletics/i.test(f),
+    /weapon|combat|fight|tactical|heavy|pistol|rifle|blade|unarmed|athletics/i.test(
+      f,
+    ),
   );
 
   return (
     <Box sx={cardBoxStyle}>
       <Typography variant="h5">{c.name}</Typography>
       <Typography variant="body2">
-        {c.origin} Â· {c.faction}
+        {c.origin} — {c.faction}
       </Typography>
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} justifyContent="center">
@@ -585,12 +650,16 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
         {c.weapons && c.weapons.length > 0 && (
           <Grid>
             <Box sx={{ my: 1 }}>
-              <Typography variant="body2" fontWeight="bold">Weapons:</Typography>
+              <Typography variant="body2" fontWeight="bold">
+                Weapons:
+              </Typography>
               {c.weapons.map((w: AgeWeapon) => (
                 <Typography key={w.name} variant="body2">
                   {w.name} — {w.damage}
                   {w.range ? `, ${w.range}` : ""}
-                  {w.qualities && w.qualities.length > 0 ? ` [${w.qualities.join(", ")}]` : ""}
+                  {w.qualities && w.qualities.length > 0
+                    ? ` [${w.qualities.join(", ")}]`
+                    : ""}
                 </Typography>
               ))}
             </Box>
@@ -603,7 +672,12 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
           <StatMeter
             label="Health"
             track={c.health}
-            onChange={(val) => onCharacterUpdate?.({ ...c, health: { ...c.health, current: val } })}
+            onChange={(val) =>
+              onCharacterUpdate?.({
+                ...c,
+                health: { ...c.health, current: val },
+              })
+            }
             inverse
           />
         </Grid>
@@ -624,17 +698,26 @@ const SLAVIC_COMBAT_SKILLS: Array<keyof SlavicCharacter["skills"]> = [
 const SlavicNpcCard: React.FC<SlavicCharacter & WithUpdate> = (c) => {
   const { onCharacterUpdate } = c;
   const combatSkills = Object.fromEntries(
-    SLAVIC_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(([, v]) => (v as number) > 0),
+    SLAVIC_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(
+      ([, v]) => (v as number) > 0,
+    ),
   );
 
   // Build per-attribute damage tracks from attributeDamage vs attributes
-  const attrTracks: { label: string; track: StatTrack; onChange?: (val: number) => void; inverse: boolean }[] = (
-    ["Strength", "Agility", "Wits", "Empathy"] as const
-  ).map((attr) => ({
+  const attrTracks: {
+    label: string;
+    track: StatTrack;
+    onChange?: (val: number) => void;
+    inverse: boolean;
+  }[] = (["Strength", "Agility", "Wits", "Empathy"] as const).map((attr) => ({
     label: attr,
     track: { current: c.attributeDamage[attr], max: c.attributes[attr] },
     onChange: onCharacterUpdate
-      ? (val: number) => onCharacterUpdate({ ...c, attributeDamage: { ...c.attributeDamage, [attr]: val } })
+      ? (val: number) =>
+          onCharacterUpdate({
+            ...c,
+            attributeDamage: { ...c.attributeDamage, [attr]: val },
+          })
       : undefined,
     inverse: true,
   }));
@@ -643,7 +726,7 @@ const SlavicNpcCard: React.FC<SlavicCharacter & WithUpdate> = (c) => {
     <Box sx={cardBoxStyle}>
       <Typography variant="h5">{c.name}</Typography>
       <Typography variant="body2">
-        {c.kin} Â· {c.calling}
+        {c.kin} — {c.calling}
       </Typography>
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} justifyContent="center">
@@ -664,14 +747,17 @@ const SlavicNpcCard: React.FC<SlavicCharacter & WithUpdate> = (c) => {
           Armor: {c.armor.name} (Rating {c.armor.rating})
         </Typography>
       )}
-      {c.talents.length > 0 && (
-        <TagList title="Talents" items={c.talents} />
-      )}
+      {c.talents.length > 0 && <TagList title="Talents" items={c.talents} />}
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} sx={trackGridStyle}>
         {attrTracks.map(({ label, track, onChange, inverse }) => (
           <Grid key={label}>
-            <StatMeter label={label} track={track} onChange={onChange} inverse={inverse} />
+            <StatMeter
+              label={label}
+              track={track}
+              onChange={onChange}
+              inverse={inverse}
+            />
           </Grid>
         ))}
       </Grid>
@@ -767,9 +853,7 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
       onCreateNPCs?.();
     } catch (err) {
       console.error("Failed to create NPC:", err);
-      showError(
-        err instanceof Error ? err.message : "Failed to create NPC.",
-      );
+      showError(err instanceof Error ? err.message : "Failed to create NPC.");
     } finally {
       setCreating(false);
     }
@@ -783,9 +867,7 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
         await deleteCharacterSheet(sheetId, missionId);
       } catch (err) {
         console.error("Failed to delete NPC sheet:", err);
-        showError(
-          err instanceof Error ? err.message : "Failed to delete NPC.",
-        );
+        showError(err instanceof Error ? err.message : "Failed to delete NPC.");
         setPendingDeleteRecord(null);
         return;
       }
@@ -837,7 +919,9 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
             <AccordionSummary
               aria-controls={`panel${record.data.id}-content`}
               id={`panel${record.data.id}-header`}
-              sx={{ "& .MuiAccordionSummary-content": { alignItems: "center" } }}
+              sx={{
+                "& .MuiAccordionSummary-content": { alignItems: "center" },
+              }}
             >
               <Typography sx={{ flexGrow: 1 }}>{record.data.name}</Typography>
               <Box
@@ -897,7 +981,10 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={cancelCreate}>Cancel</Button>
-          <Button onClick={handleConfirmCreate} disabled={!nameInput.trim() || creating}>
+          <Button
+            onClick={handleConfirmCreate}
+            disabled={!nameInput.trim() || creating}
+          >
             Create
           </Button>
         </DialogActions>
