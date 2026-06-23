@@ -17,6 +17,7 @@ import { MissionMenu } from "./components/MissionMenu";
 import { NpcManager } from "./components/NpcCard";
 import { CharacterManager } from "./components/CharacterManager";
 import { CharacterSheetPopup } from "./components/CharacterSheet";
+import { DiceRollerPopup } from "./components/Dice";
 import { GlobalSnackbar } from "./components/GlobalSnackbar";
 import { getMission, getCharacterSheets } from "./functions/restInterface";
 import { GameType } from "./models/Types";
@@ -225,6 +226,7 @@ const App: React.FC = () => {
         </Box>
       </Box>
       <CharacterSheetPopup />
+      <DiceRollerPopup />
       <GlobalSnackbar />
     </ThemeProvider>
   );
