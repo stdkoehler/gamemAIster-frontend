@@ -7,6 +7,7 @@ import { cthulhuTheme } from "./themes/cthulhu";
 import { seventhSeaTheme } from "./themes/seventhSea";
 import { expanseTheme } from "./themes/expanse";
 import { slavicTheme } from "./themes/slavic";
+import { dragonlanceTheme } from "./themes/dragonlance";
 
 const memoizedThemes: Partial<Record<GameType, Theme>> = {};
 
@@ -61,6 +62,7 @@ const themeMap: Record<GameType, Theme> = {
   [GameType.SEVENTH_SEA]: seventhSeaTheme,
   [GameType.EXPANSE]: expanseTheme,
   [GameType.SLAVIC]: slavicTheme,
+  [GameType.DRAGONLANCE]: dragonlanceTheme,
   [GameType.CUSTOM]: seventhSeaTheme, // Consider creating a custom theme if needed
   [GameType.SHADOWRUN]: shadowrunTheme,
 };

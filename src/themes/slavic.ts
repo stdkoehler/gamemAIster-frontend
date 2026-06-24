@@ -25,13 +25,13 @@ export const slavicTheme = createTheme({
     mode: "dark",
     primary: {
       light: "#a8b8b0", // polished iron
-      main: "#6a7e78", // aged iron
+      main: "#6a7e78", // aged iron < theme 1
       dark: "#3a4e48", // dark iron
       contrastText: "#e8d8b0", // aged linen
     },
     secondary: {
       light: "#e8901a", // bright flame
-      main: "#c06818", // ember glow
+      main: "#c06818", // ember glow < theme 2
       dark: "#7a3a0a", // dying coal
       contrastText: "#ffe8c0", // candlelight
     },
@@ -65,7 +65,7 @@ export const slavicTheme = createTheme({
     },
     text: {
       primary: "#d8c898", // aged linen
-      secondary: "#a89870", // worn leather
+      secondary: "#a89870", // worn leather < theme 3
       disabled: "#584828", // faded ash
     },
   },

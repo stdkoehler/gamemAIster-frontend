@@ -294,6 +294,7 @@ const NewMissionModal = ({
         <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
+        <MenuItem value={GameType.DRAGONLANCE}>Dragonlance (D&D 5E)</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
 
@@ -691,6 +692,7 @@ function FilterableLoadMissionModal({
         <MenuItem value={GameType.SEVENTH_SEA}>Seventh Sea</MenuItem>
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
+        <MenuItem value={GameType.DRAGONLANCE}>Dragonlance (D&D 5E)</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
       <Autocomplete

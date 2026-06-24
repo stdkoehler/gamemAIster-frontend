@@ -6,6 +6,7 @@ import {
   SeventhSeaCharacter,
   ExpanseCharacter,
   SlavicCharacter,
+  DragonlanceCharacter,
 } from "../models/CharacterProps";
 import { GameType } from "../models/Types";
 
@@ -245,6 +246,46 @@ const DEFAULT_SLAVIC: SlavicCharacter = {
   experience: 0,
 };
 
+const DEFAULT_DRAGONLANCE: DragonlanceCharacter = {
+  gameType: GameType.DRAGONLANCE,
+  id: 10007,
+  name: "Aldric Stonewarden",
+  race: "Human",
+  characterClass: "Fighter 5",
+  background: "Knight of Solamnia (Order of the Crown)",
+  alignment: "Lawful Good",
+  description:
+    "A steadfast Knight bound by the Code and the Measure, riding patrol along the Vingaard borders to shield free villages from Dragonarmy raiders. Stoic and plainspoken, he measures his worth by oaths kept rather than glory won.",
+  abilities: { Strength: 16, Dexterity: 12, Constitution: 15, Intelligence: 10, Wisdom: 13, Charisma: 14 },
+  proficiencyBonus: 3,
+  armorClass: 18,
+  speed: 30,
+  inspiration: false,
+  hitDice: "5d10",
+  skills: {
+    Acrobatics: 1, "Animal Handling": 1, Arcana: 0, Athletics: 6, Deception: 2,
+    History: 3, Insight: 1, Intimidation: 5, Investigation: 0, Medicine: 1,
+    Nature: 0, Perception: 1, Performance: 2, Persuasion: 5, Religion: 0,
+    "Sleight of Hand": 1, Stealth: 1, Survival: 1,
+  },
+  skillProficiencies: { Athletics: true, History: true, Intimidation: true, Persuasion: true },
+  savingThrows: { Strength: 6, Dexterity: 1, Constitution: 5, Intelligence: 0, Wisdom: 1, Charisma: 2 },
+  savingThrowProficiencies: { Strength: true, Constitution: true },
+  hitPoints: { current: 44, max: 44 },
+  temporaryHitPoints: 0,
+  deathSaves: { successes: 0, failures: 0 },
+  weapons: [
+    { name: "Solamnic Honor Blade", damage: "1d8", damageType: "Slashing", attackBonus: 6, properties: ["Versatile"] },
+    { name: "Lance", damage: "1d12", damageType: "Piercing", attackBonus: 6, properties: ["Reach"] },
+  ],
+  armorName: "Chain Mail",
+  shield: true,
+  gear: ["Holy Symbol of Kiri-Jolith", "Bedroll", "Rope, Hempen (50 ft)", "Rations (5 days)"],
+  spellcasting: { ability: null, saveDc: null, knownSpells: [] },
+  featuresAndTraits: ["Second Wind", "Action Surge", "Knight's Oath — Code and Measure"],
+  proficienciesAndLanguages: ["Common", "Solamnic", "Heavy Armor", "Shields", "Martial Weapons"],
+};
+
 export const DEFAULT_CHARACTERS: CharacterProps[] = [
   DEFAULT_SR,
   DEFAULT_VTM,
@@ -252,6 +293,7 @@ export const DEFAULT_CHARACTERS: CharacterProps[] = [
   DEFAULT_SS,
   DEFAULT_EXPANSE,
   DEFAULT_SLAVIC,
+  DEFAULT_DRAGONLANCE,
 ];
 
 // ── NPC dummies (dynamic IDs) ────────────────────────────────────────────────
@@ -362,6 +404,9 @@ export function createNpcDummy(gameType: GameType, id: number): CharacterProps |
     case GameType.SLAVIC:
       return { ...DEFAULT_SLAVIC, id };
 
+    case GameType.DRAGONLANCE:
+      return { ...DEFAULT_DRAGONLANCE, id };
+
     default:
       return null;
   }
@@ -447,6 +492,18 @@ export function createBlankCharacter(gameType: GameType, id: number): CharacterP
         attributeDamage: { Strength: 3, Agility: 3, Wits: 3, Empathy: 3 },
         skills: { Endurance: 0, Fight: 0, Sneak: 0, Move: 0, Marksmanship: 0, Scout: 0, Lore: 0, Survival: 0, Craft: 0, Insight: 0, Manipulation: 0, Healing: 0, Performance: 0 },
         talents: [],
+      };
+
+    case GameType.DRAGONLANCE:
+      return {
+        gameType: GameType.DRAGONLANCE, id, name: "New Character",
+        race: "", characterClass: "", background: "", description: "",
+        abilities: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+        proficiencyBonus: 2, armorClass: 10, speed: 30,
+        skills: {},
+        hitPoints: { current: 10, max: 10 },
+        weapons: [], armorName: null, shield: false, gear: [],
+        spellcasting: { ability: null, saveDc: null, knownSpells: [] },
       };
 
     default:

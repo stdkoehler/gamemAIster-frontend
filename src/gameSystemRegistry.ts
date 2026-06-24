@@ -10,11 +10,46 @@ interface GameSystemConfig {
 }
 
 export const GAME_SYSTEMS: Record<GameType, GameSystemConfig> = {
-  [GameType.SHADOWRUN]: { title: "Shadowrun", sheetTitle: "Shadowrun 5e", partyLabel: "Runners" },
-  [GameType.VAMPIRE_THE_MASQUERADE]: { title: "Vampire: The Masquerade", sheetTitle: "Vampire: The Masquerade V5", partyLabel: "Coterie", sheetWidth: 1100 },
-  [GameType.CALL_OF_CTHULHU]: { title: "Call of Cthulhu", sheetTitle: "Call of Cthulhu 7e", partyLabel: "Investigators" },
-  [GameType.SEVENTH_SEA]: { title: "7th Sea", sheetTitle: "7th Sea 2e", partyLabel: "Crew" },
-  [GameType.EXPANSE]: { title: "The Expanse", sheetTitle: "The Expanse RPG", partyLabel: "Crew" },
-  [GameType.SLAVIC]: { title: "Slavic 800 AD", sheetTitle: "Slavic 800 AD", partyLabel: "Adventurers" },
-  [GameType.CUSTOM]: { title: "Custom", sheetTitle: "Custom", partyLabel: "Party" },
+  [GameType.SHADOWRUN]: {
+    title: "Shadowrun",
+    sheetTitle: "Shadowrun 5e",
+    partyLabel: "Runners",
+  },
+  [GameType.VAMPIRE_THE_MASQUERADE]: {
+    title: "Vampire: The Masquerade",
+    sheetTitle: "Vampire: The Masquerade V5",
+    partyLabel: "Coterie",
+    sheetWidth: 1100,
+  },
+  [GameType.CALL_OF_CTHULHU]: {
+    title: "Call of Cthulhu",
+    sheetTitle: "Call of Cthulhu 7e",
+    partyLabel: "Investigators",
+  },
+  [GameType.SEVENTH_SEA]: {
+    title: "7th Sea",
+    sheetTitle: "7th Sea 2e",
+    partyLabel: "Crew",
+  },
+  [GameType.EXPANSE]: {
+    title: "The Expanse",
+    sheetTitle: "The Expanse RPG",
+    partyLabel: "Crew",
+  },
+  [GameType.SLAVIC]: {
+    title: "Slavic 800 AD",
+    sheetTitle: "Slavic 800 AD",
+    partyLabel: "Adventurers",
+  },
+  [GameType.DRAGONLANCE]: {
+    title: "Dragonlance",
+    sheetTitle: "Dragonlance: Shadow of the Dragon Queen (D&D 5E)",
+    partyLabel: "Heroes",
+    sheetWidth: 1100,
+  },
+  [GameType.CUSTOM]: {
+    title: "Custom",
+    sheetTitle: "Custom",
+    partyLabel: "Party",
+  },
 };

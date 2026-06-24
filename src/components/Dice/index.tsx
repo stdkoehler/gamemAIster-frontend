@@ -71,10 +71,16 @@ interface DiceSectionPanelProps {
    *  one tens + one ones, so there's nothing to pick). */
   hidePicker?: boolean;
   dice: DieTypeConfig[];
-  summarize: (rolls: RolledDie[], dice: DieTypeConfig[]) => string;
+  summarize: (rolls: RolledDie[], dice: DieTypeConfig[], modifier: number) => string;
   gameType: GameType;
   counts: Record<string, number>;
   setCount: (dieId: string, count: number) => void;
+  /** Key into `modifiers` for this section's optional "+modifier" stepper —
+   *  omitted for every system except Dragonlance, which keeps no stepper
+   *  rendered and a modifier of 0 passed into `summarize`. */
+  modifierKey?: string;
+  modifiers: Record<string, number>;
+  setModifier: (key: string, value: number) => void;
   addLogEntry: (entry: Omit<DiceLogEntry, "id">) => void;
 }
 
@@ -94,8 +100,12 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
   gameType,
   counts,
   setCount,
+  modifierKey,
+  modifiers,
+  setModifier,
   addLogEntry,
 }) => {
+  const modifier = modifierKey ? modifiers[modifierKey] ?? 0 : 0;
   const [currentRoll, setCurrentRoll] = useState<CurrentRoll | null>(null);
   // Gates the text summary so it only appears once the dice have actually
   // finished shuffling, instead of alongside them the instant Roll is
@@ -214,10 +224,10 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
         gameType,
         timestamp: Date.now(),
         rolls,
-        summary: summarize(rolls, dice),
+        summary: summarize(rolls, dice, modifier),
       });
     }, ROLL_SETTLE_MS);
-  }, [dice, countFor, gameType, addLogEntry, summarize]);
+  }, [dice, countFor, gameType, addLogEntry, summarize, modifier]);
 
   const hasAnyCount = dice.some((d) => countFor(d) > 0);
 
@@ -270,9 +280,27 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
         </Box>
       )}
 
-      <Button variant="contained" onClick={handleRoll} disabled={!hasAnyCount} sx={{ alignSelf: "flex-start" }}>
-        Roll
-      </Button>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <Button variant="contained" onClick={handleRoll} disabled={!hasAnyCount} sx={{ alignSelf: "flex-start" }}>
+          Roll
+        </Button>
+        {modifierKey && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Modifier
+            </Typography>
+            <IconButton size="small" onClick={() => setModifier(modifierKey, Math.max(-15, modifier - 1))}>
+              <RemoveIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="body2" sx={{ minWidth: 28, textAlign: "center" }}>
+              {modifier > 0 ? `+${modifier}` : modifier}
+            </Typography>
+            <IconButton size="small" onClick={() => setModifier(modifierKey, Math.min(15, modifier + 1))}>
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+      </Box>
 
       {/* Preview of what will be rolled, or the live/settled result */}
       {previewItems.length > 0 && (
@@ -304,7 +332,7 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
           </Box>
           {currentRoll && resultSettled && (
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              {summarize(currentRoll.rolls, dice)}
+              {summarize(currentRoll.rolls, dice, modifier)}
             </Typography>
           )}
         </Box>
@@ -315,8 +343,18 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
 
 export const DiceRollerPopup: React.FC = () => {
   const gameType = useAppStore((s) => s.gameType);
-  const { isOpen, counts, log, close, setCount, addLogEntry, removeLogEntry, clearLog } =
-    useDiceStore();
+  const {
+    isOpen,
+    counts,
+    modifiers,
+    log,
+    close,
+    setCount,
+    setModifier,
+    addLogEntry,
+    removeLogEntry,
+    clearLog,
+  } = useDiceStore();
   const nodeRef = useRef<HTMLDivElement>(null);
 
   const config = GAME_DICE[gameType];
@@ -388,6 +426,9 @@ export const DiceRollerPopup: React.FC = () => {
                 gameType={gameType}
                 counts={counts}
                 setCount={setCount}
+                modifierKey={section.modifierKey}
+                modifiers={modifiers}
+                setModifier={setModifier}
                 addLogEntry={addLogEntry}
               />
             ))
@@ -398,6 +439,8 @@ export const DiceRollerPopup: React.FC = () => {
               gameType={gameType}
               counts={counts}
               setCount={setCount}
+              modifiers={modifiers}
+              setModifier={setModifier}
               addLogEntry={addLogEntry}
             />
           )}

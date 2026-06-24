@@ -21,6 +21,7 @@ import CthulhuSheet from "./CthulhuSheet";
 import SeventhSeaSheet from "./SeventhSeaSheet";
 import ExpanseSheet from "./ExpanseSheet";
 import SlavicSheet from "./SlavicSheet";
+import DragonlanceSheet from "./DragonlanceSheet";
 
 function renderSheet(char: CharacterProps, onUpdate: (c: CharacterProps) => void) {
   switch (char.gameType) {
@@ -36,6 +37,8 @@ function renderSheet(char: CharacterProps, onUpdate: (c: CharacterProps) => void
       return <ExpanseSheet character={char} onUpdate={onUpdate} />;
     case GameType.SLAVIC:
       return <SlavicSheet character={char} onUpdate={onUpdate} />;
+    case GameType.DRAGONLANCE:
+      return <DragonlanceSheet character={char} onUpdate={onUpdate} />;
     default:
       return null;
   }
