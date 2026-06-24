@@ -596,7 +596,10 @@ export const dragonlanceTheme = createTheme({
           background: "rgba(0,0,0,0.35)",
           borderRadius: theme.shape.borderRadius,
           border: "1px solid rgba(216, 170, 80, 0.2)",
-          transition: "all 0.3s ease",
+          // Fast on focus specifically — a slow fade here reads as input
+          // lag (the cursor lands instantly, but the highlight visibly
+          // catching up afterwards looks like the click was sluggish).
+          transition: "border-color 0.1s ease, box-shadow 0.1s ease, background-color 0.3s ease",
           "&.Mui-focused": {
             boxShadow: `0 0 0 1px ${theme.palette.secondary.main}77, 0 0 10px ${theme.palette.secondary.main}33`,
             borderColor: `${theme.palette.secondary.main}77`,
@@ -616,7 +619,7 @@ export const dragonlanceTheme = createTheme({
       styleOverrides: {
         notchedOutline: () => ({
           borderColor: "rgba(216, 170, 80, 0.22)",
-          transition: "all 0.3s ease",
+          transition: "border-color 0.1s ease",
         }),
         root: ({ theme }) => ({
           "&:hover .MuiOutlinedInput-notchedOutline": {
