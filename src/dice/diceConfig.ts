@@ -143,6 +143,7 @@ const shadowrunDice: DieTypeConfig[] = [
         : v >= 5
           ? { kind: "symbol", id: "shadowrun-hit" }
           : { kind: "empty" },
+    color: "info",
   },
 ];
 
@@ -329,8 +330,8 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 2,
     maxCount: 10,
     showValueBadge: true,
-    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
-    // make the badge read a bit weaker against the icon, so it's nudged
+    // This system's accent-colored dice make the badge read a bit weaker
+    // against the icon, so it's nudged
     // larger here while the icon itself shrinks slightly to balance it.
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
@@ -346,8 +347,8 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 1,
     maxCount: 10,
     showValueBadge: true,
-    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
-    // make the badge read a bit weaker against the icon, so it's nudged
+    // This system's accent-colored dice make the badge read a bit weaker
+    // against the icon, so it's nudged
     // larger here while the icon itself shrinks slightly to balance it.
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
@@ -363,8 +364,8 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 1,
     maxCount: 10,
     showValueBadge: true,
-    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
-    // make the badge read a bit weaker against the icon, so it's nudged
+    // This system's accent-colored dice make the badge read a bit weaker
+    // against the icon, so it's nudged
     // larger here while the icon itself shrinks slightly to balance it.
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
@@ -380,8 +381,8 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 0,
     maxCount: 10,
     showValueBadge: true,
-    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
-    // make the badge read a bit weaker against the icon, so it's nudged
+    // This system's accent-colored dice make the badge read a bit weaker
+    // against the icon, so it's nudged
     // larger here while the icon itself shrinks slightly to balance it.
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
@@ -397,8 +398,8 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 0,
     maxCount: 10,
     showValueBadge: true,
-    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
-    // make the badge read a bit weaker against the icon, so it's nudged
+    // This system's accent-colored dice make the badge read a bit weaker
+    // against the icon, so it's nudged
     // larger here while the icon itself shrinks slightly to balance it.
     symbolScale: 0.85,
     valueBadgeScale: 1.3,
@@ -414,8 +415,8 @@ const slavicDice: DieTypeConfig[] = [
     defaultCount: 0,
     maxCount: 10,
     showValueBadge: true,
-    // This system's accent-colored dice (vs. e.g. Shadowrun's plain ones)
-    // make the badge read a bit weaker against the icon, so it's nudged
+    // This system's accent-colored dice make the badge read a bit weaker
+    // against the icon, so it's nudged
     // larger here while the icon itself shrinks slightly to balance it.
     symbolScale: 0.85,
     valueBadgeScale: 1.3,

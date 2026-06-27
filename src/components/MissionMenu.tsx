@@ -2,6 +2,7 @@ import * as React from "react";
 import { ComponentProps } from "react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
@@ -25,6 +26,7 @@ import {
 import {
   textfieldStyle,
   modalStyle,
+  modalPositionStyle,
   menuStyle,
   autocompleteStyle,
   Colors,
@@ -101,7 +103,6 @@ const BaseMissionModal = ({
   children,
   actions,
 }: BaseMissionModalProps) => {
-  const theme = useTheme();
   return (
     <Modal
       open={open}
@@ -109,15 +110,15 @@ const BaseMissionModal = ({
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box
+      {/* Paper (not Box) so this picks up the same themed gradient/texture
+          background and accent border that Create NPC / Dice / the
+          character sheet get, instead of a flat color with a thick
+          uniform outline. */}
+      <Paper
         sx={[
-          modalStyle,
+          modalPositionStyle,
           { p: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" },
         ]}
-        style={{
-          backgroundColor: theme.palette.background.default,
-          backgroundImage: "none",
-        }}
       >
         {/* --- FIXED HEADER --- */}
         <Box sx={{ p: 3, pb: 1 }}>
@@ -158,7 +159,7 @@ const BaseMissionModal = ({
         >
           {actions}
         </Box>
-      </Box>
+      </Paper>
     </Modal>
   );
 };
@@ -995,12 +996,6 @@ export function MissionMenu({
         slotProps={{
           list: {
             "aria-labelledby": "basic-button",
-          },
-          paper: {
-            style: {
-              backgroundColor: theme.palette.background.default,
-              backgroundImage: "none",
-            },
           },
         }}
         sx={menuStyle}

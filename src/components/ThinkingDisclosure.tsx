@@ -93,13 +93,13 @@ export default function ThinkingDisclosure({
                 opacity: expanded ? 0.7 : 1,
                 fontFamily: "monospace",
                 fontWeight: 700,
-                color: { color },
                 textTransform: "uppercase",
                 letterSpacing: "1px",
                 userSelect: "none",
                 lineHeight: 1,
                 display: "block",
               }}
+              color={color}
             >
               {title}
             </Typography>
@@ -109,11 +109,11 @@ export default function ThinkingDisclosure({
                 sx={{
                   opacity: 0.7,
                   fontSize: "0.65rem",
-                  color: { color },
                   fontStyle: "italic",
                   display: "block",
                   mt: -0.2,
                 }}
+                color={color}
               >
                 Processing thoughts...
               </Typography>

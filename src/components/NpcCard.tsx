@@ -125,7 +125,17 @@ const StatMeter: React.FC<StatMeterProps> = ({
           }}
         />
         <Typography
-          sx={{ color: getTrackColor(colorPercentage, theme.trackColors) }}
+          sx={{
+            color: getTrackColor(colorPercentage, theme.trackColors),
+            // Themes that put a glow on text by default key it off the
+            // `color` prop (primary/secondary/etc), which this Typography
+            // doesn't set — it's colored entirely via the sx override
+            // above with a dynamically interpolated, non-palette color.
+            // Without this, the glow stayed whatever the theme's default
+            // is (e.g. magenta) instead of following this text's actual
+            // color.
+            textShadow: `0 0 6px ${alpha(getTrackColor(colorPercentage, theme.trackColors), 0.7)}`,
+          }}
         >
           {`${current}/${track.max}`}
         </Typography>

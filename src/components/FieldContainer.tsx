@@ -396,8 +396,28 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
                 "&:hover fieldset": {
                   borderColor: paletteColor.main,
                 },
-                "&.Mui-focused fieldset": {
-                  borderColor: paletteColor.dark,
+                // Targets the notchedOutline by class (not the bare
+                // `fieldset` tag) so this has the same class-selector
+                // count as the theme's own equivalent global focus-border
+                // rule, putting the tiebreak on a guaranteed-higher count
+                // (this selector has one extra ancestor class) rather than
+                // a narrower tag-vs-class specificity margin.
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  // Themes with a dedicated "active" accent (e.g.
+                  // Shadowrun's cyan) take over the border fully on focus,
+                  // so the field's own base color doesn't show through
+                  // alongside it. Themes without one keep the base-color
+                  // border as before.
+                  borderColor: theme.accentColor ?? paletteColor.dark,
+                },
+                "&.Mui-focused .MuiInputBase-input": {
+                  // The theme's own global focus rule already swaps this
+                  // text's *glow* to the accent color (e.g. cyan) — without
+                  // also swapping the actual fill color here, the letters
+                  // stayed the field's base color (e.g. yellow) underneath
+                  // a cyan glow, which read as a mismatched, slightly off
+                  // color rather than a clean accent takeover.
+                  color: theme.accentColor ?? paletteColor.light,
                 },
                 "&.Mui-disabled fieldset": {
                   borderColor: theme.palette.background.default,

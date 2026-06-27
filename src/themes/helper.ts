@@ -8,6 +8,10 @@ declare module "@mui/material/styles" {
     logo: string;
     titleOverlayStyle?: Record<string, any>;
     trackColors: { low: string; mid: string; high: string };
+    // Highlight color for chrome that should follow a theme's "active"
+    // accent (e.g. the selected character-sheet tab) rather than its
+    // dominant primary color. Falls back to primary when unset.
+    accentColor?: string;
   }
   interface ThemeOptions {
     spinButtonBackgroundImage?: (color: string) => string;
@@ -15,6 +19,7 @@ declare module "@mui/material/styles" {
     logo?: string;
     titleOverlayStyle?: Record<string, any>;
     trackColors?: { low: string; mid: string; high: string };
+    accentColor?: string;
   }
   // Allow new color names if you add them to palette
   interface PaletteOptions {
