@@ -45,6 +45,7 @@ import {
   SeventhSeaCharacter,
   ExpanseCharacter,
   SlavicCharacter,
+  DragonlanceCharacter,
 } from "../models/CharacterProps";
 import { GameType } from "../models/Types";
 import { CharacterRecord } from "../models/MissionModels";
@@ -766,6 +767,91 @@ const SlavicNpcCard: React.FC<SlavicCharacter & WithUpdate> = (c) => {
   );
 };
 
+const DRAGONLANCE_COMBAT_SKILLS = [
+  "Athletics",
+  "Acrobatics",
+  "Stealth",
+  "Perception",
+  "Intimidation",
+  "Survival",
+];
+
+const DragonlanceNpcCard: React.FC<DragonlanceCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
+  const combatSkills = Object.fromEntries(
+    DRAGONLANCE_COMBAT_SKILLS.filter((k) => k in c.skills).map((k) => [k, c.skills[k]]),
+  );
+  const abilityShort = Object.fromEntries(
+    Object.entries(c.abilities).map(([k, v]) => [k.slice(0, 3), v]),
+  );
+
+  return (
+    <Box sx={cardBoxStyle}>
+      <Typography variant="h5">{c.name}</Typography>
+      <Typography variant="body2">
+        {c.race} — {c.characterClass}
+      </Typography>
+      <Divider sx={{ my: 1 }} />
+      <Grid container spacing={2} justifyContent="center">
+        <Grid>
+          <KeyValueList title="Abilities" entries={abilityShort} />
+        </Grid>
+        <Grid>
+          <Box sx={skillsBoxStyle}>
+            <KeyValueList title="Skills" entries={combatSkills} />
+          </Box>
+        </Grid>
+      </Grid>
+      <Grid container spacing={2} justifyContent="center">
+        <Grid>
+          <Box sx={infoBoxStyle}>
+            <Box sx={infoInnerBoxStyle}>
+              <Typography variant="body2">AC: {c.armorClass}</Typography>
+              <Typography variant="body2">Speed: {c.speed} ft</Typography>
+              <Typography variant="body2">Prof. Bonus: +{c.proficiencyBonus}</Typography>
+            </Box>
+          </Box>
+        </Grid>
+        {c.weapons.length > 0 && (
+          <Grid>
+            <TagList
+              title="Weapons"
+              items={c.weapons.map((w) => `${w.name} (${w.damage} ${w.damageType})`)}
+            />
+          </Grid>
+        )}
+        {c.gear.length > 0 && (
+          <Grid>
+            <TagList title="Gear" items={c.gear} />
+          </Grid>
+        )}
+      </Grid>
+      {(c.armorName || c.shield) && (
+        <Typography variant="body2">
+          {[c.armorName, c.shield ? "Shield" : null].filter(Boolean).join(" + ")}
+        </Typography>
+      )}
+      {c.spellcasting.ability && (
+        <Typography variant="body2">
+          Spellcasting: {c.spellcasting.ability} (DC {c.spellcasting.saveDc})
+        </Typography>
+      )}
+      <Divider sx={{ my: 1 }} />
+      <Grid container spacing={2} sx={trackGridStyle}>
+        <Grid>
+          <StatMeter
+            label="Hit Points"
+            track={c.hitPoints}
+            onChange={(val) =>
+              onCharacterUpdate?.({ ...c, hitPoints: { ...c.hitPoints, current: val } })
+            }
+          />
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
 // =====================
 // NpcCard dispatcher
 // =====================
@@ -784,6 +870,8 @@ export const NpcCard: React.FC<CharacterProps & WithUpdate> = (props) => {
       return <ExpanseNpcCard {...props} />;
     case GameType.SLAVIC:
       return <SlavicNpcCard {...props} />;
+    case GameType.DRAGONLANCE:
+      return <DragonlanceNpcCard {...props} />;
     default:
       return null;
   }

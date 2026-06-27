@@ -16,10 +16,14 @@ const MAX_LOG_ENTRIES = 50;
 interface DiceState {
   isOpen: boolean;
   counts: Record<string, number>;
+  /** Flat "+modifier" values for sections with a `modifierKey` (e.g.
+   *  Dragonlance's ability mod + proficiency bonus), keyed by that key. */
+  modifiers: Record<string, number>;
   log: DiceLogEntry[];
   open: () => void;
   close: () => void;
   setCount: (dieId: string, count: number) => void;
+  setModifier: (key: string, value: number) => void;
   addLogEntry: (entry: Omit<DiceLogEntry, "id">) => void;
   removeLogEntry: (id: string) => void;
   /** Clears the whole log, or just one game's entries if `gameType` is given. */
@@ -31,6 +35,7 @@ const useDiceStore = create<DiceState>()(
     (set) => ({
       isOpen: false,
       counts: {},
+      modifiers: {},
       log: [],
 
       open: () => set({ isOpen: true }),
@@ -38,6 +43,9 @@ const useDiceStore = create<DiceState>()(
 
       setCount: (dieId, count) =>
         set((state) => ({ counts: { ...state.counts, [dieId]: count } })),
+
+      setModifier: (key, value) =>
+        set((state) => ({ modifiers: { ...state.modifiers, [key]: value } })),
 
       addLogEntry: (entry) =>
         set((state) => ({
@@ -57,7 +65,7 @@ const useDiceStore = create<DiceState>()(
     }),
     {
       name: "dice-storage",
-      partialize: (state) => ({ counts: state.counts, log: state.log }),
+      partialize: (state) => ({ counts: state.counts, modifiers: state.modifiers, log: state.log }),
     }
   )
 );

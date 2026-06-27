@@ -613,6 +613,87 @@ export interface SlavicCharacter {
 }
 
 // =====================
+// Dragonlance: Shadow of the Dragon Queen (D&D 5th Edition)
+// =====================
+
+// "Attacks & Spellcasting" table entry on the official sheet — also the
+// shape the backend's NPC equipment pipeline produces, so PCs and NPCs
+// share one weapon type.
+export interface DragonlanceWeapon {
+  name: string;
+  damage: string; // dice expression, e.g. "1d8"
+  damageType: string; // Slashing / Piercing / Bludgeoning
+  attackBonus: number;
+  rangeFt?: number; // omitted/0 for melee
+  properties?: string[]; // Finesse, Heavy, Light, Loading, Reach, Thrown, Two-Handed, Versatile
+}
+
+export interface DragonlanceCharacter {
+  gameType: GameType.DRAGONLANCE;
+  id: number;
+  name: string;
+  race: string; // Human, Elf, Dwarf, Kender, Draconian, etc.
+  characterClass: string; // free text, e.g. "Fighter 5" — mirrors the sheet's combined "Class & Level" field
+  background: string;
+  alignment?: string;
+  // Personality traits/ideals/bonds/flaws, appearance, backstory, allies &
+  // organizations, treasure — every roleplay box on pages 1-2 of the sheet
+  // collapses into this one freeform field, same as every other system here.
+  description: string;
+
+  abilities: {
+    Strength: number;
+    Dexterity: number;
+    Constitution: number;
+    Intelligence: number;
+    Wisdom: number;
+    Charisma: number;
+  };
+
+  proficiencyBonus: number;
+  armorClass: number;
+  speed: number;
+  inspiration?: boolean;
+  hitDice?: string; // e.g. "5d10"
+
+  // Final bonus per skill (ability modifier, plus proficiencyBonus if
+  // proficient) — a flat name -> number map, the same shape the backend's
+  // NPC pipeline already produces, so NPCs (which have no notion of
+  // proficiency, just a final number) type-check identically to PCs.
+  skills: Record<string, number>;
+  // PC-sheet-only proficiency toggles that drive the live recompute of
+  // `skills` above when an ability score or the proficiency bonus changes.
+  // Absent for NPCs.
+  skillProficiencies?: Record<string, boolean>;
+
+  savingThrows?: Record<string, number>;
+  savingThrowProficiencies?: Record<string, boolean>;
+
+  hitPoints: StatTrack;
+  temporaryHitPoints?: number;
+  deathSaves?: { successes: number; failures: number };
+
+  weapons: DragonlanceWeapon[];
+  armorName: string | null;
+  shield: boolean;
+  gear: string[];
+
+  spellcasting: {
+    ability: string | null;
+    saveDc: number | null;
+    attackBonus?: number | null;
+    knownSpells: string[];
+    cantrips?: string[];
+    spellSlots?: Record<string, StatTrack>; // level "1"-"9" -> {current: slots remaining, max: total slots}
+  };
+
+  featuresAndTraits?: string[];
+  proficienciesAndLanguages?: string[];
+
+  notes?: string;
+}
+
+// =====================
 // Discriminated union — used by both NpcCard and (future) CharacterCard
 // =====================
 
@@ -622,4 +703,5 @@ export type CharacterProps =
   | CthulhuCharacter
   | SeventhSeaCharacter
   | ExpanseCharacter
-  | SlavicCharacter;
+  | SlavicCharacter
+  | DragonlanceCharacter;

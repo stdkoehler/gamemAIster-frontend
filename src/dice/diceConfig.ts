@@ -64,13 +64,22 @@ export interface DiceSection {
   /** Skips the count picker for dice with a fixed, non-adjustable count
    *  (e.g. CoC's percentile pair is always exactly one tens + one ones). */
   hidePicker?: boolean;
-  summarize: (rolls: RolledDie[], dice: DieTypeConfig[]) => string;
+  /**
+   * Unique key for an optional flat "+modifier" stepper shown next to the
+   * Roll button, persisted in the dice store and added into the displayed
+   * total — for systems where the dice alone don't reflect a result (D&D
+   * 5e's d20 checks/attacks/saves need the ability modifier + proficiency
+   * bonus added before comparing to the GM's DC). Omitted for every other
+   * system, which keeps today's no-modifier behavior.
+   */
+  modifierKey?: string;
+  summarize: (rolls: RolledDie[], dice: DieTypeConfig[], modifier: number) => string;
 }
 
 export interface GameDiceConfig {
   dice: DieTypeConfig[];
   sections?: DiceSection[];
-  summarize: (rolls: RolledDie[], dice: DieTypeConfig[]) => string;
+  summarize: (rolls: RolledDie[], dice: DieTypeConfig[], modifier: number) => string;
 }
 
 const rollRange = (sides: number) => () =>
@@ -550,6 +559,127 @@ const cocSections: DiceSection[] = [
   },
 ];
 
+// ───────────────────────── Dragonlance (D&D 5E) ─────────────────────────
+// D&D 5e has no fixed success threshold baked into the dice themselves —
+// a d20 result is only meaningful once compared to a DC the GM holds, which
+// this roller has no notion of — so unlike every pool-based system above,
+// there's no hit/success counting here. Instead the roller mirrors how a
+// player actually resolves a roll at the table: roll the die(s), add a
+// manually-entered modifier (ability mod + proficiency bonus, looked up off
+// the character sheet), and read the total off yourself.
+const dragonlanceDice: DieTypeConfig[] = [
+  {
+    id: "d5e-d20",
+    label: "d20",
+    sides: 20,
+    defaultCount: 1,
+    // Rolling 2 covers advantage/disadvantage — summarize shows both so the
+    // player can pick whichever applies.
+    maxCount: 2,
+    roll: rollRange(20),
+    face: numberFace,
+  },
+  {
+    id: "d5e-d4",
+    label: "d4",
+    sides: 4,
+    defaultCount: 0,
+    maxCount: 10,
+    roll: rollRange(4),
+    face: numberFace,
+  },
+  {
+    id: "d5e-d6",
+    label: "d6",
+    sides: 6,
+    defaultCount: 0,
+    maxCount: 10,
+    roll: rollRange(6),
+    face: numberFace,
+  },
+  {
+    id: "d5e-d8",
+    label: "d8",
+    sides: 8,
+    defaultCount: 0,
+    maxCount: 10,
+    roll: rollRange(8),
+    face: numberFace,
+  },
+  {
+    id: "d5e-d10",
+    label: "d10",
+    sides: 10,
+    defaultCount: 0,
+    maxCount: 10,
+    roll: rollRange(10),
+    face: numberFace,
+  },
+  {
+    id: "d5e-d12",
+    label: "d12",
+    sides: 12,
+    defaultCount: 0,
+    maxCount: 10,
+    roll: rollRange(12),
+    face: numberFace,
+  },
+];
+
+function modifierSuffix(modifier: number): string {
+  if (modifier === 0) return "";
+  return modifier > 0 ? ` + ${modifier}` : ` − ${Math.abs(modifier)}`;
+}
+
+function summarizeDragonlanceD20(
+  rolls: RolledDie[],
+  _dice: DieTypeConfig[],
+  modifier: number,
+): string {
+  if (rolls.length === 0) return "no dice selected";
+  const values = rolls.map((r) => r.value);
+  if (values.length === 1) {
+    let text = `${values[0]}${modifierSuffix(modifier)} = ${values[0] + modifier}`;
+    if (values[0] === 20) text += " — natural 20!";
+    else if (values[0] === 1) text += " — natural 1";
+    return text;
+  }
+  const high = Math.max(...values);
+  const low = Math.min(...values);
+  return `rolled ${values.join(", ")} — advantage ${high + modifier}, disadvantage ${low + modifier}`;
+}
+
+function summarizeDragonlanceDamage(
+  rolls: RolledDie[],
+  dice: DieTypeConfig[],
+  modifier: number,
+): string {
+  if (rolls.length === 0) return "no dice selected";
+  const sum = rolls.reduce((s, r) => s + r.value, 0);
+  const labels = rolls.map((r) => `${dieById(dice, r.dieId)?.label ?? r.dieId}:${r.value}`);
+  return `${sum}${modifierSuffix(modifier)} = ${sum + modifier} (${labels.join(", ")})`;
+}
+
+const dragonlanceSections: DiceSection[] = [
+  {
+    label: "Check / Attack / Save",
+    diceIds: ["d5e-d20"],
+    modifierKey: "d5e-check-mod",
+    summarize: summarizeDragonlanceD20,
+  },
+  {
+    label: "Damage",
+    diceIds: ["d5e-d4", "d5e-d6", "d5e-d8", "d5e-d10", "d5e-d12"],
+    modifierKey: "d5e-damage-mod",
+    summarize: summarizeDragonlanceDamage,
+  },
+];
+
+function summarizeDragonlance(rolls: RolledDie[]): string {
+  const total = rolls.reduce((sum, r) => sum + r.value, 0);
+  return `Total ${total}`;
+}
+
 // ───────────────────────── Custom / fallback ─────────────────────────
 const customDice: DieTypeConfig[] = [
   {
@@ -627,5 +757,10 @@ export const GAME_DICE: Record<GameType, GameDiceConfig> = {
   },
   [GameType.EXPANSE]: { dice: expanseDice, summarize: summarizeExpanse },
   [GameType.SLAVIC]: { dice: slavicDice, summarize: summarizeSlavic },
+  [GameType.DRAGONLANCE]: {
+    dice: dragonlanceDice,
+    sections: dragonlanceSections,
+    summarize: summarizeDragonlance,
+  },
   [GameType.CUSTOM]: { dice: customDice, summarize: summarizeGeneric },
 };
