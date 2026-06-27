@@ -5,6 +5,7 @@ import {
   linkHoverStyle,
   resolveButtonPalette,
   spinButtonArrowSvg,
+  titleOutlineTextShadow,
 } from "./helper";
 
 // Sci-fi glow text shadow for futuristic elements
@@ -649,4 +650,13 @@ export const expanseTheme = createTheme({
   }),
   logo: "/src/assets/expanse/ComfyUI_temp_rpdvh_00062_.png",
   trackColors: { low: "#388e3c", mid: "#f57c00", high: "#d32f2f" },
+  // The hero banner's right side is a bright orange planet curve — the
+  // default h2 (flat black drop-shadow only, no outline) loses the
+  // holographic glow these functions are built for and risks washing out
+  // against that brightness. Ceres-station violet-white with a deep
+  // ion-purple outline keeps it legible across the whole image.
+  titleOverlayStyle: {
+    color: "#ede7f6",
+    textShadow: titleOutlineTextShadow("#1a0f4a"),
+  },
 });

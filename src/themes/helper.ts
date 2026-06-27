@@ -232,3 +232,30 @@ export function spinButtonArrowSvg(
     `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='${strokeWidth}' stroke-linecap='round' stroke-linejoin='round'>${shape}</svg>`
   )}")`;
 }
+
+/**
+ * 8-direction offset-copy text outline (not `-webkit-text-stroke`, which
+ * draws an independent, slightly misaligned outline on top of text-shadow
+ * and visibly ghosts/doubles on curves when combined with it) plus a soft
+ * drop shadow for depth. All 8 directions, not just the 4 diagonals, so
+ * straight stroke edges on letters like D/R/N don't get a thin gap between
+ * two diagonal shadows.
+ *
+ * Used for `titleOverlayStyle` — the game-title text rendered over the
+ * (often bright/busy) hero banner image in App.tsx — so it stays legible in
+ * the theme's own color against any background brightness, rather than a
+ * generic black stroke.
+ */
+export function titleOutlineTextShadow(outlineColor: string): string {
+  return [
+    `-1px -1px 0 ${outlineColor}`,
+    `1px -1px 0 ${outlineColor}`,
+    `-1px 1px 0 ${outlineColor}`,
+    `1px 1px 0 ${outlineColor}`,
+    `0 -1px 0 ${outlineColor}`,
+    `0 1px 0 ${outlineColor}`,
+    `-1px 0 0 ${outlineColor}`,
+    `1px 0 0 ${outlineColor}`,
+    `0 3px 10px rgba(0,0,0,0.8)`,
+  ].join(", ");
+}

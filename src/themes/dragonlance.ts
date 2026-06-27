@@ -7,6 +7,7 @@ import {
   linkHoverStyle,
   resolveButtonPalette,
   spinButtonArrowSvg,
+  titleOutlineTextShadow,
 } from "./helper";
 
 // Slow ember flicker for headings — a heraldic title catching torchlight,
@@ -692,23 +693,10 @@ export const dragonlanceTheme = createTheme({
   // would override (undo) this outline on every tick.
   titleOverlayStyle: {
     color: "#fdf0d8",
+    // Disables the ember-flicker `animation` every other h2 gets, since
+    // that keyframe animates `text-shadow` itself each frame and would
+    // override (undo) the static outline below.
     animation: "none",
-    // Outline via offset text-shadow copies only — combining this with
-    // `-webkit-text-stroke` drew two independent, slightly misaligned
-    // outline techniques on top of each other, which showed up as visible
-    // ghosting/doubling on curves when zoomed in. All 8 directions (not
-    // just the 4 diagonals) so straight stroke edges on letters like D/R/N
-    // don't get a thin gap between two diagonal shadows.
-    textShadow: [
-      "-1px -1px 0 #5c0f14",
-      "1px -1px 0 #5c0f14",
-      "-1px 1px 0 #5c0f14",
-      "1px 1px 0 #5c0f14",
-      "0 -1px 0 #5c0f14",
-      "0 1px 0 #5c0f14",
-      "-1px 0 0 #5c0f14",
-      "1px 0 0 #5c0f14",
-      "0 3px 10px rgba(0,0,0,0.8)",
-    ].join(", "),
+    textShadow: titleOutlineTextShadow("#5c0f14"),
   },
 });

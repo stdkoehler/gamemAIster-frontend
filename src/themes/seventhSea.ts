@@ -6,6 +6,7 @@ import {
   linkHoverStyle,
   resolveButtonPalette,
   spinButtonArrowSvg,
+  titleOutlineTextShadow,
 } from "./helper";
 
 // Specific text shadow style for a "nautical glow" effect (good for 7th Sea)
@@ -693,4 +694,13 @@ export const seventhSeaTheme = createTheme({
   }),
   logo: "/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
   trackColors: { low: "#4a8a6a", mid: "#d68730", high: "#7a3020" },
+  // The hero banner is a fiery orange sunset/smoke skyline behind black
+  // ship silhouettes — the default h2 (golden parchment, flat black
+  // drop-shadow only) can wash out against the brighter smoke clouds.
+  // A pale parchment fill with a dark scorched-wood outline keeps it
+  // legible across both the dark silhouettes and the bright haze.
+  titleOverlayStyle: {
+    color: "#FAE4A0",
+    textShadow: titleOutlineTextShadow("#3a1a0c"),
+  },
 });

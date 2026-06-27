@@ -6,6 +6,7 @@ import {
   linkHoverStyle,
   resolveButtonPalette,
   spinButtonArrowSvg,
+  titleOutlineTextShadow,
 } from "./helper";
 
 function gothicTextShadow(theme: Theme, ownerStateColor?: string): string {
@@ -647,4 +648,12 @@ export const vampireTheme = createTheme({
   }),
   logo: "/src/assets/vampire/vtm_00004_.png",
   trackColors: { low: "#4a7a54", mid: "#a98f5b", high: "#c00000" },
+  // The hero banner (vtm_00004_.png) is a busy purple/red night skyline —
+  // the default h2 (blood red on whatever's behind it) can read close in
+  // value to the image's own red-toned regions. A pale rose-ivory fill with
+  // a dark dried-blood outline guarantees contrast against any of it.
+  titleOverlayStyle: {
+    color: "#f3dcd6",
+    textShadow: titleOutlineTextShadow("#5c0000"),
+  },
 });
