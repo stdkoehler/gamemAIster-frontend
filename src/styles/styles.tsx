@@ -142,20 +142,8 @@ export const modalStyle = (theme: Theme) => {
 };
 
 // ================================
-// CharacterCard & CharacterManager styles
+// CharacterManager styles
 // ================================
-
-// Action Buttons box style
-export const actionButtonsBoxStyle = {
-  display: "flex",
-  justifyContent: "space-around",
-  width: "100%",
-};
-
-// Individual action button style
-export const actionButtonStyle = {
-  textAlign: "center" as const,
-};
 
 // Accordion grid style
 export const accordionGridStyle = (theme: Theme) => ({
@@ -182,13 +170,12 @@ export const infoBoxStyle = { my: 2 };
 export const infoInnerBoxStyle = { textAlign: "right" as const };
 
 // Cyberware & skills
-export const cyberwareBoxStyle = {
+export const skillsBoxStyle = {
   my: 2,
   display: "flex",
   flexDirection: "column" as const,
   alignItems: "flex-start",
 };
-export const skillsBoxStyle = cyberwareBoxStyle;
 
 // Damage grid and component box style
 export const trackGridStyle = {
