@@ -25,6 +25,7 @@ const TYPES = [
   ["seventh_sea", "SeventhSeaCharacter"],
   ["expanse", "ExpanseCharacter"],
   ["slavic", "SlavicCharacter"],
+  ["dragonlance", "DragonlanceCharacter"],
 ];
 
 mkdirSync(outputDir, { recursive: true });
