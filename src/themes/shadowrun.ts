@@ -421,6 +421,13 @@ export const shadowrunTheme = createTheme({
         content: () => ({ "&.Mui-expanded": { margin: "12px 0" } }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({

@@ -502,6 +502,13 @@ export const expanseTheme = createTheme({
         }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({
