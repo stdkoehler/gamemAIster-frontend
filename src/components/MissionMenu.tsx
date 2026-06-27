@@ -2,11 +2,14 @@ import * as React from "react";
 import { ComponentProps } from "react";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
 import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import BookIcon from "@mui/icons-material/Book";
@@ -27,7 +30,6 @@ import {
 import {
   textfieldStyle,
   modalStyle,
-  modalPositionStyle,
   menuStyle,
   autocompleteStyle,
   Colors,
@@ -91,8 +93,13 @@ interface BaseMissionModalProps {
 }
 
 /**
- * A reusable modal wrapper that enforces a fixed header, scrollable body, and fixed footer.
- * Encapsulates the layout logic originally defined in NewMissionModal.
+ * A reusable modal wrapper with a fixed title, scrollable body, and fixed
+ * action footer. Built on MUI's `Dialog` (matching NpcCard's dialogs)
+ * rather than a hand-rolled `Modal`+`Paper`: `Dialog`'s content pane is
+ * itself a themed `Paper` under the hood, so it already picks up the same
+ * gradient texture/accent border every other themed surface gets, while
+ * also giving us focus trap, Escape-to-close, and scroll lock for free
+ * instead of reimplementing them.
  */
 const BaseMissionModal = ({
   open,
@@ -103,73 +110,21 @@ const BaseMissionModal = ({
   actions,
 }: BaseMissionModalProps) => {
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      {/* Paper (not Box) so this picks up the same themed gradient/texture
-          background and accent border that Create NPC / Dice / the
-          character sheet get, instead of a flat color with a thick
-          uniform outline. */}
-      <Paper
-        sx={[
-          modalPositionStyle,
-          {
-            p: 0,
-            maxHeight: "90vh",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          },
-        ]}
-      >
-        {/* --- FIXED HEADER --- */}
-        <Box sx={{ p: 3, pb: 1 }}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            {title}
-          </Typography>
-          {description && (
-            <Box id="modal-modal-description" sx={{ mt: 2 }}>
-              {typeof description === "string" ? (
-                // Matches NpcCard's Dialog description styling (DialogContentText
-                // defaults to variant="body1" color="textSecondary") instead of
-                // inheriting MuiTypography's primary-colored, glowing default —
-                // body copy shouldn't compete visually with the title/actions.
-                <DialogContentText>{description}</DialogContentText>
-              ) : (
-                description
-              )}
-            </Box>
-          )}
-        </Box>
-
-        {/* --- SCROLLABLE BODY --- */}
-        <Box
-          sx={{
-            flex: 1, // Takes up remaining space
-            overflowY: "auto",
-            px: 3, // Horizontal padding for content
-            pb: 3, // Bottom padding so last items aren't cramped
-          }}
-        >
-          {children}
-        </Box>
-
-        {/* --- FIXED FOOTER --- */}
-        <Box
-          sx={{
-            p: 2,
-            px: 3,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
-          {actions}
-        </Box>
-      </Paper>
-    </Modal>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        {description &&
+          (typeof description === "string" ? (
+            <DialogContentText sx={{ mb: 2 }}>
+              {description}
+            </DialogContentText>
+          ) : (
+            <Box sx={{ mb: 2 }}>{description}</Box>
+          ))}
+        {children}
+      </DialogContent>
+      <DialogActions>{actions}</DialogActions>
+    </Dialog>
   );
 };
 
