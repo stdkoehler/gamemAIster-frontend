@@ -291,13 +291,22 @@ export const shadowrunTheme = createTheme({
         variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
-        root: ({ theme, ownerState }) => ({
-          // ownerState.color for Typography can be 'primary', 'textPrimary', 'error', etc.
-          textShadow: neonTextShadow(theme, ownerState.color),
-          // If defaultProps.color is "primary", ownerState.color will be "primary".
-          // If it's explicitly set e.g. <Typography color="textSecondary">, ownerState.color is "textSecondary".
-          // getSafePaletteColor will handle these.
-        }),
+        root: ({ theme, ownerState }) => {
+          // Same pattern as every other theme's MuiTypography root (see
+          // vampire.ts etc.): pin the actual text color here via
+          // resolveButtonPalette rather than leaving it to MUI's own
+          // built-in color-prop handling. resolveButtonPalette falls back
+          // to "primary" for anything it doesn't recognize (e.g. a stray
+          // "textPrimary"), so flipping defaultProps.color above no longer
+          // silently changes Shadowrun's rendered color the way it
+          // previously could while every other theme already had this
+          // same safety net.
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
+          return {
+            color: buttonPalette.main,
+            textShadow: neonTextShadow(theme, ownerState.color),
+          };
+        },
         h1: () => ({
           animation: `${neonFlicker} 6s linear infinite`,
         }),
