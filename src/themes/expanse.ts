@@ -589,6 +589,27 @@ export const expanseTheme = createTheme({
         }),
       },
     },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": {
+            // Left at the same color as the unfocused label — the focus
+            // accent below is for the input itself, not its caption.
+            color: theme.palette.text.primary,
+            // MuiInputBase's own focus glow is a blurred box-shadow that
+            // bleeds outward in every direction, including up into the
+            // floating label sitting right on the border line. An opaque
+            // backdrop behind just the label text masks that bleed (same
+            // idea as the outline's own notch, which only masks the border
+            // stroke, not the glow) so the label reads plainly instead of
+            // looking like it shares the glow.
+            backgroundColor: theme.palette.background.default,
+            padding: "0 4px",
+            borderRadius: theme.shape.borderRadius,
+          },
+        }),
+      },
+    },
     MuiTabs: {
       styleOverrides: {
         root: ({ theme }) => ({
