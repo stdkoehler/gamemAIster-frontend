@@ -287,7 +287,7 @@ export const shadowrunTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary",
+        color: "primary", // this MUST stay primary, not textPrimary. We base our theme on primary.
         variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
