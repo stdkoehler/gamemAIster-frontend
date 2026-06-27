@@ -167,11 +167,11 @@ export const vampireTheme = createTheme({
     body1: {
       lineHeight: 1.7,
       letterSpacing: "0.01em",
-      fontSize: "1rem",
+      fontSize: "1.3rem",
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "1.1rem",
+      fontSize: "1.25rem",
     },
     caption: {
       fontFamily: vampireModernFontFamily,
@@ -180,9 +180,15 @@ export const vampireTheme = createTheme({
       color: "#9c8e87",
     },
     tagLabel: {
-      fontSize: "1rem",
+      fontSize: "1.2rem",
       letterSpacing: "0.15em",
       textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: vampireModernFontFamily,
+      fontSize: "1.4rem",
+      lineHeight: 1.2,
+      letterSpacing: "0.01em",
     },
   },
   shape: {
@@ -329,7 +335,7 @@ export const vampireTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
-        variantMapping: { tagLabel: "span" },
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
@@ -552,8 +558,13 @@ export const vampireTheme = createTheme({
             },
           };
         },
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.4rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontStyle: "italic",

@@ -147,23 +147,29 @@ export const slavicTheme = createTheme({
     body1: {
       lineHeight: 1.8,
       letterSpacing: "0.01em",
-      fontSize: "1rem",
+      fontSize: "1.2rem",
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "1.05rem",
+      fontSize: "1.1rem",
       color: "#a89870",
     },
     caption: {
       fontFamily: slavicMonoFontFamily,
       fontStyle: "italic",
-      fontSize: "0.95rem",
+      fontSize: "1.05rem",
       color: "#806848",
     },
     tagLabel: {
       fontSize: "1rem",
       letterSpacing: "0.15em",
       textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: slavicBodyFontFamily,
+      fontSize: "1.25rem",
+      lineHeight: 1.3,
+      letterSpacing: "0.02em",
     },
   },
   shape: {
@@ -220,7 +226,7 @@ export const slavicTheme = createTheme({
           fontFamily: slavicBodyFontFamily,
           textShadow: subtleSlavicShadow(),
           color: theme.palette.text.secondary,
-          fontSize: "0.95rem",
+          fontSize: "1.25rem",
           transition: "all 0.3s ease",
           position: "relative",
           paddingTop: "0.65rem",
@@ -315,7 +321,7 @@ export const slavicTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
-        variantMapping: { tagLabel: "span" },
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
@@ -527,8 +533,13 @@ export const slavicTheme = createTheme({
             borderColor: `${theme.palette.secondary.dark}66`,
           },
         }),
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "1.05rem" : "1.25rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontStyle: "italic",

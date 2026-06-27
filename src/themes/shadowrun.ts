@@ -173,6 +173,12 @@ export const shadowrunTheme = createTheme({
       letterSpacing: "0.15em",
       textTransform: "uppercase",
     },
+    chatText: {
+      fontFamily: shadowrunBodyFontFamily,
+      fontSize: "1.05rem",
+      lineHeight: 1.7,
+      letterSpacing: "0.02em",
+    },
   },
   shape: {
     borderRadius: 2,
@@ -282,7 +288,7 @@ export const shadowrunTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
-        variantMapping: { tagLabel: "span" },
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
@@ -460,6 +466,11 @@ export const shadowrunTheme = createTheme({
         }),
         input: ({ theme, ownerState }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.05rem",
           // Same default magenta glow Typography/MenuItem/Select text get
           // — a plain <input> isn't a Typography, so it doesn't inherit
           // that automatically. ownerState.color reflects whatever color

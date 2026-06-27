@@ -59,7 +59,9 @@ export interface FieldContainerHandle {
 
 interface EditableFieldProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => void;
   onBlur?: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   color: Colors;
@@ -374,7 +376,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
             fullWidth
             multiline
             maxRows={4}
-            size="small"
             color={color}
             value={displayValue}
             onChange={handleChange}
@@ -386,7 +387,6 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
               flex: 1,
               "& .MuiOutlinedInput-root": {
                 borderRadius: "8px",
-                fontSize: "0.95rem",
                 color: paletteColor.light,
                 backgroundColor: theme.palette.background.paper,
                 transition: "all 0.2s ease-in-out",

@@ -167,7 +167,7 @@ export const expanseTheme = createTheme({
     },
     body2: {
       lineHeight: 1.5,
-      fontSize: "0.9rem",
+      fontSize: "1.0rem",
       fontFamily: expanseBodyFontFamily,
     },
     caption: {
@@ -180,6 +180,12 @@ export const expanseTheme = createTheme({
       fontSize: "1rem",
       letterSpacing: "0.15em",
       textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: expanseBodyFontFamily,
+      fontSize: "1.2rem",
+      lineHeight: 1.425,
+      letterSpacing: "0.02em",
     },
   },
   shape: {
@@ -336,7 +342,7 @@ export const expanseTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
-        variantMapping: { tagLabel: "span" },
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
@@ -552,8 +558,13 @@ export const expanseTheme = createTheme({
             borderColor: `${theme.palette.info.main}55`,
           },
         }),
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "12px 16px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.2rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontFamily: expanseBodyFontFamily,

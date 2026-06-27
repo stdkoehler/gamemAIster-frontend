@@ -40,18 +40,29 @@ declare module "@mui/material/styles" {
   // "caption" — caption is also used for plain, normal-case body labels
   // (e.g. FieldRow's "Name:") that should NOT pick up uppercase/spacing
   // just because this changes.
+  //
+  // chatText: the narrative prose in the chat — old History entries and
+  // the current FieldContainer message both render through
+  // MarkdownRenderer's paragraph component. fontFamily/fontSize/lineHeight
+  // were previously hardcoded identically in MarkdownRenderer.tsx for every
+  // theme, which meant a theme's actual body font (whose x-height can vary
+  // a lot — e.g. Libre Baskerville vs. EB Garamond render very differently
+  // at the same rem value) had no theme-level way to compensate.
   interface TypographyVariants {
     tagLabel: CSSProperties;
+    chatText: CSSProperties;
   }
   interface TypographyVariantsOptions {
     tagLabel?: CSSProperties;
+    chatText?: CSSProperties;
   }
 }
 
-// Lets consumers pass variant="tagLabel" to <Typography>.
+// Lets consumers pass variant="tagLabel"/"chatText" to <Typography>.
 declare module "@mui/material/Typography" {
   interface TypographyPropsVariantOverrides {
     tagLabel: true;
+    chatText: true;
   }
 }
 

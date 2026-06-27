@@ -139,6 +139,12 @@ export const cthulhuTheme = createTheme({
       letterSpacing: "0.15em",
       textTransform: "uppercase",
     },
+    chatText: {
+      fontFamily: cthulhuFontFamily,
+      fontSize: "1.05rem",
+      lineHeight: 1.7,
+      letterSpacing: "0.02em",
+    },
     subtitle1: {
       fontFamily: cthulhuHeadingFontFamily,
       fontStyle: "italic",
@@ -274,7 +280,7 @@ export const cthulhuTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
-        variantMapping: { tagLabel: "span" },
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
@@ -403,8 +409,13 @@ export const cthulhuTheme = createTheme({
             borderColor: `${theme.palette.secondary.main}55`,
           },
         }),
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.05rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontStyle: "italic",
