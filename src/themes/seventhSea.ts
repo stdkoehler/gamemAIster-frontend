@@ -85,14 +85,14 @@ export const seventhSeaTheme = createTheme({
     text: {
       primary: "#A39880", // deep ink
       secondary: "#aa8c5e", // faded brown ink
-      disabled: "#2D1C0C", // dusted ink
+      disabled: "#5C5346", // dusted ink
     },
   },
   typography: {
     fontFamily: seventhSeaFontFamily,
     allVariants: {
       fontFamily: seventhSeaFontFamily,
-      color: "#2D1C0C", // inked text
+      color: "#C9B896", // lantern-lit parchment
     },
     h1: {
       fontFamily: seventhSeaHeadingFontFamily,
@@ -100,14 +100,14 @@ export const seventhSeaTheme = createTheme({
       fontSize: "2.5rem",
       letterSpacing: "0.02em",
       margin: "0.5em 0 0.7em",
-      color: "#4A3010", // deep sepia
+      color: "#E8C97A", // golden parchment glow
     },
     h2: {
       fontFamily: seventhSeaDisplayFontFamily,
       fontWeight: 600,
       letterSpacing: "0.01em",
       fontSize: "2rem",
-      color: "#5A3E21",
+      color: "#DCC08A",
     },
     h3: {
       fontFamily: seventhSeaSansFontFamily,
@@ -115,7 +115,7 @@ export const seventhSeaTheme = createTheme({
       fontSize: "1.7rem",
       letterSpacing: "0.03em",
       textTransform: "uppercase",
-      color: "#5A4A32",
+      color: "#CBAE7E",
     },
     h4: {
       fontFamily: seventhSeaSansFontFamily,
@@ -123,25 +123,25 @@ export const seventhSeaTheme = createTheme({
       fontSize: "1.4rem",
       letterSpacing: "0.05em",
       textTransform: "uppercase",
-      color: "#6D5A3F",
+      color: "#BFA378",
     },
     h5: {
       fontFamily: seventhSeaFontFamily,
       fontSize: "1.2rem",
       letterSpacing: "0.02em",
-      color: "#7A664C",
+      color: "#AE9972",
     },
     h6: {
       fontFamily: seventhSeaFontFamily,
       fontSize: "1.1rem",
       letterSpacing: "0.01em",
-      color: "#7A664C",
+      color: "#AE9972",
     },
     subtitle1: {
       fontFamily: seventhSeaScriptFontFamily,
       fontStyle: "normal",
       fontSize: "1.1rem",
-      color: "#6C5438",
+      color: "#B89F76",
     },
     subtitle2: {
       fontFamily: seventhSeaModernFontFamily,
@@ -154,18 +154,18 @@ export const seventhSeaTheme = createTheme({
       textTransform: "uppercase",
       fontWeight: 500,
       letterSpacing: "0.06em",
-      color: "#2D1C0C",
+      color: "#C9B896",
     },
     body1: {
       lineHeight: 1.7,
       letterSpacing: "0.01em",
       fontSize: "1rem",
-      color: "#2D1C0C",
+      color: "#C9B896",
     },
     body2: {
       lineHeight: 1.6,
       fontSize: "0.95rem",
-      color: "#5A4A32",
+      color: "#B6A37C",
     },
     caption: {
       fontFamily: seventhSeaModernFontFamily,
