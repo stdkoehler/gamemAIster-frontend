@@ -6,6 +6,7 @@ import Paper from "@mui/material/Paper";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
+import DialogContentText from "@mui/material/DialogContentText";
 import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import BookIcon from "@mui/icons-material/Book";
@@ -132,7 +133,11 @@ const BaseMissionModal = ({
           {description && (
             <Box id="modal-modal-description" sx={{ mt: 2 }}>
               {typeof description === "string" ? (
-                <Typography>{description}</Typography>
+                // Matches NpcCard's Dialog description styling (DialogContentText
+                // defaults to variant="body1" color="textSecondary") instead of
+                // inheriting MuiTypography's primary-colored, glowing default —
+                // body copy shouldn't compete visually with the title/actions.
+                <DialogContentText>{description}</DialogContentText>
               ) : (
                 description
               )}
