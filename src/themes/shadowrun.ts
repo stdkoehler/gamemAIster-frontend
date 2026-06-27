@@ -28,8 +28,7 @@ const neonFlicker = keyframes`
 `;
 
 const shadowrunBodyFontFamily = '"Share Tech Mono", "Courier New", monospace';
-const shadowrunHeadingFontFamily =
-  '"Orbitron", "Share Tech Mono", sans-serif';
+const shadowrunHeadingFontFamily = '"Orbitron", "Share Tech Mono", sans-serif';
 
 export const shadowrunTheme = createTheme({
   palette: {
@@ -169,6 +168,11 @@ export const shadowrunTheme = createTheme({
       fontSize: "0.85rem",
       color: "#616161",
     },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
   },
   shape: {
     borderRadius: 2,
@@ -196,7 +200,8 @@ export const shadowrunTheme = createTheme({
           backgroundImage: `
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M0 0h24M0 0v24' stroke='%23d500f9' stroke-opacity='0.05' stroke-width='1'/%3E%3C/svg%3E"),
             linear-gradient(160deg, ${theme.palette.background.paper}EE, ${theme.palette.background.default}F5)`,
-          boxShadow: "0 4px 22px rgba(0,0,0,0.75), inset 0 1px 0 rgba(213,0,249,0.06)",
+          boxShadow:
+            "0 4px 22px rgba(0,0,0,0.75), inset 0 1px 0 rgba(213,0,249,0.06)",
           borderRadius: theme.shape.borderRadius,
           border: `1px solid ${theme.palette.primary.dark}33`,
           overflow: "hidden",
@@ -276,9 +281,8 @@ export const shadowrunTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        // User's original had "primary", my suggestion "textPrimary".
-        // Let's stick to user's original for this part, though "textPrimary" is often better.
-        color: "primary",
+        color: "textPrimary",
+        variantMapping: { tagLabel: "span" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({

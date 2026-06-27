@@ -512,14 +512,11 @@ const FieldContainer = forwardRef<FieldContainerHandle, FieldContainerProps>(
       <>
         {/* Subtle role label */}
         <Typography
-          variant="caption"
+          variant="tagLabel"
           color={color}
           sx={{
             display: "block",
             color: alpha(theme.palette[color].main, 0.45),
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            fontSize: "0.65rem",
             mt: 1.5,
             mb: 0.5,
           }}

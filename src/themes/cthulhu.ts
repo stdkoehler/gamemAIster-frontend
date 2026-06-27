@@ -134,6 +134,11 @@ export const cthulhuTheme = createTheme({
       fontSize: "0.85rem",
       color: "#5f5f5f",
     },
+    tagLabel: {
+      fontSize: "0.65rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
     subtitle1: {
       fontFamily: cthulhuHeadingFontFamily,
       fontStyle: "italic",
@@ -268,7 +273,8 @@ export const cthulhuTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary", // Using text.primary instead of primary.main
+        color: "textPrimary",
+        variantMapping: { tagLabel: "span" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({

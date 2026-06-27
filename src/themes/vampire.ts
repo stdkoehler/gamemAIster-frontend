@@ -171,13 +171,18 @@ export const vampireTheme = createTheme({
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "0.95rem",
+      fontSize: "1.1rem",
     },
     caption: {
       fontFamily: vampireModernFontFamily,
       fontStyle: "italic",
-      fontSize: "0.85rem",
+      fontSize: "1.2rem",
       color: "#9c8e87",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
     },
   },
   shape: {
@@ -201,7 +206,10 @@ export const vampireTheme = createTheme({
           backgroundSize: "cover",
         }),
         a: ({ theme }: { theme: Theme }) =>
-          linkHoverStyle(theme.palette.primary.main, theme.palette.primary.light),
+          linkHoverStyle(
+            theme.palette.primary.main,
+            theme.palette.primary.light,
+          ),
       },
     },
     MuiPaper: {
@@ -285,6 +293,7 @@ export const vampireTheme = createTheme({
             fontFamily: vampireSansFontFamily,
             textShadow: subtleGothicShadow(theme),
             letterSpacing: "0.1em",
+            fontSize: "0.9rem",
             borderRadius: 0,
             // V5 WoD chamfered corners — angular, corporate-gothic
             clipPath:
@@ -319,7 +328,8 @@ export const vampireTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary", // Using text.primary for better contrast
+        color: "textPrimary",
+        variantMapping: { tagLabel: "span" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
@@ -523,7 +533,10 @@ export const vampireTheme = createTheme({
     MuiInputBase: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const focusColor = getSafePaletteColor(theme, ownerState.color as string | undefined);
+          const focusColor = getSafePaletteColor(
+            theme,
+            ownerState.color as string | undefined,
+          );
           return {
             fontFamily: vampireModernFontFamily,
             background: "rgba(0, 0, 0, 0.2)",
@@ -555,7 +568,10 @@ export const vampireTheme = createTheme({
           transition: "all 0.3s ease",
         }),
         root: ({ theme, ownerState }) => {
-          const focusColor = getSafePaletteColor(theme, ownerState.color as string | undefined);
+          const focusColor = getSafePaletteColor(
+            theme,
+            ownerState.color as string | undefined,
+          );
           return {
             "&:hover .MuiOutlinedInput-notchedOutline": {
               borderColor: `${focusColor}66`,

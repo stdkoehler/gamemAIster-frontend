@@ -73,9 +73,7 @@ type StyledTextFieldProps = ComponentProps<typeof TextField> & {
  */
 export const StyledTextField = React.memo(
   ({ color, ...props }: StyledTextFieldProps) => {
-    return (
-      <TextField {...props} color={color} sx={textfieldStyle(color)} />
-    );
+    return <TextField {...props} color={color} sx={textfieldStyle(color)} />;
   },
 );
 
@@ -117,7 +115,13 @@ const BaseMissionModal = ({
       <Paper
         sx={[
           modalPositionStyle,
-          { p: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" },
+          {
+            p: 0,
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          },
         ]}
       >
         {/* --- FIXED HEADER --- */}
@@ -955,20 +959,17 @@ export function MissionMenu({
   return (
     <Box sx={{ width: "100%", px: 0 }}>
       {/* Section label */}
-      <Box
-        component="span"
+      <Typography
+        variant="tagLabel"
         sx={{
           display: "block",
-          fontSize: "0.6rem",
-          letterSpacing: "0.2em",
           color: alpha(theme.palette.primary.main, 0.38),
-          textTransform: "uppercase",
           mb: 0.75,
           mt: 0,
         }}
       >
         Mission
-      </Box>
+      </Typography>
       <Button
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}

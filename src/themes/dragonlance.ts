@@ -211,13 +211,18 @@ export const dragonlanceTheme = createTheme({
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "0.95rem",
+      fontSize: "1.05rem",
       color: "#c9a878",
     },
     caption: {
       fontFamily: dragonlanceMonoFontFamily,
-      fontSize: "0.82rem",
+      fontSize: "1.1rem",
       color: "#80684a",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
     },
   },
   shape: {
@@ -228,7 +233,10 @@ export const dragonlanceTheme = createTheme({
       styleOverrides: {
         ...baseCssBaselineRules(),
         a: ({ theme }: { theme: Theme }) =>
-          linkHoverStyle(theme.palette.secondary.light, theme.palette.primary.light),
+          linkHoverStyle(
+            theme.palette.secondary.light,
+            theme.palette.primary.light,
+          ),
       },
     },
     MuiPaper: {
@@ -306,7 +314,7 @@ export const dragonlanceTheme = createTheme({
             fontFamily: dragonlanceHeadingFontFamily,
             textShadow: emberCarvedShadow(),
             letterSpacing: "0.04em",
-            fontSize: "0.92rem",
+            fontSize: "1.0rem",
             borderRadius: "2px",
             border: `1px solid ${mainColor}88`,
             borderBottom: `2px solid ${mainColor}55`,
@@ -374,6 +382,7 @@ export const dragonlanceTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
+        variantMapping: { tagLabel: "span" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
@@ -566,7 +575,8 @@ export const dragonlanceTheme = createTheme({
           // Fast on focus specifically — a slow fade here reads as input
           // lag (the cursor lands instantly, but the highlight visibly
           // catching up afterwards looks like the click was sluggish).
-          transition: "border-color 0.1s ease, box-shadow 0.1s ease, background-color 0.3s ease",
+          transition:
+            "border-color 0.1s ease, box-shadow 0.1s ease, background-color 0.3s ease",
           "&.Mui-focused": {
             boxShadow: `0 0 0 1px ${theme.palette.secondary.main}77, 0 0 10px ${theme.palette.secondary.main}33`,
             borderColor: `${theme.palette.secondary.main}77`,

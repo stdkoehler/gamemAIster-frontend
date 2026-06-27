@@ -1,3 +1,4 @@
+import { CSSProperties } from "react";
 import { PaletteColor, Theme } from "@mui/material/styles";
 
 // Declare custom theme properties
@@ -28,6 +29,29 @@ declare module "@mui/material/styles" {
   }
   interface Palette {
     // tertiary: PaletteColor;
+  }
+
+  // A small, uppercase, letter-spaced label — the sidebar section headers
+  // ("Mission", "Characters", "NPCs") and the Player/Gamemaster role tags
+  // above chat messages. These used to each hardcode their own
+  // fontSize/letterSpacing/textTransform independently (and had drifted
+  // out of sync with each other as a result) instead of sharing one
+  // definition. Deliberately a variant of its own rather than reusing
+  // "caption" — caption is also used for plain, normal-case body labels
+  // (e.g. FieldRow's "Name:") that should NOT pick up uppercase/spacing
+  // just because this changes.
+  interface TypographyVariants {
+    tagLabel: CSSProperties;
+  }
+  interface TypographyVariantsOptions {
+    tagLabel?: CSSProperties;
+  }
+}
+
+// Lets consumers pass variant="tagLabel" to <Typography>.
+declare module "@mui/material/Typography" {
+  interface TypographyPropsVariantOverrides {
+    tagLabel: true;
   }
 }
 

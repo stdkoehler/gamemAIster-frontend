@@ -498,7 +498,7 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
               >
                 {Object.entries(SKILL_ABILITY).map(([skill, ability]) => (
                   <React.Fragment key={skill}>
-                    <Typography variant="body2" sx={{ fontSize: "0.78rem" }}>
+                    <Typography variant="body2">
                       {skill}{" "}
                       <Typography
                         component="span"

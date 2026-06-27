@@ -172,9 +172,14 @@ export const expanseTheme = createTheme({
     },
     caption: {
       fontFamily: expanseMonoFontFamily,
-      fontSize: "0.8rem",
+      fontSize: "0.9rem",
       color: "#546e7a",
       letterSpacing: "0.03em",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
     },
   },
   shape: {
@@ -331,6 +336,7 @@ export const expanseTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
+        variantMapping: { tagLabel: "span" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {

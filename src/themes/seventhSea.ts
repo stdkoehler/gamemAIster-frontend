@@ -192,8 +192,13 @@ export const seventhSeaTheme = createTheme({
     caption: {
       fontFamily: seventhSeaModernFontFamily,
       fontStyle: "italic",
-      fontSize: "0.85rem",
+      fontSize: "1.1rem",
       color: "#A08868",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
     },
   },
 
@@ -219,7 +224,10 @@ export const seventhSeaTheme = createTheme({
           backgroundSize: "cover",
         }),
         a: ({ theme }: { theme: Theme }) =>
-          linkHoverStyle(theme.palette.secondary.main, theme.palette.secondary.light),
+          linkHoverStyle(
+            theme.palette.secondary.main,
+            theme.palette.secondary.light,
+          ),
       },
     },
     MuiPaper: {
@@ -305,7 +313,7 @@ export const seventhSeaTheme = createTheme({
             fontFamily: seventhSeaDisplayFontFamily,
             textShadow: subtleMaritimeShadow(theme),
             letterSpacing: "0.04em",
-            fontSize: "0.9rem",
+            fontSize: "1.2rem",
             borderRadius: "2px",
             // Main border + heavier bottom like a carved-wood plank edge
             border: `1px solid ${mainColor}99`,
@@ -354,6 +362,7 @@ export const seventhSeaTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
+        variantMapping: { tagLabel: "span" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {

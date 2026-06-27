@@ -2,8 +2,14 @@ import React, { useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { SlavicCharacter } from "../../models/CharacterProps";
 import {
-  SheetSection, FieldRow, NumInput, TextInput, DotRating,
-  ListEditor, TwoCol, ChipListEditor,
+  SheetSection,
+  FieldRow,
+  NumInput,
+  TextInput,
+  DotRating,
+  ListEditor,
+  TwoCol,
+  ChipListEditor,
 } from "./shared";
 
 interface Props {
@@ -48,7 +54,10 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
   };
 
   const upWyrd = (field: "current" | "max", v: number) => {
-    const next = { ...c, wyrd: { ...(c.wyrd ?? { current: 0, max: 0 }), [field]: v } };
+    const next = {
+      ...c,
+      wyrd: { ...(c.wyrd ?? { current: 0, max: 0 }), [field]: v },
+    };
     setC(next);
     onUpdate(next);
   };
@@ -68,16 +77,27 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
                 <TextInput value={c.kin} onChange={(v) => up("kin", v)} />
               </FieldRow>
               <FieldRow label="Kin Ability">
-                <TextInput value={c.kinAbility} onChange={(v) => up("kinAbility", v)} />
+                <TextInput
+                  value={c.kinAbility}
+                  onChange={(v) => up("kinAbility", v)}
+                />
               </FieldRow>
               <FieldRow label="Calling">
-                <TextInput value={c.calling} onChange={(v) => up("calling", v)} />
+                <TextInput
+                  value={c.calling}
+                  onChange={(v) => up("calling", v)}
+                />
               </FieldRow>
               <FieldRow label="Age">
                 <TextInput value={c.age ?? ""} onChange={(v) => up("age", v)} />
               </FieldRow>
               <FieldRow label="Experience">
-                <NumInput value={c.experience ?? 0} onChange={(v) => up("experience", v)} max={9999} width={80} />
+                <NumInput
+                  value={c.experience ?? 0}
+                  onChange={(v) => up("experience", v)}
+                  max={9999}
+                  width={80}
+                />
               </FieldRow>
             </Box>
           }
@@ -86,7 +106,8 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <TextInput
                 value={c.description}
                 onChange={(v) => up("description", v)}
-                multiline rows={3}
+                multiline
+                rows={3}
                 label="Description"
               />
               <TextInput
@@ -109,7 +130,15 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
         <Box sx={{ display: "flex", gap: 2 }}>
           {ATTRS.map((attr) => (
             <Box key={attr} sx={{ flex: 1, textAlign: "center" }}>
-              <Typography variant="caption" sx={{ fontWeight: "bold", display: "block", mb: 0.5, color: "primary.light" }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: "bold",
+                  display: "block",
+                  mb: 0.5,
+                  color: "primary.light",
+                }}
+              >
                 {attr}
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "center", mb: 0.5 }}>
@@ -120,10 +149,16 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
                   onChange={(n) => upAttr(attr, n)}
                 />
               </Box>
-              <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 0.25 }}>
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", display: "block", mb: 0.25 }}
+              >
                 Max: {c.attributes[attr]}
               </Typography>
-              <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 0.25 }}>
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", display: "block", mb: 0.25 }}
+              >
                 Current:
               </Typography>
               <NumInput
@@ -132,7 +167,15 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
                 min={0}
                 max={c.attributes[attr]}
               />
-              <Typography variant="caption" sx={{ color: "error.main", display: "block", mt: 0.25, fontSize: "0.65rem" }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "error.main",
+                  display: "block",
+                  mt: 0.25,
+                  fontSize: "0.65rem",
+                }}
+              >
                 {c.attributeDamage[attr] === 0 ? "BROKEN" : ""}
               </Typography>
             </Box>
@@ -149,13 +192,26 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
                 <Box key={attr} sx={{ mb: 1.5 }}>
                   <Typography
                     variant="caption"
-                    sx={{ fontWeight: "bold", color: "primary.light", display: "block", mb: 0.25 }}
+                    sx={{
+                      fontWeight: "bold",
+                      color: "primary.light",
+                      display: "block",
+                      mb: 0.25,
+                    }}
                   >
                     {attr}
                   </Typography>
                   {SKILLS_BY_ATTR[attr].map((skill) => (
-                    <Box key={skill} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.25 }}>
-                      <Typography variant="body2" sx={{ fontSize: "0.75rem", mr: 1 }}>{skill}</Typography>
+                    <Box
+                      key={skill}
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mb: 0.25,
+                      }}
+                    >
+                      <Typography variant="body2">{skill}</Typography>
                       <DotRating
                         value={c.skills[skill]}
                         max={5}
@@ -172,10 +228,18 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <SheetSection title="Wyrd (Spiritual Power)">
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <FieldRow label="Current">
-                    <NumInput value={c.wyrd!.current} onChange={(v) => upWyrd("current", v)} max={10} />
+                    <NumInput
+                      value={c.wyrd!.current}
+                      onChange={(v) => upWyrd("current", v)}
+                      max={10}
+                    />
                   </FieldRow>
                   <FieldRow label="Max">
-                    <NumInput value={c.wyrd!.max} onChange={(v) => upWyrd("max", v)} max={10} />
+                    <NumInput
+                      value={c.wyrd!.max}
+                      onChange={(v) => upWyrd("max", v)}
+                      max={10}
+                    />
                   </FieldRow>
                 </Box>
               </SheetSection>
@@ -186,12 +250,19 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
           <>
             {/* ── Talents ── */}
             <SheetSection title="Talents">
-              <ChipListEditor value={c.talents} onChange={(v) => up("talents", v)} />
+              <ChipListEditor
+                value={c.talents}
+                onChange={(v) => up("talents", v)}
+              />
             </SheetSection>
 
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
-              <ListEditor value={c.weapons ?? []} onChange={(v) => up("weapons", v)} rows={3} />
+              <ListEditor
+                value={c.weapons ?? []}
+                onChange={(v) => up("weapons", v)}
+                rows={3}
+              />
             </SheetSection>
 
             {/* ── Armor ── */}
@@ -199,13 +270,23 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <FieldRow label="Name">
                 <TextInput
                   value={c.armor?.name ?? ""}
-                  onChange={(v) => up("armor", { ...(c.armor ?? { name: "", rating: 0 }), name: v })}
+                  onChange={(v) =>
+                    up("armor", {
+                      ...(c.armor ?? { name: "", rating: 0 }),
+                      name: v,
+                    })
+                  }
                 />
               </FieldRow>
               <FieldRow label="Rating">
                 <NumInput
                   value={c.armor?.rating ?? 0}
-                  onChange={(v) => up("armor", { ...(c.armor ?? { name: "", rating: 0 }), rating: v })}
+                  onChange={(v) =>
+                    up("armor", {
+                      ...(c.armor ?? { name: "", rating: 0 }),
+                      rating: v,
+                    })
+                  }
                   max={10}
                 />
               </FieldRow>
@@ -213,12 +294,20 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Gear ── */}
             <SheetSection title="Gear">
-              <ListEditor value={c.gear ?? []} onChange={(v) => up("gear", v)} rows={3} />
+              <ListEditor
+                value={c.gear ?? []}
+                onChange={(v) => up("gear", v)}
+                rows={3}
+              />
             </SheetSection>
 
             {/* ── Relationships ── */}
             <SheetSection title="Relationships & Bonds">
-              <ListEditor value={c.relationships ?? []} onChange={(v) => up("relationships", v)} rows={3} />
+              <ListEditor
+                value={c.relationships ?? []}
+                onChange={(v) => up("relationships", v)}
+                rows={3}
+              />
             </SheetSection>
           </>
         }
@@ -226,7 +315,12 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
       {/* ── Notes ── */}
       <SheetSection title="Notes">
-        <TextInput value={c.notes ?? ""} onChange={(v) => up("notes", v)} multiline rows={4} />
+        <TextInput
+          value={c.notes ?? ""}
+          onChange={(v) => up("notes", v)}
+          multiline
+          rows={4}
+        />
       </SheetSection>
     </Box>
   );

@@ -151,14 +151,19 @@ export const slavicTheme = createTheme({
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "0.95rem",
+      fontSize: "1.05rem",
       color: "#a89870",
     },
     caption: {
       fontFamily: slavicMonoFontFamily,
       fontStyle: "italic",
-      fontSize: "0.85rem",
+      fontSize: "0.95rem",
       color: "#806848",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
     },
   },
   shape: {
@@ -176,7 +181,10 @@ export const slavicTheme = createTheme({
           backgroundSize: "cover",
         }),
         a: ({ theme }: { theme: Theme }) =>
-          linkHoverStyle(theme.palette.secondary.light, theme.palette.secondary.main),
+          linkHoverStyle(
+            theme.palette.secondary.light,
+            theme.palette.secondary.main,
+          ),
       },
     },
     MuiPaper: {
@@ -307,6 +315,7 @@ export const slavicTheme = createTheme({
     MuiTypography: {
       defaultProps: {
         color: "textPrimary",
+        variantMapping: { tagLabel: "span" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {

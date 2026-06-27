@@ -120,20 +120,17 @@ export const CharacterManager: React.FC = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <Box
-        component="span"
+      <Typography
+        variant="tagLabel"
         sx={{
           display: "block",
-          fontSize: "0.6rem",
-          letterSpacing: "0.2em",
           color: alpha(theme.palette.primary.main, 0.38),
-          textTransform: "uppercase",
           mb: 0.75,
           mt: 1.5,
         }}
       >
         Characters
-      </Box>
+      </Typography>
 
       <Button
         onClick={handleCreate}
