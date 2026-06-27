@@ -88,12 +88,15 @@ interface FieldRowProps {
   label: string;
   children: React.ReactNode;
   inline?: boolean;
+  /** Minimum width reserved for the label when inline, so child inputs align across rows. */
+  labelMinWidth?: number | string;
 }
 
 export const FieldRow: React.FC<FieldRowProps> = ({
   label,
   children,
   inline = true,
+  labelMinWidth = 100,
 }) => (
   <Box
     sx={{
@@ -106,7 +109,10 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   >
     <Typography
       variant="caption"
-      sx={{ minWidth: inline ? 100 : undefined, color: "text.secondary" }}
+      sx={{
+        minWidth: inline ? labelMinWidth : undefined,
+        color: "text.secondary",
+      }}
     >
       {label}:
     </Typography>
