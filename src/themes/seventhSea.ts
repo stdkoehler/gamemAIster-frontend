@@ -1,4 +1,5 @@
 import { createTheme, Theme } from "@mui/material/styles";
+import { keyframes } from "@emotion/react";
 import {
   baseCssBaselineRules,
   getSafePaletteColor,
@@ -8,6 +9,19 @@ import {
   spinButtonArrowSvg,
   titleOutlineTextShadow,
 } from "./helper";
+
+// A ship's lantern swaying — brightness drifting up and down slowly and
+// unevenly, not a steady metronome fade.
+const lanternSway = keyframes`
+  0%, 100% { text-shadow: 0px 0px 1px rgba(0,0,0,0.6), 0 0 4px rgba(216,184,104,0.67), 0 0 8px rgba(216,184,104,0.33); }
+  40% { text-shadow: 0px 0px 1px rgba(0,0,0,0.6), 0 0 6px rgba(216,184,104,0.9), 0 0 13px rgba(216,184,104,0.5); }
+  70% { text-shadow: 0px 0px 1px rgba(0,0,0,0.6), 0 0 3px rgba(216,184,104,0.55), 0 0 7px rgba(216,184,104,0.27); }
+`;
+
+// A faint repeating wave-crest line — nautical without drawing attention,
+// the same scale as the grid/dot/checker textures the other themes use.
+const seventhSeaWaveTexture =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Cpath d='M0 4c2-3 4-3 6 0s4 3 6 0 4-3 6 0' stroke='%23D8B868' stroke-opacity='0.06' stroke-width='1' fill='none'/%3E%3C/svg%3E\")";
 
 // Specific text shadow style for a "nautical glow" effect (good for 7th Sea)
 function nauticalTextShadow(theme: Theme, ownerStateColor?: string): string {
@@ -211,7 +225,9 @@ export const seventhSeaTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundImage: `linear-gradient(135deg, ${theme.palette.background.paper}CC, ${theme.palette.background.default}E6)`,
+          backgroundImage: `
+            ${seventhSeaWaveTexture},
+            linear-gradient(135deg, ${theme.palette.background.paper}CC, ${theme.palette.background.default}E6)`,
           boxShadow:
             "0 4px 20px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
           borderRadius: theme.shape.borderRadius,
@@ -353,6 +369,7 @@ export const seventhSeaTheme = createTheme({
         },
         h1: ({ theme }) => ({
           textShadow: oceanTextShadow(theme, "primary"),
+          animation: `${lanternSway} 5s ease-in-out infinite`,
           position: "relative",
           "&::after": {
             content: '""',
@@ -408,6 +425,7 @@ export const seventhSeaTheme = createTheme({
         root: ({ theme }) => ({
           backgroundColor: `${theme.palette.background.default}CC`,
           backgroundImage: `
+            ${seventhSeaWaveTexture},
             linear-gradient(135deg, ${theme.palette.background.paper}CC, ${theme.palette.background.default}E6),
             linear-gradient(45deg, transparent 40%, ${theme.palette.secondary.main}08 50%, transparent 60%)
           `,

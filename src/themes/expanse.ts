@@ -1,4 +1,5 @@
 import { createTheme, Theme } from "@mui/material/styles";
+import { keyframes } from "@emotion/react";
 import {
   baseCssBaselineRules,
   inputLabelFocusMaskStyle,
@@ -7,6 +8,18 @@ import {
   spinButtonArrowSvg,
   titleOutlineTextShadow,
 } from "./helper";
+
+// A holographic projection's brightness drifting, not a hard on/off flicker
+// — long held stretches at each end so it reads as a slow breathing glow.
+const holoPulse = keyframes`
+  0%, 100% { text-shadow: 0 0 2px #7c4dff, 0 0 4px rgba(94,53,177,0.8), 0 0 8px rgba(94,53,177,0.47), 0 0 12px rgba(94,53,177,0.27); }
+  50% { text-shadow: 0 0 3px #7c4dff, 0 0 7px rgba(94,53,177,0.95), 0 0 14px rgba(94,53,177,0.6), 0 0 20px rgba(94,53,177,0.35); }
+`;
+
+// Sparse scattered points — a faint starfield rather than a regular grid,
+// echoing the void-of-space background without competing with content.
+const expanseStarfieldTexture =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='3' cy='4' r='0.6' fill='%23ede7f6' fill-opacity='0.06'/%3E%3Ccircle cx='22' cy='16' r='0.5' fill='%23ede7f6' fill-opacity='0.05'/%3E%3Ccircle cx='33' cy='31' r='0.7' fill='%23ede7f6' fill-opacity='0.06'/%3E%3Ccircle cx='12' cy='27' r='0.4' fill='%23ede7f6' fill-opacity='0.04'/%3E%3C/svg%3E\")";
 
 // Sci-fi glow text shadow for futuristic elements
 function techGlowShadow(theme: Theme): string {
@@ -203,7 +216,9 @@ export const expanseTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundImage: `linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
+          backgroundImage: `
+            ${expanseStarfieldTexture},
+            linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
           backdropFilter: "blur(8px)",
           boxShadow:
             "0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
@@ -331,6 +346,7 @@ export const expanseTheme = createTheme({
         },
         h1: ({ theme }) => ({
           textShadow: holoTextShadow(theme),
+          animation: `${holoPulse} 4s ease-in-out infinite`,
           "&::after": {
             content: '""',
             display: "block",
@@ -383,7 +399,9 @@ export const expanseTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor: `${theme.palette.background.default}DD`,
-          backgroundImage: `linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
+          backgroundImage: `
+            ${expanseStarfieldTexture},
+            linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
           backdropFilter: "blur(12px)",
           boxShadow:
             "0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
@@ -640,12 +658,16 @@ export const expanseTheme = createTheme({
       backgroundColor: theme.palette.primary.dark + "AA",
       border: `1px solid ${theme.palette.primary.main}66`,
       borderRadius: "2px",
+      background: `linear-gradient(45deg, ${theme.palette.primary.dark}90, ${theme.palette.info.dark}60)`,
       boxShadow: `0 0 6px ${theme.palette.primary.main}44`,
       "&:hover": {
         backgroundColor: theme.palette.primary.main + "CC",
         boxShadow: `0 0 8px ${theme.palette.primary.main}77`,
       },
       cursor: "default !important",
+    },
+    "&::-webkit-scrollbar-corner": {
+      backgroundColor: theme.palette.background.default,
     },
   }),
   logo: "/src/assets/expanse/ComfyUI_temp_rpdvh_00062_.png",

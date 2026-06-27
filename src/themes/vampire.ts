@@ -1,4 +1,5 @@
 import { createTheme, Theme } from "@mui/material/styles";
+import { keyframes } from "@emotion/react";
 import {
   baseCssBaselineRules,
   getSafePaletteColor,
@@ -8,6 +9,21 @@ import {
   spinButtonArrowSvg,
   titleOutlineTextShadow,
 } from "./helper";
+
+// A slow heartbeat — two quick pulses then a long rest, not a steady
+// breathing fade, so it reads as a pulse rather than a glow cycling.
+const bloodPulse = keyframes`
+  0%, 60% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 3px rgba(192,0,0,0.6), 0 0 7px rgba(192,0,0,0.38); }
+  68% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 5px rgba(192,0,0,0.85), 0 0 14px rgba(192,0,0,0.55); }
+  76% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 3px rgba(192,0,0,0.6), 0 0 7px rgba(192,0,0,0.38); }
+  84% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 5px rgba(192,0,0,0.85), 0 0 14px rgba(192,0,0,0.55); }
+  100% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 3px rgba(192,0,0,0.6), 0 0 7px rgba(192,0,0,0.38); }
+`;
+
+// Sparse diagonal cross-hatch — a gothic ironwork lattice rather than a
+// dense weave, so it stays a texture and never competes with content.
+const vampireLatticeTexture =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M0 0L14 14ZM14 0L0 14Z' stroke='%23c00000' stroke-opacity='0.05' stroke-width='1'/%3E%3C/svg%3E\")";
 
 function gothicTextShadow(theme: Theme, ownerStateColor?: string): string {
   const baseColor = getSafePaletteColor(theme, ownerStateColor);
@@ -191,7 +207,9 @@ export const vampireTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundImage: `linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
+          backgroundImage: `
+            ${vampireLatticeTexture},
+            linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
           boxShadow: "0 4px 15px rgba(0, 0, 0, 0.5)",
           borderRadius: theme.shape.borderRadius,
           borderTop: "1px solid rgba(255, 255, 255, 0.07)",
@@ -318,6 +336,7 @@ export const vampireTheme = createTheme({
         },
         h1: ({ theme }) => ({
           textShadow: bloodTextShadow(theme, "primary"),
+          animation: `${bloodPulse} 4.5s ease-in-out infinite`,
           marginBottom: "0em",
           "&::after": {
             content: '""',
@@ -369,7 +388,9 @@ export const vampireTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor: `${theme.palette.background.default}B3`,
-          backgroundImage: `linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
+          backgroundImage: `
+            ${vampireLatticeTexture},
+            linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
           backdropFilter: "blur(10px)",
           boxShadow: "0 4px 15px rgba(0, 0, 0, 0.5)",
           borderRadius: theme.shape.borderRadius,
@@ -637,13 +658,18 @@ export const vampireTheme = createTheme({
           ? `1px solid ${theme.palette.primary.light + "30"}`
           : `1px solid ${theme.palette.primary.dark + "60"}`,
       borderRadius: "2px",
+      background: `linear-gradient(45deg, ${theme.palette.primary.dark}90, ${theme.palette.secondary.dark}60)`,
       "&:hover": {
         backgroundColor:
           theme.palette.mode === "light"
             ? theme.palette.primary.main + "60"
             : theme.palette.primary.dark + "AA",
+        boxShadow: `0 0 6px ${theme.palette.secondary.dark}66`,
       },
       cursor: "default !important",
+    },
+    "&::-webkit-scrollbar-corner": {
+      backgroundColor: theme.palette.background.default,
     },
   }),
   logo: "/src/assets/vampire/vtm_00004_.png",
