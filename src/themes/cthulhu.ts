@@ -1,5 +1,10 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+} from "./helper";
 
 function antiquarianTextShadow(theme: Theme, ownerStateColor?: string): string {
   const baseColor = getSafePaletteColor(theme, ownerStateColor);
@@ -176,27 +181,10 @@ export const cthulhuTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = (buttonPalette as any).main || theme.palette.primary.main;
-          const darkColor = (buttonPalette as any).dark || theme.palette.primary.dark;
-          const contrastTextColor =
-            (buttonPalette as any).contrastText ||
-            theme.palette.primary.contrastText;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
+          const mainColor = buttonPalette.main;
+          const darkColor = buttonPalette.dark;
+          const contrastTextColor = buttonPalette.contrastText;
 
           return {
             // Playfair Display gives the formal, antiquarian 1920s academic look
@@ -387,21 +375,11 @@ export const cthulhuTheme = createTheme({
             fontStyle: "normal",
           },
         ],
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules(),
       },
     },
   },
-  spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+  spinButtonBackgroundImage: (color) => spinButtonArrowSvg(color),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.5em",

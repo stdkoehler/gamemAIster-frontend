@@ -1,5 +1,11 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+} from "./helper";
 
 // Sci-fi glow text shadow for futuristic elements
 function techGlowShadow(theme: Theme): string {
@@ -171,14 +177,7 @@ export const expanseTheme = createTheme({
             fontStyle: "normal",
           },
         ],
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules("0.2s"),
         body: ({ theme }: { theme: Theme }) => ({
           background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, #0d1117 50%, ${theme.palette.background.paper} 100%)`,
           backgroundAttachment: "fixed",
@@ -196,15 +195,8 @@ export const expanseTheme = createTheme({
             zIndex: -1,
           },
         }),
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.primary.light,
-          textDecoration: "none",
-          transition: "all 0.2s ease",
-          "&:hover": {
-            color: theme.palette.info.light,
-            textShadow: `0 0 8px ${theme.palette.info.light}80`,
-          },
-        }),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(theme.palette.primary.light, theme.palette.info.light),
       },
     },
     MuiPaper: {
@@ -276,22 +268,7 @@ export const expanseTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -341,21 +318,7 @@ export const expanseTheme = createTheme({
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const palette = theme.palette[colorKey] || theme.palette.primary;
+          const palette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = palette.main;
 
           return {
@@ -592,21 +555,7 @@ export const expanseTheme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: ({ theme }) => ({
-          "&.Mui-focused": {
-            // Left at the same color as the unfocused label — the focus
-            // accent below is for the input itself, not its caption.
-            color: theme.palette.text.primary,
-            // MuiInputBase's own focus glow is a blurred box-shadow that
-            // bleeds outward in every direction, including up into the
-            // floating label sitting right on the border line. An opaque
-            // backdrop behind just the label text masks that bleed (same
-            // idea as the outline's own notch, which only masks the border
-            // stroke, not the glow) so the label reads plainly instead of
-            // looking like it shares the glow.
-            backgroundColor: theme.palette.background.default,
-            padding: "0 4px",
-            borderRadius: theme.shape.borderRadius,
-          },
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -676,9 +625,7 @@ export const expanseTheme = createTheme({
     },
   },
   spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+    spinButtonArrowSvg(color, { strokeWidth: 2 }),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.4em",

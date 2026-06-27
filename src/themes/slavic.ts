@@ -1,5 +1,12 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+} from "./helper";
 
 function firelightTextShadow(theme: Theme, ownerStateColor?: string): string {
   const color = getSafePaletteColor(theme, ownerStateColor);
@@ -160,14 +167,7 @@ export const slavicTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules(),
         body: ({ theme }: { theme: Theme }) => ({
           background: `
             radial-gradient(ellipse at 50% 0%, ${theme.palette.secondary.dark}22 0%, transparent 55%),
@@ -175,15 +175,8 @@ export const slavicTheme = createTheme({
           backgroundAttachment: "fixed",
           backgroundSize: "cover",
         }),
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.secondary.light,
-          textDecoration: "none",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            color: theme.palette.secondary.main,
-            textShadow: `0 0 8px ${theme.palette.secondary.main}80`,
-          },
-        }),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(theme.palette.secondary.light, theme.palette.secondary.main),
       },
     },
     MuiPaper: {
@@ -256,22 +249,7 @@ export const slavicTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -332,21 +310,7 @@ export const slavicTheme = createTheme({
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const palette = theme.palette[colorKey] || theme.palette.primary;
+          const palette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = palette.main;
 
           return {
@@ -582,21 +546,7 @@ export const slavicTheme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: ({ theme }) => ({
-          "&.Mui-focused": {
-            // Left at the same color as the unfocused label — the focus
-            // accent below is for the input itself, not its caption.
-            color: theme.palette.text.primary,
-            // MuiInputBase's own focus glow is a blurred box-shadow that
-            // bleeds outward in every direction, including up into the
-            // floating label sitting right on the border line. An opaque
-            // backdrop behind just the label text masks that bleed (same
-            // idea as the outline's own notch, which only masks the border
-            // stroke, not the glow) so the label reads plainly instead of
-            // looking like it shares the glow.
-            backgroundColor: theme.palette.background.default,
-            padding: "0 4px",
-            borderRadius: theme.shape.borderRadius,
-          },
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -657,9 +607,7 @@ export const slavicTheme = createTheme({
     },
   },
   spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+    spinButtonArrowSvg(color, { strokeWidth: 1.5 }),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.5em",

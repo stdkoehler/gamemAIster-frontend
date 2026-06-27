@@ -1,6 +1,13 @@
 import { createTheme, Theme } from "@mui/material/styles";
 import { keyframes } from "@emotion/react";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+} from "./helper";
 
 // Slow ember flicker for headings — a heraldic title catching torchlight,
 // not a strobing effect, so the easing lingers near the bright end.
@@ -218,23 +225,9 @@ export const dragonlanceTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.secondary.light,
-          textDecoration: "none",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            color: theme.palette.primary.light,
-            textShadow: `0 0 8px ${theme.palette.primary.light}80`,
-          },
-        }),
+        ...baseCssBaselineRules(),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(theme.palette.secondary.light, theme.palette.primary.light),
       },
     },
     MuiPaper: {
@@ -303,21 +296,7 @@ export const dragonlanceTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -397,20 +376,7 @@ export const dragonlanceTheme = createTheme({
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-          const palette = theme.palette[colorKey] || theme.palette.primary;
+          const palette = resolveButtonPalette(theme, ownerState.color);
           return {
             color: palette.main,
             textShadow: ownerState.variant?.startsWith("h")
@@ -634,21 +600,7 @@ export const dragonlanceTheme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: ({ theme }) => ({
-          "&.Mui-focused": {
-            // Left at the same color as the unfocused label — the focus
-            // accent below is for the input itself, not its caption.
-            color: theme.palette.text.primary,
-            // MuiInputBase's own focus glow is a blurred box-shadow that
-            // bleeds outward in every direction, including up into the
-            // floating label sitting right on the border line. An opaque
-            // backdrop behind just the label text masks that bleed (same
-            // idea as the outline's own notch, which only masks the border
-            // stroke, not the glow) so the label reads plainly instead of
-            // looking like it shares the glow.
-            backgroundColor: theme.palette.background.default,
-            padding: "0 4px",
-            borderRadius: theme.shape.borderRadius,
-          },
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -705,10 +657,7 @@ export const dragonlanceTheme = createTheme({
       },
     },
   },
-  spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+  spinButtonBackgroundImage: (color) => spinButtonArrowSvg(color),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": { width: "0.5em", cursor: "default !important" },
     "&::-webkit-scrollbar-track": {

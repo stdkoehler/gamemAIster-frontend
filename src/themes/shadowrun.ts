@@ -1,6 +1,14 @@
 import { createTheme, Theme } from "@mui/material/styles";
 import { keyframes } from "@emotion/react";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  resolveButtonTextColor,
+  spinButtonArrowSvg,
+} from "./helper";
 
 function neonTextShadow(theme: Theme, ownerStateColor?: string): string {
   const color = getSafePaletteColor(theme, ownerStateColor);
@@ -168,14 +176,7 @@ export const shadowrunTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules(),
         body: ({ theme }: { theme: Theme }) => ({
           background: `
             radial-gradient(ellipse at 10% 0%, ${theme.palette.primary.dark}26 0%, transparent 45%),
@@ -185,15 +186,8 @@ export const shadowrunTheme = createTheme({
           backgroundAttachment: "fixed",
           backgroundSize: "cover",
         }),
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.info.light,
-          textDecoration: "none",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            color: theme.palette.primary.light,
-            textShadow: `0 0 8px ${theme.palette.primary.light}80`,
-          },
-        }),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(theme.palette.info.light, theme.palette.primary.light),
       },
     },
     MuiPaper: {
@@ -248,34 +242,10 @@ export const shadowrunTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          // Determine the color key safely, defaulting to 'primary'
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit" // Exclude 'inherit' from direct palette key usage
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
-          const mainColor =
-            (buttonPalette as any).main || theme.palette.primary.main;
-          const lightColor =
-            (buttonPalette as any).light || theme.palette.primary.light;
-          // For button text color, prioritize contrastText. If not suitable, use the main color itself (might need adjustment based on bg)
-          const textColor =
-            (buttonPalette as any).contrastText &&
-            (buttonPalette as any).contrastText !== "#000000" &&
-            (buttonPalette as any).contrastText !== "#000"
-              ? (buttonPalette as any).contrastText
-              : mainColor;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
+          const mainColor = buttonPalette.main;
+          const lightColor = buttonPalette.light;
+          const textColor = resolveButtonTextColor(buttonPalette);
 
           return {
             fontFamily: shadowrunHeadingFontFamily,
@@ -531,21 +501,7 @@ export const shadowrunTheme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: ({ theme }) => ({
-          "&.Mui-focused": {
-            // Left at the same color as the unfocused label — the cyan
-            // focus accent is for the input itself, not its caption.
-            color: theme.palette.text.primary,
-            // The input's focus glow is a blurred box-shadow that bleeds
-            // outward in every direction, including up into the floating
-            // label sitting right on the border line. An opaque backdrop
-            // behind just the label text masks that bleed (same idea as
-            // the outline's own notch, which only masks the border
-            // stroke, not the glow) so the label reads plainly instead of
-            // looking like it shares the glow.
-            backgroundColor: theme.palette.background.default,
-            padding: "0 4px",
-            borderRadius: theme.shape.borderRadius,
-          },
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -603,12 +559,8 @@ export const shadowrunTheme = createTheme({
       },
     },
   },
-  spinButtonBackgroundImage: (
-    color // `color` here is expected to be a valid CSS color string
-  ) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 30 12 36 18 30'></polyline><polyline points='6 18 12 12 18 18'></polyline></svg>`
-    )}")`,
+  spinButtonBackgroundImage: (color) =>
+    spinButtonArrowSvg(color, { strokeWidth: 2, doublePolyline: true }),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.4em",
