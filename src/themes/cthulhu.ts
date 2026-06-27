@@ -2,6 +2,7 @@ import { createTheme, Theme } from "@mui/material/styles";
 import {
   baseCssBaselineRules,
   getSafePaletteColor,
+  inputLabelFocusMaskStyle,
   resolveButtonPalette,
   spinButtonArrowSvg,
 } from "./helper";
@@ -100,6 +101,18 @@ export const cthulhuTheme = createTheme({
       fontWeight: 600,
       fontSize: "1.3rem",
       color: "#1f1f1f",
+    },
+    h5: {
+      fontFamily: cthulhuFontFamily,
+      fontStyle: "italic",
+      fontSize: "1.15rem",
+      color: "#3a3a3a",
+    },
+    h6: {
+      fontFamily: cthulhuFontFamily,
+      fontStyle: "italic",
+      fontSize: "1.05rem",
+      color: "#3a3a3a",
     },
     button: {
       fontFamily: cthulhuFontFamily,
@@ -363,6 +376,113 @@ export const cthulhuTheme = createTheme({
           fontWeight: 600,
           fontSize: "0.95rem",
         }),
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontFamily: cthulhuFontFamily,
+          background:
+            theme.palette.mode === "light"
+              ? "rgba(255,255,255,0.55)"
+              : "rgba(0,0,0,0.3)",
+          borderRadius: theme.shape.borderRadius,
+          border: `1px solid ${theme.palette.text.secondary}33`,
+          transition: "all 0.2s ease",
+          "&.Mui-focused": {
+            boxShadow: `0 0 0 1px ${theme.palette.secondary.main}77, 0 0 8px ${theme.palette.secondary.main}33`,
+            borderColor: `${theme.palette.secondary.main}77`,
+          },
+          "&:hover": {
+            borderColor: `${theme.palette.secondary.main}55`,
+          },
+        }),
+        input: ({ theme }) => ({
+          padding: "10px 14px",
+          "&::placeholder": {
+            color: theme.palette.text.disabled,
+            fontStyle: "italic",
+          },
+        }),
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        notchedOutline: ({ theme }) => ({
+          borderColor: `${theme.palette.text.secondary}33`,
+          transition: "all 0.2s ease",
+        }),
+        root: ({ theme }) => ({
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: `${theme.palette.secondary.main}55`,
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: `${theme.palette.secondary.main}77`,
+          },
+        }),
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
+        }),
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderBottom: `1px solid ${theme.palette.text.secondary}33`,
+        }),
+        indicator: ({ theme }) => ({
+          backgroundColor: theme.palette.secondary.main,
+          height: 2,
+        }),
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontFamily: cthulhuFontFamily,
+          letterSpacing: "0.02em",
+          fontSize: "0.9rem",
+          textTransform: "none",
+          minHeight: 48,
+          transition: "all 0.2s ease",
+          "&:hover": {
+            color: theme.palette.primary.dark,
+            textShadow: antiquarianTextShadow(theme, "primary"),
+          },
+          "&.Mui-selected": {
+            color: theme.palette.secondary.dark,
+            textShadow: antiquarianTextShadow(theme, "secondary"),
+          },
+        }),
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontFamily: cthulhuFontFamily,
+          fontSize: "0.78rem",
+          background:
+            theme.palette.mode === "light"
+              ? "rgba(255,255,255,0.5)"
+              : "rgba(0,0,0,0.3)",
+          borderRadius: theme.shape.borderRadius,
+          border: `1px solid ${theme.palette.text.secondary}33`,
+          "&.MuiChip-colorPrimary": {
+            backgroundColor: `${theme.palette.primary.main}1f`,
+            borderColor: `${theme.palette.primary.main}55`,
+            color: theme.palette.primary.dark,
+          },
+          "&.MuiChip-colorSecondary": {
+            backgroundColor: `${theme.palette.secondary.main}1f`,
+            borderColor: `${theme.palette.secondary.main}55`,
+            color: theme.palette.secondary.dark,
+          },
+        }),
+        label: () => ({ paddingLeft: 12, paddingRight: 12 }),
       },
     },
     MuiCssBaseline: {
