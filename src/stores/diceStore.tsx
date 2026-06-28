@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { GameType } from "../models/Types";
-import { RolledDie } from "../dice/diceConfig";
+import { RolledDie } from "../components/Dice/diceConfig";
 
 export interface DiceLogEntry {
   id: string;

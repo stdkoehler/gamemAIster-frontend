@@ -20,7 +20,7 @@ import { GameType } from "../../models/Types";
 import useAppStore from "../../stores/appStore";
 import useDiceStore, { DiceLogEntry } from "../../stores/diceStore";
 import { GAME_SYSTEMS } from "../../gameSystemRegistry";
-import { GAME_DICE, DieTypeConfig, RolledDie, describeRolls } from "../../dice/diceConfig";
+import { GAME_DICE, DieTypeConfig, RolledDie, describeRolls } from "./diceConfig";
 import Die, { DiePlaceholder } from "./Die";
 
 interface CurrentRoll {

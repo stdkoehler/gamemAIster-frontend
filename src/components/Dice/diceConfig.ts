@@ -1,5 +1,5 @@
-import { GameType } from "../models/Types";
-import { DieFace, DieColor } from "../components/Dice/Die";
+import { GameType } from "../../models/Types";
+import { DieFace, DieColor } from "./Die";
 
 export interface DieTypeConfig {
   id: string;
