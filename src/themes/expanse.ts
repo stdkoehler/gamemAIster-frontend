@@ -41,10 +41,9 @@ function subtleTechShadow(theme: Theme): string {
 
 const expanseModernFontFamily =
   '"Orbitron", "Roboto Condensed", "Arial", sans-serif'; // Primary sci-fi font
-const expanseDisplayFontFamily = '"Audiowide", "Orbitron", sans-serif'; // Bold display font for headings
 const expanseBodyFontFamily = '"Roboto", "Arial", sans-serif'; // Clean readable font for body text
 const expanseMonoFontFamily = '"Roboto Mono", "Courier New", monospace'; // Monospace for tech/data displays
-const expanseHeadingFontFamily = '"Exo 2", "Audiowide", "Orbitron", sans-serif'; // Main heading font
+const expanseHeadingFontFamily = '"Audiowide", "Orbitron", sans-serif'; // Main heading font
 
 export const expanseTheme = createTheme({
   palette: {
@@ -110,7 +109,7 @@ export const expanseTheme = createTheme({
       textTransform: "uppercase",
     },
     h2: {
-      fontFamily: expanseDisplayFontFamily,
+      fontFamily: expanseHeadingFontFamily,
       fontWeight: 600,
       letterSpacing: "0.05em",
       fontSize: "2.2rem",
