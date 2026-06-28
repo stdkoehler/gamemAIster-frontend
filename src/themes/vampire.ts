@@ -45,10 +45,19 @@ function subtleGothicShadow(_: Theme): string {
 
 const vampireFontFamily = '"IM Fell English SC", "Georgia", serif'; // Base font for that classic vampire feel
 const vampireModernFontFamily = '"Cormorant Garamond", "Georgia", serif'; // More modern elegant serif
-const vampireDisplayFontFamily = '"Cinzel Decorative", serif'; // Ornate display font for headings
-const vampireSansFontFamily = '"Trajan Pro", "Trajan", "Optima", sans-serif'; // Clan-like sans font
+// "Trajan Pro"/"Optima" are commercial fonts this app never loads (no
+// Google Fonts entry for either), so without a real loaded fallback this
+// silently degraded to a bland generic sans — the opposite of the gothic
+// look every other variant has. Cinzel (loaded in index.html) is an
+// engraved-capitals serif that reads as a clan emblem instead.
+const vampireSansFontFamily = '"Cinzel", "Trajan Pro", Georgia, serif';
+// Cinzel Decorative leads (same family as the buttons' Cinzel, just the
+// ornate cut) so headings and chrome read as one consistent typeface
+// rather than introducing Merlinn — an unrelated custom face — as the
+// primary look. Merlinn stays as a fallback since it's self-hosted and
+// survives a Google Fonts outage that Cinzel Decorative wouldn't.
 const vampireHeadingFontFamily =
-  '"Merlinn", Cinzel Decorative, "IM Fell English SC", "Georgia", serif'; // Use Merlinn as primary heading font
+  '"Cinzel Decorative", "Merlinn", "IM Fell English SC", "Georgia", serif';
 
 export const vampireTheme = createTheme({
   palette: {
@@ -118,7 +127,12 @@ export const vampireTheme = createTheme({
       margin: "0.5em 0 0.7em",
     },
     h2: {
-      fontFamily: vampireDisplayFontFamily,
+      // Shares h1's heading font (Merlinn / Cinzel Decorative fallback)
+      // rather than its own separate display face — h1 (the adventure
+      // title) and h2 (the persistent game-system title overlay) are both
+      // on screen at once, and having two different ornate display fonts
+      // side by side read as inconsistent rather than atmospheric.
+      fontFamily: vampireHeadingFontFamily,
       fontWeight: 600,
       letterSpacing: "0.01em",
       fontSize: "2rem",
@@ -177,6 +191,7 @@ export const vampireTheme = createTheme({
       fontFamily: vampireModernFontFamily,
       fontStyle: "italic",
       fontSize: "1.2rem",
+      fontWeight: "800",
       color: "#9c8e87",
     },
     tagLabel: {
@@ -300,6 +315,7 @@ export const vampireTheme = createTheme({
             textShadow: subtleGothicShadow(theme),
             letterSpacing: "0.1em",
             fontSize: "0.9rem",
+            fontWeight: "600",
             borderRadius: 0,
             // V5 WoD chamfered corners — angular, corporate-gothic
             clipPath:
@@ -341,11 +357,18 @@ export const vampireTheme = createTheme({
         root: ({ theme, ownerState }) => {
           // if we don't overwrite color here, if color = "primary" is passed, primary.main will be used.
           const buttonPalette = resolveButtonPalette(theme, ownerState.color);
-          const mainColor = buttonPalette.main;
+          const isHeading = ownerState.variant?.startsWith("h");
+          // Headings are large and already carry a glow (gothicTextShadow
+          // below), so the deep blood-red `main` reads fine there. Smaller
+          // body/caption text has neither the size nor the shadow strength
+          // to survive `main`'s ~2.8:1 contrast against the near-black
+          // paper background (e.g. roll log entries), so it uses the
+          // brighter `light` tone instead — still blood-red, just legible.
+          const color = isHeading ? buttonPalette.main : buttonPalette.light;
 
           return {
-            color: mainColor,
-            textShadow: ownerState.variant?.startsWith("h")
+            color,
+            textShadow: isHeading
               ? gothicTextShadow(theme, ownerState.color)
               : subtleGothicShadow(theme),
           };
