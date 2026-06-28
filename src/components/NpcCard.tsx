@@ -933,6 +933,7 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
     addCharacter,
     removeCharacter,
     setActive,
+    updateCharacterData,
     openSheet: openCharacterSheet,
   } = useCharacterStore();
   const npcs = characters.filter(
@@ -1161,7 +1162,7 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
                         <CloseIcon fontSize="small" />
                       </Box>
                     </AccordionSummary>
-                    <NpcCard {...record.data} />
+                    <NpcCard {...record.data} onCharacterUpdate={updateCharacterData} />
                   </Accordion>
                 ))}
               </Box>

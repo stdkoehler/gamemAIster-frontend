@@ -28,6 +28,7 @@ import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
 import useAppStore from "../stores/appStore";
+import useCharacterStore from "../stores/characterStore";
 import { useShallow } from "zustand/react/shallow";
 
 type HistoryProps = {
@@ -69,6 +70,7 @@ const History = ({ mission, disabled }: HistoryProps) => {
     (state) => state.rollbackOptimisticUpdate,
   );
   const commitPlayerInput = useHistoryStore((state) => state.commitPlayerInput);
+  const flushPendingCharacterSaves = useCharacterStore((state) => state.flushPendingSaves);
 
   // ===== TTS VOICE =====
   const ttsVoice = useAppStore((state) => state.ttsVoice);
@@ -114,6 +116,11 @@ const History = ({ mission, disabled }: HistoryProps) => {
     async (inputValue: string): Promise<void> => {
       if (mission === null || inputValue === "") return;
 
+      // The GM prompt is built from the latest backend character data each
+      // turn, so make sure any debounced sidebar/sheet edit reached the
+      // backend before it does, instead of waiting for the save timer.
+      flushPendingCharacterSaves();
+
       const { originalState, prevInteractionContext } =
         performOptimisticUpdate(inputValue);
 
@@ -157,12 +164,15 @@ const History = ({ mission, disabled }: HistoryProps) => {
       updateLlmOutput,
       updateLlmThinking,
       rollbackOptimisticUpdate,
+      flushPendingCharacterSaves,
     ],
   );
 
   const sendRegenerateWithStreaming = useCallback(
     async (inputValue: string): Promise<void> => {
       if (mission === null || inputValue === "") return;
+
+      flushPendingCharacterSaves();
 
       const prevInteraction = {
         playerInput: inputValue,
@@ -202,7 +212,14 @@ const History = ({ mission, disabled }: HistoryProps) => {
         console.error("Failed to regenerate:", error);
       }
     },
-    [mission, llmOutput, commitPlayerInput, updateLlmOutput, updateLlmThinking],
+    [
+      mission,
+      llmOutput,
+      commitPlayerInput,
+      updateLlmOutput,
+      updateLlmThinking,
+      flushPendingCharacterSaves,
+    ],
   );
 
   // ===== AUDIO MANAGEMENT =====
