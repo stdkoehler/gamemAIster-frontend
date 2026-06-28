@@ -20,7 +20,12 @@ import { GameType } from "../../models/Types";
 import useAppStore from "../../stores/appStore";
 import useDiceStore, { DiceLogEntry } from "../../stores/diceStore";
 import { GAME_SYSTEMS } from "../../gameSystemRegistry";
-import { GAME_DICE, DieTypeConfig, RolledDie, describeRolls } from "./diceConfig";
+import {
+  GAME_DICE,
+  DieTypeConfig,
+  RolledDie,
+  describeRolls,
+} from "./diceConfig";
 import Die, { DiePlaceholder } from "./Die";
 
 interface CurrentRoll {
@@ -33,7 +38,7 @@ interface CurrentRoll {
  *  group, so they render exactly as before — a single row, no header. */
 function groupByField<T>(
   items: T[],
-  keyOf: (item: T) => string | undefined
+  keyOf: (item: T) => string | undefined,
 ): { name: string | null; items: T[] }[] {
   const groups: { name: string | null; items: T[] }[] = [];
   const indexByName = new Map<string | null, number>();
@@ -71,7 +76,11 @@ interface DiceSectionPanelProps {
    *  one tens + one ones, so there's nothing to pick). */
   hidePicker?: boolean;
   dice: DieTypeConfig[];
-  summarize: (rolls: RolledDie[], dice: DieTypeConfig[], modifier: number) => string;
+  summarize: (
+    rolls: RolledDie[],
+    dice: DieTypeConfig[],
+    modifier: number,
+  ) => string;
   gameType: GameType;
   counts: Record<string, number>;
   setCount: (dieId: string, count: number) => void;
@@ -82,6 +91,8 @@ interface DiceSectionPanelProps {
   modifiers: Record<string, number>;
   setModifier: (key: string, value: number) => void;
   addLogEntry: (entry: Omit<DiceLogEntry, "id">) => void;
+  /** See `DiceSection.layout` — "rows" (default) if omitted. */
+  layout?: "rows" | "matrix";
 }
 
 /**
@@ -104,8 +115,9 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
   modifiers,
   setModifier,
   addLogEntry,
+  layout = "rows",
 }) => {
-  const modifier = modifierKey ? modifiers[modifierKey] ?? 0 : 0;
+  const modifier = modifierKey ? (modifiers[modifierKey] ?? 0) : 0;
   const [currentRoll, setCurrentRoll] = useState<CurrentRoll | null>(null);
   // Gates the text summary so it only appears once the dice have actually
   // finished shuffling, instead of alongside them the instant Roll is
@@ -115,7 +127,7 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
 
   const countFor = useCallback(
     (die: DieTypeConfig) => counts[die.id] ?? die.defaultCount ?? 0,
-    [counts, dice]
+    [counts, dice],
   );
 
   // A roll's dice and summary logic are only meaningful for the system that
@@ -146,14 +158,24 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
     .flatMap((g) => g.items.map((die) => ({ groupName: g.name!, die })));
   const entriesByLabel = new Map<string, typeof namedGroupDice>();
   namedGroupDice.forEach((entry) => {
-    if (!entriesByLabel.has(entry.die.label)) entriesByLabel.set(entry.die.label, []);
+    if (!entriesByLabel.has(entry.die.label))
+      entriesByLabel.set(entry.die.label, []);
     entriesByLabel.get(entry.die.label)!.push(entry);
   });
-  const matrixRows = Array.from(entriesByLabel.entries()).filter(([, entries]) => entries.length > 1);
-  const matrixedDieIds = new Set(matrixRows.flatMap(([, entries]) => entries.map((e) => e.die.id)));
-  const matrixedGroupNames = new Set(matrixRows.flatMap(([, entries]) => entries.map((e) => e.groupName)));
+  const matrixRows = Array.from(entriesByLabel.entries()).filter(
+    ([, entries]) => entries.length > 1,
+  );
+  const matrixedDieIds = new Set(
+    matrixRows.flatMap(([, entries]) => entries.map((e) => e.die.id)),
+  );
+  const matrixedGroupNames = new Set(
+    matrixRows.flatMap(([, entries]) => entries.map((e) => e.groupName)),
+  );
   const remainingGroups = diceGroups
-    .map((g) => ({ name: g.name, items: g.items.filter((d) => !matrixedDieIds.has(d.id)) }))
+    .map((g) => ({
+      name: g.name,
+      items: g.items.filter((d) => !matrixedDieIds.has(d.id)),
+    }))
     .filter((g) => g.items.length > 0);
 
   // What will be rolled if the user hits Roll right now, in picker order —
@@ -187,19 +209,43 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
       <IconButton
         size="small"
         disabled={countFor(die) >= (die.maxCount ?? 10)}
-        onClick={() => setCount(die.id, Math.min(die.maxCount ?? 10, countFor(die) + 1))}
+        onClick={() =>
+          setCount(die.id, Math.min(die.maxCount ?? 10, countFor(die) + 1))
+        }
       >
         <AddIcon fontSize="small" />
       </IconButton>
     </Box>
   );
 
-  const dieColumn = (die: DieTypeConfig, headerLabel: string) => (
-    <Box key={die.id} sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.25 }}>
-      <Typography
-        variant="caption"
-        sx={{ color: dieColorSx(die.color), textTransform: "uppercase", letterSpacing: "0.08em" }}
-      >
+  const dieLabelSx = (die: DieTypeConfig) => ({
+    color: dieColorSx(die.color),
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+    minWidth: 40,
+  });
+
+  // "row" puts the label inline with its stepper, so a matrix of these
+  // doesn't cost twice the vertical space it needs to — the right choice
+  // when headerLabel is a short die label (d4, d6, ...). "column" stacks
+  // the label above the stepper instead, for callers passing a longer
+  // group name (e.g. Slavic's "Gear / Weapon") that would otherwise force
+  // each entry wide enough to wrap the row.
+  const dieColumn = (
+    die: DieTypeConfig,
+    headerLabel: string,
+    orientation: "row" | "column" = "row",
+  ) => (
+    <Box
+      key={die.id}
+      sx={{
+        display: "flex",
+        flexDirection: orientation,
+        alignItems: "center",
+        gap: orientation === "row" ? 0.75 : 0.25,
+      }}
+    >
+      <Typography variant="caption" sx={dieLabelSx(die)}>
         {headerLabel}
       </Typography>
       {stepper(die)}
@@ -210,7 +256,8 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
     const rolls: RolledDie[] = [];
     dice.forEach((die) => {
       const n = countFor(die);
-      for (let i = 0; i < n; i++) rolls.push({ dieId: die.id, value: die.roll() });
+      for (let i = 0; i < n; i++)
+        rolls.push({ dieId: die.id, value: die.roll() });
     });
     if (rolls.length === 0) return;
 
@@ -234,7 +281,10 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
       {title && (
-        <Typography variant="subtitle2" sx={{ color: "text.primary", fontWeight: 600 }}>
+        <Typography
+          variant="subtitle2"
+          sx={{ color: "text.primary", fontWeight: 600 }}
+        >
           {title}
         </Typography>
       )}
@@ -242,20 +292,40 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
       {!hidePicker && (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {matrixRows.map(([label, entries]) => (
-            <Box key={label} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <Typography variant="body2" sx={{ color: "text.secondary", minWidth: 24 }}>
+            <Box
+              key={label}
+              sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  minWidth: 24,
+                }}
+              >
                 {label}
               </Typography>
-              {entries.map(({ groupName, die }) => dieColumn(die, groupName))}
+              {entries.map(({ groupName, die }) =>
+                dieColumn(die, groupName, "column"),
+              )}
             </Box>
           ))}
           {remainingGroups.map((group, gi) =>
             group.name ? (
-              <Box key={group.name} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Box
+                key={group.name}
+                sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
+              >
                 {!matrixedGroupNames.has(group.name) && (
                   <Typography
                     variant="caption"
-                    sx={{ color: "text.secondary", textTransform: "uppercase", letterSpacing: "0.08em" }}
+                    sx={{
+                      color: "text.secondary",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                    }}
                   >
                     {group.name}
                   </Typography>
@@ -264,24 +334,50 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
                   {group.items.map((die) => dieColumn(die, die.label))}
                 </Box>
               </Box>
+            ) : layout === "matrix" ? (
+              <Box
+                key={gi}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${Math.ceil(Math.sqrt(group.items.length))}, max-content)`,
+                  columnGap: 2,
+                  rowGap: 1,
+                }}
+              >
+                {group.items.map((die) => dieColumn(die, die.label))}
+              </Box>
             ) : (
-              <Box key={gi} sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Box
+                key={gi}
+                sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}
+              >
                 {group.items.map((die) => (
-                  <Box key={die.id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography variant="body2" sx={{ flex: 1, color: "text.secondary" }}>
+                  <Box
+                    key={die.id}
+                    sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{ flex: 1, ...dieLabelSx(die) }}
+                    >
                       {die.label}
                     </Typography>
                     {stepper(die)}
                   </Box>
                 ))}
               </Box>
-            )
+            ),
           )}
         </Box>
       )}
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-        <Button variant="contained" onClick={handleRoll} disabled={!hasAnyCount} sx={{ alignSelf: "flex-start" }}>
+        <Button
+          variant="contained"
+          onClick={handleRoll}
+          disabled={!hasAnyCount}
+          sx={{ alignSelf: "flex-start" }}
+        >
           Roll
         </Button>
         {modifierKey && (
@@ -289,13 +385,26 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
               Modifier
             </Typography>
-            <IconButton size="small" onClick={() => setModifier(modifierKey, Math.max(-15, modifier - 1))}>
+            <IconButton
+              size="small"
+              onClick={() =>
+                setModifier(modifierKey, Math.max(-15, modifier - 1))
+              }
+            >
               <RemoveIcon fontSize="small" />
             </IconButton>
-            <Typography variant="body2" sx={{ minWidth: 28, textAlign: "center" }}>
+            <Typography
+              variant="body2"
+              sx={{ minWidth: 28, textAlign: "center" }}
+            >
               {modifier > 0 ? `+${modifier}` : modifier}
             </Typography>
-            <IconButton size="small" onClick={() => setModifier(modifierKey, Math.min(15, modifier + 1))}>
+            <IconButton
+              size="small"
+              onClick={() =>
+                setModifier(modifierKey, Math.min(15, modifier + 1))
+              }
+            >
               <AddIcon fontSize="small" />
             </IconButton>
           </Box>
@@ -307,7 +416,10 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
             {previewGroups.map((group, gi) => (
-              <Box key={group.name ?? gi} sx={{ display: "flex", gap: 0.75, flexWrap: "wrap" }}>
+              <Box
+                key={group.name ?? gi}
+                sx={{ display: "flex", gap: 0.75, flexWrap: "wrap" }}
+              >
                 {group.items.map(({ die, flatIndex }) => {
                   const r = currentRoll?.rolls[flatIndex];
                   return r ? (
@@ -324,7 +436,11 @@ const DiceSectionPanel: React.FC<DiceSectionPanelProps> = ({
                       color={die.color}
                     />
                   ) : (
-                    <DiePlaceholder key={flatIndex} sides={die.sides} color={die.color} />
+                    <DiePlaceholder
+                      key={flatIndex}
+                      sides={die.sides}
+                      color={die.color}
+                    />
                   );
                 })}
               </Box>
@@ -378,7 +494,7 @@ export const DiceRollerPopup: React.FC = () => {
           left: 0,
           zIndex: 1300,
           width: "min(460px, calc(100vw - 80px))",
-          maxHeight: "min(640px, calc(100vh - 80px))",
+          maxHeight: `min(${GAME_SYSTEMS[gameType].diceMaxHeight ?? 640}px, calc(100vh - 80px))`,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -400,11 +516,29 @@ export const DiceRollerPopup: React.FC = () => {
             px: 0.5,
           })}
         >
-          <DragIndicatorIcon sx={{ mx: 0.5, color: "text.secondary", fontSize: 18, flexShrink: 0 }} />
-          <CasinoIcon sx={{ mr: 0.75, fontSize: 18, color: "primary.main", flexShrink: 0 }} />
+          <DragIndicatorIcon
+            sx={{
+              mx: 0.5,
+              color: "text.secondary",
+              fontSize: 18,
+              flexShrink: 0,
+            }}
+          />
+          <CasinoIcon
+            sx={{
+              mr: 0.75,
+              fontSize: 18,
+              color: "primary.main",
+              flexShrink: 0,
+            }}
+          />
           <Typography
             variant="caption"
-            sx={{ flexGrow: 1, color: "text.secondary", letterSpacing: "0.08em" }}
+            sx={{
+              flexGrow: 1,
+              color: "text.secondary",
+              letterSpacing: "0.08em",
+            }}
           >
             {GAME_SYSTEMS[gameType].sheetTitle} dice
           </Typography>
@@ -414,7 +548,16 @@ export const DiceRollerPopup: React.FC = () => {
         </Box>
 
         {/* ── Body ── */}
-        <Box sx={{ flex: 1, overflowY: "auto", p: 2, display: "flex", flexDirection: "column", gap: 1.5 }}>
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            p: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 1.5,
+          }}
+        >
           {config.sections ? (
             config.sections.map((section) => (
               <DiceSectionPanel
@@ -430,6 +573,7 @@ export const DiceRollerPopup: React.FC = () => {
                 modifiers={modifiers}
                 setModifier={setModifier}
                 addLogEntry={addLogEntry}
+                layout={section.layout}
               />
             ))
           ) : (
@@ -442,23 +586,44 @@ export const DiceRollerPopup: React.FC = () => {
               modifiers={modifiers}
               setModifier={setModifier}
               addLogEntry={addLogEntry}
+              layout={config.layout}
             />
           )}
 
           <Divider />
 
           {/* Log */}
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Typography variant="overline" sx={{ color: "text.secondary", letterSpacing: "0.15em" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography
+              variant="overline"
+              sx={{ color: "text.secondary", letterSpacing: "0.15em" }}
+            >
               Roll log
             </Typography>
             {gameLog.length > 0 && (
-              <Button size="small" onClick={() => clearLog(gameType)} sx={{ minWidth: 0, py: 0 }}>
+              <Button
+                size="small"
+                onClick={() => clearLog(gameType)}
+                sx={{ minWidth: 0, py: 0 }}
+              >
                 Clear all
               </Button>
             )}
           </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, overflowY: "auto" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 0.5,
+              overflowY: "auto",
+            }}
+          >
             {gameLog.map((entry) => (
               <Box
                 key={entry.id}
@@ -470,11 +635,28 @@ export const DiceRollerPopup: React.FC = () => {
                   borderBottom: `1px solid ${alpha(theme.palette.text.primary, 0.08)}`,
                 })}
               >
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 1,
+                  }}
+                >
                   <Typography variant="body2">{entry.summary}</Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.25, flexShrink: 0 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.25,
+                      flexShrink: 0,
+                    }}
+                  >
                     <Tooltip title={new Date(entry.timestamp).toLocaleString()}>
-                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary" }}
+                      >
                         {new Date(entry.timestamp).toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",

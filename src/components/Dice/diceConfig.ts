@@ -73,12 +73,25 @@ export interface DiceSection {
    * system, which keeps today's no-modifier behavior.
    */
   modifierKey?: string;
+  /**
+   * How to arrange this section's ungrouped dice steppers in the picker.
+   * "rows" (default) stacks one full-width row per die, as every system
+   * uses today. "matrix" instead packs them into a compact grid — column
+   * count is derived from the die count (ceil(sqrt(n))) rather than fixed,
+   * so it stays roughly square as dice are added/removed — for sections
+   * with enough dice that one-per-row would otherwise push the roll log
+   * out of the popup (e.g. Dragonlance's five damage dice).
+   */
+  layout?: "rows" | "matrix";
   summarize: (rolls: RolledDie[], dice: DieTypeConfig[], modifier: number) => string;
 }
 
 export interface GameDiceConfig {
   dice: DieTypeConfig[];
   sections?: DiceSection[];
+  /** Same meaning as `DiceSection.layout`, for systems with no `sections` —
+   *  their single flat picker is otherwise unstyled by either. */
+  layout?: "rows" | "matrix";
   summarize: (rolls: RolledDie[], dice: DieTypeConfig[], modifier: number) => string;
 }
 
@@ -556,6 +569,7 @@ const cocSections: DiceSection[] = [
   {
     label: "Sanity",
     diceIds: ["coc-d4", "coc-d6", "coc-d8"],
+    layout: "matrix",
     summarize: summarizeCocSanity,
   },
 ];
@@ -666,12 +680,14 @@ const dragonlanceSections: DiceSection[] = [
     label: "Check / Attack / Save",
     diceIds: ["d5e-d20"],
     modifierKey: "d5e-check-mod",
+    layout: "matrix",
     summarize: summarizeDragonlanceD20,
   },
   {
     label: "Damage",
     diceIds: ["d5e-d4", "d5e-d6", "d5e-d8", "d5e-d10", "d5e-d12"],
     modifierKey: "d5e-damage-mod",
+    layout: "matrix",
     summarize: summarizeDragonlanceDamage,
   },
 ];
@@ -745,8 +761,16 @@ function summarizeGeneric(rolls: RolledDie[]): string {
 }
 
 export const GAME_DICE: Record<GameType, GameDiceConfig> = {
-  [GameType.SHADOWRUN]: { dice: shadowrunDice, summarize: summarizeShadowrun },
-  [GameType.VAMPIRE_THE_MASQUERADE]: { dice: vtmDice, summarize: summarizeVtm },
+  [GameType.SHADOWRUN]: {
+    dice: shadowrunDice,
+    layout: "matrix",
+    summarize: summarizeShadowrun,
+  },
+  [GameType.VAMPIRE_THE_MASQUERADE]: {
+    dice: vtmDice,
+    layout: "matrix",
+    summarize: summarizeVtm,
+  },
   [GameType.CALL_OF_CTHULHU]: {
     dice: cocDice,
     sections: cocSections,
@@ -754,14 +778,23 @@ export const GAME_DICE: Record<GameType, GameDiceConfig> = {
   },
   [GameType.SEVENTH_SEA]: {
     dice: seventhSeaDice,
+    layout: "matrix",
     summarize: summarizeSeventhSea,
   },
-  [GameType.EXPANSE]: { dice: expanseDice, summarize: summarizeExpanse },
+  [GameType.EXPANSE]: {
+    dice: expanseDice,
+    layout: "matrix",
+    summarize: summarizeExpanse,
+  },
   [GameType.SLAVIC]: { dice: slavicDice, summarize: summarizeSlavic },
   [GameType.DRAGONLANCE]: {
     dice: dragonlanceDice,
     sections: dragonlanceSections,
     summarize: summarizeDragonlance,
   },
-  [GameType.CUSTOM]: { dice: customDice, summarize: summarizeGeneric },
+  [GameType.CUSTOM]: {
+    dice: customDice,
+    layout: "matrix",
+    summarize: summarizeGeneric,
+  },
 };
