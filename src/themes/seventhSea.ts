@@ -54,12 +54,13 @@ function subtleMaritimeShadow(theme: Theme): string {
 const seventhSeaFontFamily =
   '"Libre Baskerville", "Baskerville", "Times New Roman", serif'; // Base serif for readability
 const seventhSeaModernFontFamily = '"Crimson Text", "Georgia", serif'; // More modern elegant serif
-const seventhSeaDisplayFontFamily = '"Pirata One", "Blackadder ITC", cursive'; // Pirate-style display font
-const seventhSeaSansFontFamily = '"Cinzel", "Optima", "Gill Sans", sans-serif'; // Elegant caps font for headers
+const seventhSeaSansFontFamily =
+  '"Grenze", "Cinzel", "Optima", "Gill Sans", sans-serif'; // Elegant caps font for headers
 const seventhSeaScriptFontFamily =
   '"Kaushan Script", "Brush Script MT", cursive'; // Handwritten script for flavor
 const seventhSeaHeadingFontFamily =
   '"Pirata One", "Cinzel", "Libre Baskerville", serif'; // Primary heading font
+const seventhSeaButtonFontFamily = '"Pirata One", "Grenze", "Cinzel", serif';
 
 export const seventhSeaTheme = createTheme({
   palette: {
@@ -125,7 +126,7 @@ export const seventhSeaTheme = createTheme({
       color: "#E8C97A", // golden parchment glow
     },
     h2: {
-      fontFamily: seventhSeaDisplayFontFamily,
+      fontFamily: seventhSeaHeadingFontFamily,
       fontWeight: 600,
       letterSpacing: "0.01em",
       fontSize: "2rem",
@@ -172,7 +173,7 @@ export const seventhSeaTheme = createTheme({
       color: "#9A8666",
     },
     button: {
-      fontFamily: seventhSeaSansFontFamily,
+      fontFamily: seventhSeaButtonFontFamily,
       textTransform: "uppercase",
       fontWeight: 500,
       letterSpacing: "0.06em",
@@ -270,7 +271,7 @@ export const seventhSeaTheme = createTheme({
           textShadow: subtleMaritimeShadow(theme),
           color: theme.palette.text.secondary,
           letterSpacing: "0.04em",
-          fontSize: "0.9rem",
+          fontSize: "1.15rem",
           textTransform: "uppercase",
           transition: "all 0.3s ease",
           position: "relative",
@@ -315,8 +316,9 @@ export const seventhSeaTheme = createTheme({
           const contrastTextColor = buttonPalette.contrastText;
 
           return {
-            // Pirata One gives that unmistakable pirate scroll/broadside feel
-            fontFamily: seventhSeaDisplayFontFamily,
+            // Grenze keeps the blackletter pirate-scroll feel without
+            // Pirata One's illegibility at button size/weight.
+            fontFamily: seventhSeaButtonFontFamily,
             textShadow: subtleMaritimeShadow(theme),
             letterSpacing: "0.04em",
             fontSize: "1.2rem",
