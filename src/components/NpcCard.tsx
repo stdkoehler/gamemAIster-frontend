@@ -885,6 +885,7 @@ const DragonlanceNpcCard: React.FC<DragonlanceCharacter & WithUpdate> = (c) => {
             onChange={(val) =>
               onCharacterUpdate?.({ ...c, hitPoints: { ...c.hitPoints, current: val } })
             }
+            inverse
           />
         </Grid>
       </Grid>
