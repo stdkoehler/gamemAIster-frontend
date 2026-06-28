@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Box, Typography } from "@mui/material";
-import { SlavicCharacter } from "../../models/CharacterProps";
+import { Box, Typography, IconButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import { SlavicCharacter, SlavicWeapon } from "../../models/CharacterProps";
 import {
   SheetSection,
   FieldRow,
@@ -19,11 +20,12 @@ interface Props {
 
 const ATTRS = ["Strength", "Agility", "Wits", "Empathy"] as const;
 
+// Canonical Forbidden Lands 16-skill list, 4 per attribute.
 const SKILLS_BY_ATTR: Record<string, (keyof SlavicCharacter["skills"])[]> = {
-  Strength: ["Endurance", "Fight"],
-  Agility: ["Sneak", "Move", "Marksmanship"],
-  Wits: ["Scout", "Lore", "Survival", "Craft"],
-  Empathy: ["Insight", "Manipulation", "Healing", "Performance"],
+  Strength: ["Might", "Endurance", "Melee", "Crafting"],
+  Agility: ["Stealth", "Sleight of Hand", "Move", "Marksmanship"],
+  Wits: ["Scouting", "Lore", "Survival", "Insight"],
+  Empathy: ["Manipulation", "Performance", "Healing", "Animal Handling"],
 };
 
 const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
@@ -258,11 +260,82 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
-              <ListEditor
-                value={c.weapons ?? []}
-                onChange={(v) => up("weapons", v)}
-                rows={3}
-              />
+              {(c.weapons ?? []).map((w, i) => (
+                <Box
+                  key={i}
+                  sx={{ mb: 1, p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+                >
+                  <Box sx={{ display: "flex", gap: 0.5, mb: 0.5 }}>
+                    <TextInput
+                      value={w.name}
+                      onChange={(v) => {
+                        const ws = [...(c.weapons ?? [])];
+                        ws[i] = { ...ws[i], name: v };
+                        up("weapons", ws);
+                      }}
+                      label="Name"
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        const ws = [...(c.weapons ?? [])];
+                        ws.splice(i, 1);
+                        up("weapons", ws);
+                      }}
+                      sx={{ p: 0.25 }}
+                    >
+                      ×
+                    </IconButton>
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                    <FieldRow label="Grip">
+                      <TextInput
+                        value={w.grip}
+                        onChange={(v) => {
+                          const ws = [...(c.weapons ?? [])];
+                          ws[i] = { ...ws[i], grip: v as "1H" | "2H" };
+                          up("weapons", ws);
+                        }}
+                        fullWidth={false}
+                      />
+                    </FieldRow>
+                    <FieldRow label="Damage">
+                      <NumInput
+                        value={w.damage}
+                        onChange={(v) => {
+                          const ws = [...(c.weapons ?? [])];
+                          ws[i] = { ...ws[i], damage: v };
+                          up("weapons", ws);
+                        }}
+                        max={6}
+                        width={56}
+                      />
+                    </FieldRow>
+                    <FieldRow label="Range">
+                      <TextInput
+                        value={w.range}
+                        onChange={(v) => {
+                          const ws = [...(c.weapons ?? [])];
+                          ws[i] = { ...ws[i], range: v as SlavicWeapon["range"] };
+                          up("weapons", ws);
+                        }}
+                        fullWidth={false}
+                      />
+                    </FieldRow>
+                  </Box>
+                </Box>
+              ))}
+              <IconButton
+                size="small"
+                onClick={() =>
+                  up("weapons", [
+                    ...(c.weapons ?? []),
+                    { name: "New Weapon", grip: "1H", damage: 1, range: "Arm's Length" },
+                  ])
+                }
+              >
+                <AddIcon fontSize="small" />
+              </IconButton>
             </SheetSection>
 
             {/* ── Armor ── */}
@@ -272,23 +345,36 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
                   value={c.armor?.name ?? ""}
                   onChange={(v) =>
                     up("armor", {
-                      ...(c.armor ?? { name: "", rating: 0 }),
+                      ...(c.armor ?? { name: "", rating: { current: 0, max: 0 } }),
                       name: v,
                     })
                   }
                 />
               </FieldRow>
-              <FieldRow label="Rating">
-                <NumInput
-                  value={c.armor?.rating ?? 0}
-                  onChange={(v) =>
-                    up("armor", {
-                      ...(c.armor ?? { name: "", rating: 0 }),
-                      rating: v,
-                    })
-                  }
-                  max={10}
-                />
+              <FieldRow label="Rating (current / max)">
+                <Box sx={{ display: "flex", gap: 0.5, alignItems: "center" }}>
+                  <NumInput
+                    value={c.armor?.rating?.current ?? 0}
+                    onChange={(v) =>
+                      up("armor", {
+                        ...(c.armor ?? { name: "", rating: { current: 0, max: 0 } }),
+                        rating: { ...(c.armor?.rating ?? { current: 0, max: 0 }), current: v },
+                      })
+                    }
+                    max={10}
+                  />
+                  <Typography variant="caption">/</Typography>
+                  <NumInput
+                    value={c.armor?.rating?.max ?? 0}
+                    onChange={(v) =>
+                      up("armor", {
+                        ...(c.armor ?? { name: "", rating: { current: 0, max: 0 } }),
+                        rating: { ...(c.armor?.rating ?? { current: 0, max: 0 }), max: v },
+                      })
+                    }
+                    max={10}
+                  />
+                </Box>
               </FieldRow>
             </SheetSection>
 

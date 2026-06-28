@@ -734,6 +734,33 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </IconButton>
             </SheetSection>
 
+            {/* ── Armor ── */}
+            <SheetSection title="Armor">
+              <FieldRow label="Name">
+                <TextInput
+                  value={c.armor?.name ?? ""}
+                  onChange={(v) =>
+                    up("armor", {
+                      ...(c.armor ?? { name: "", rating: 0 }),
+                      name: v,
+                    })
+                  }
+                />
+              </FieldRow>
+              <FieldRow label="Rating">
+                <NumInput
+                  value={c.armor?.rating ?? 0}
+                  onChange={(v) =>
+                    up("armor", {
+                      ...(c.armor ?? { name: "", rating: 0 }),
+                      rating: v,
+                    })
+                  }
+                  max={10}
+                />
+              </FieldRow>
+            </SheetSection>
+
             {/* ── Chronicle ── */}
             <SheetSection title="Chronicle">
               <Typography variant="caption" sx={{ color: "text.secondary" }}>

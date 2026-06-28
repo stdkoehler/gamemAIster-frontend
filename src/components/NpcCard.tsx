@@ -45,6 +45,7 @@ import {
   SeventhSeaCharacter,
   ExpanseCharacter,
   SlavicCharacter,
+  SlavicWeapon,
   DragonlanceCharacter,
 } from "../models/CharacterProps";
 import { GameType } from "../models/Types";
@@ -291,8 +292,8 @@ const V5WeaponList: React.FC<{ weapons: V5Weapon[] }> = ({ weapons }) => (
     <Typography variant="body2" fontWeight="bold">
       Weapons:
     </Typography>
-    {weapons.map((w) => (
-      <Typography key={w.name} variant="body2">
+    {weapons.map((w, i) => (
+      <Typography key={i} variant="body2">
         {w.name} — DMG +{w.damage} ({w.skill}
         {w.range !== undefined ? `, ${w.range}m` : ""})
         {w.properties && w.properties.length > 0
@@ -378,6 +379,11 @@ const VampireNpcCard: React.FC<VampireCharacter & WithUpdate> = (c) => {
       </Grid>
       {c.weapons && c.weapons.length > 0 && (
         <V5WeaponList weapons={c.weapons} />
+      )}
+      {c.armor && (
+        <Typography variant="body2">
+          Armor: {c.armor.name} (Rating {c.armor.rating})
+        </Typography>
       )}
       {(c.nature === "kindred" || c.nature === "thin-blood") && (
         <Grid container spacing={2} justifyContent="center">
@@ -493,8 +499,8 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
           <Typography variant="body2" fontWeight="bold">
             Weapons:
           </Typography>
-          {c.weapons.map((w: CocWeapon) => (
-            <Typography key={w.name} variant="body2">
+          {c.weapons.map((w: CocWeapon, i) => (
+            <Typography key={i} variant="body2">
               {w.name} — {w.damage} ({w.skill}){w.range ? `, ${w.range}` : ""}
               {w.ammo !== undefined ? `, ${w.ammo} rds` : ""}
               {w.malfunction !== undefined && w.malfunction < 100
@@ -503,6 +509,11 @@ const CthulhuNpcCard: React.FC<CthulhuCharacter & WithUpdate> = (c) => {
             </Typography>
           ))}
         </Box>
+      )}
+      {c.armor && (
+        <Typography variant="body2">
+          Armor: {c.armor.name} (Rating {c.armor.rating})
+        </Typography>
       )}
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} sx={trackGridStyle}>
@@ -582,8 +593,8 @@ const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter & WithUpdate> = (c) => {
           <Typography variant="body2" fontWeight="bold">
             Weapons:
           </Typography>
-          {c.weapons.map((w: SeventhSeaWeapon) => (
-            <Typography key={w.name} variant="body2">
+          {c.weapons.map((w: SeventhSeaWeapon, i) => (
+            <Typography key={i} variant="body2">
               {w.name} ({w.trait}, {w.type}
               {w.properties && w.properties.length > 0
                 ? ` — ${w.properties.join(", ")}`
@@ -665,8 +676,8 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
               <Typography variant="body2" fontWeight="bold">
                 Weapons:
               </Typography>
-              {c.weapons.map((w: AgeWeapon) => (
-                <Typography key={w.name} variant="body2">
+              {c.weapons.map((w: AgeWeapon, i) => (
+                <Typography key={i} variant="body2">
                   {w.name} — {w.damage}
                   {w.range ? `, ${w.range}` : ""}
                   {w.qualities && w.qualities.length > 0
@@ -678,6 +689,11 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
           </Grid>
         )}
       </Grid>
+      {c.armor && (
+        <Typography variant="body2">
+          Armor: {c.armor.name} (Rating {c.armor.rating})
+        </Typography>
+      )}
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} sx={trackGridStyle}>
         <Grid>
@@ -699,12 +715,12 @@ const ExpanseNpcCard: React.FC<ExpanseCharacter & WithUpdate> = (c) => {
 };
 
 const SLAVIC_COMBAT_SKILLS: Array<keyof SlavicCharacter["skills"]> = [
+  "Might",
   "Endurance",
-  "Fight",
-  "Sneak",
+  "Melee",
+  "Stealth",
   "Move",
   "Marksmanship",
-  "Scout",
 ];
 
 const SlavicNpcCard: React.FC<SlavicCharacter & WithUpdate> = (c) => {
@@ -752,11 +768,23 @@ const SlavicNpcCard: React.FC<SlavicCharacter & WithUpdate> = (c) => {
         </Grid>
       </Grid>
       {c.weapons && c.weapons.length > 0 && (
-        <TagList title="Weapons" items={c.weapons} />
+        <Box sx={{ my: 1 }}>
+          <Typography variant="body2" fontWeight="bold">
+            Weapons:
+          </Typography>
+          {c.weapons.map((w: SlavicWeapon, i) => (
+            <Typography key={i} variant="body2">
+              {w.name} ({w.grip}) — {w.damage} dmg, {w.range}
+              {w.features && w.features.length > 0
+                ? ` [${w.features.join(", ")}]`
+                : ""}
+            </Typography>
+          ))}
+        </Box>
       )}
       {c.armor && (
         <Typography variant="body2">
-          Armor: {c.armor.name} (Rating {c.armor.rating})
+          Armor: {c.armor.name} (Rating {c.armor.rating.current}/{c.armor.rating.max})
         </Typography>
       )}
       {c.talents.length > 0 && <TagList title="Talents" items={c.talents} />}

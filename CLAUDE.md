@@ -2,6 +2,18 @@
 
 React 19 + TypeScript + MUI v7 + Vite frontend for a multi-TTRPG-system AI gamemaster app. State via Zustand stores (`src/stores/`), theming via MUI `createTheme()` per game system.
 
+**Sibling repo:** `../gamemAIster-backend` (Python/FastAPI) has its own `CLAUDE.md` — read it too when a task touches both repos (very common: character-sheet/NPC field changes always span both). See "Character schema contract" below for the load-bearing detail of that relationship.
+
+## Supported game systems
+
+Shadowrun (5E/6E), Vampire: The Masquerade (5E), Call of Cthulhu (7E), Seventh Sea (2E), The Expanse (AGE system), Dragonlance: Shadow of the Dragon Queen (D&D 5E), a free-form Custom RPG, and **Slavic** — a homebrew "Baltic Slavic 800 A.D." setting built on **Forbidden Lands** (Free League Publishing, Year Zero Engine) rules: 4 attributes that double as health pools, damage applied directly to the governing attribute (no separate HP pool), "Broken" at 0. See the comment block above `SlavicCharacter` in `src/models/CharacterProps.tsx` for the mechanical detail.
+
+## Character schema contract (frontend is the source of truth)
+
+The `*Character` interfaces in `src/models/CharacterProps.tsx` are the canonical shape for both player character sheets and NPCs — not the backend. `npm run gen:npc-schemas` (`scripts/generate-npc-schemas.mjs`) generates JSON Schemas from these TS interfaces and writes them into `../gamemAIster-backend/tests/schemas/`. The backend's `tests/test_npc_schema_contract.py` validates that its NPC-generation pipeline (`merge_npc()` in `src/brain/npc_models.py`) produces output conforming to those schemas.
+
+**Practical implication:** if you add/change a field on any `*Character` interface (e.g. adding an `armor` field), the workflow is: edit `CharacterProps.tsx` → run `npm run gen:npc-schemas` from this repo → switch to the backend repo and update its NPC stats/equipment Pydantic models, merge functions, and prompt templates to match → run `tests/test_npc_schema_contract.py` there to confirm. Don't hand-edit the JSON files under `gamemAIster-backend/tests/schemas/` — they're generated output and will just be overwritten/drift from the real contract.
+
 ## Commands
 
 - `npm run dev` — Vite dev server (port 5173, configured in `.claude/launch.json` as `gamemaister-frontend` for `preview_start`)
@@ -9,8 +21,6 @@ React 19 + TypeScript + MUI v7 + Vite frontend for a multi-TTRPG-system AI gamem
 - `npx tsc --noEmit -p .` — typecheck only, fast sanity check after edits
 - `npm run lint` — ESLint, `--max-warnings 0`
 - `npm run gen:npc-schemas` — regenerate NPC JSON schemas after editing `CharacterProps.tsx`
-
-There is currently a pre-existing, unrelated set of ~25 `tsc` errors in `CharacterCard.tsx` (stale `styles.tsx` export names, `CharacterProps` union typing). Don't try to fix these unless asked — just confirm your own changes don't add to the count (`npx tsc --noEmit -p . 2>&1 | grep -c "error TS"`, compare before/after).
 
 ## Theme architecture
 

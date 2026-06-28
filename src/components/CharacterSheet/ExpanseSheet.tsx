@@ -293,10 +293,21 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Armor & Gear ── */}
             <SheetSection title="Armor & Gear">
-              <FieldRow label="Armor">
+              <FieldRow label="Armor Name">
                 <TextInput
-                  value={c.armor ?? ""}
-                  onChange={(v) => up("armor", v)}
+                  value={c.armor?.name ?? ""}
+                  onChange={(v) =>
+                    up("armor", { ...(c.armor ?? { name: "", rating: 0 }), name: v })
+                  }
+                />
+              </FieldRow>
+              <FieldRow label="Armor Rating">
+                <NumInput
+                  value={c.armor?.rating ?? 0}
+                  onChange={(v) =>
+                    up("armor", { ...(c.armor ?? { name: "", rating: 0 }), rating: v })
+                  }
+                  max={10}
                 />
               </FieldRow>
               <Box sx={{ mt: 0.75 }}>
