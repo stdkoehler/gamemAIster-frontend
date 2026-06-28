@@ -17,6 +17,7 @@ export interface CharacterSheetPayload {
   content: CharacterProps;
   is_protagonist: boolean;
   is_npc: boolean;
+  is_active: boolean;
 }
 
 export interface MissionLoadPayload {

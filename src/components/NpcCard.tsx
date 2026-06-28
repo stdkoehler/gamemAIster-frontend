@@ -16,6 +16,8 @@ import {
   DialogContentText,
   DialogActions,
   useTheme,
+  Switch,
+  Tooltip,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -54,7 +56,7 @@ import useAppStore from "../stores/appStore";
 import useCharacterStore from "../stores/characterStore";
 import useNotificationStore from "../stores/notificationStore";
 import { createNpcDummy } from "../data/defaultCharacters";
-import { createNpc, deleteCharacterSheet } from "../functions/restInterface";
+import { createNpc, deleteCharacterSheet, setNpcActive } from "../functions/restInterface";
 
 // =====================
 // Shared sub-components
@@ -926,17 +928,40 @@ interface NpcManagerProps {
 export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
   const gameType = useAppStore((s) => s.gameType);
   const missionId = useAppStore((s) => s.mission);
-  const { characters, addCharacter, removeCharacter, openSheet: openCharacterSheet } =
-    useCharacterStore();
+  const {
+    characters,
+    addCharacter,
+    removeCharacter,
+    setActive,
+    openSheet: openCharacterSheet,
+  } = useCharacterStore();
   const npcs = characters.filter(
     (r) => r.isNpc && r.data.gameType === gameType,
   );
+  const activeNpcs = npcs.filter((r) => r.isActive ?? true);
+  const inactiveNpcs = npcs.filter((r) => !(r.isActive ?? true));
   const [pendingDeleteRecord, setPendingDeleteRecord] =
     useState<CharacterRecord | null>(null);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [creating, setCreating] = useState(false);
   const showError = useNotificationStore((s) => s.showError);
+
+  const handleToggleActive = useCallback(
+    async (record: CharacterRecord, isActive: boolean) => {
+      setActive(record.data.id, isActive);
+      if (record.sheetId !== null && missionId !== null) {
+        try {
+          await setNpcActive(record.sheetId, missionId, isActive);
+        } catch (err) {
+          console.error("Failed to update NPC scene status:", err);
+          showError(err instanceof Error ? err.message : "Failed to update NPC.");
+          setActive(record.data.id, !isActive);
+        }
+      }
+    },
+    [missionId, setActive, showError],
+  );
 
   const handleCreate = useCallback(() => {
     setNameInput("");
@@ -1038,82 +1063,111 @@ export const NpcManager: React.FC<NpcManagerProps> = ({ onCreateNPCs }) => {
         {creating ? "Generating NPC..." : "Create NPC"}
       </Button>
 
-      <Box sx={[{ mt: 1 }, accordionGridStyle]}>
-        {npcs.map((record) => (
-          <Accordion key={record.sheetId ?? record.data.id}>
-            <AccordionSummary
-              aria-controls={`panel${record.data.id}-content`}
-              id={`panel${record.data.id}-header`}
-              sx={{
-                "& .MuiAccordionSummary-content": { alignItems: "center" },
-              }}
-            >
-              <Typography sx={{ flexGrow: 1 }}>{record.data.name}</Typography>
-              <Box
-                component="span"
-                role="button"
-                tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openCharacterSheet(record.data.id);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.stopPropagation();
-                    openCharacterSheet(record.data.id);
-                  }
-                }}
+      {[
+        { label: "Active in scene", records: activeNpcs },
+        { label: "Inactive", records: inactiveNpcs },
+      ].map(
+        ({ label, records }) =>
+          records.length > 0 && (
+            <React.Fragment key={label}>
+              <Typography
+                variant="tagLabel"
                 sx={{
-                  ml: 1,
-                  cursor: "pointer",
-                  color: alpha(theme.palette.primary.main, 0.5),
-                  display: "inline-flex",
-                  alignItems: "center",
-                  borderRadius: "50%",
-                  padding: "4px",
-                  "&:hover": {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    color: theme.palette.primary.main,
-                  },
+                  display: "block",
+                  color: alpha(theme.palette.primary.main, 0.38),
+                  mb: 0.5,
+                  mt: 1,
                 }}
               >
-                <OpenInNewIcon fontSize="small" />
+                {label}
+              </Typography>
+              <Box sx={[{ mt: 0.5 }, accordionGridStyle]}>
+                {records.map((record) => (
+                  <Accordion key={record.sheetId ?? record.data.id}>
+                    <AccordionSummary
+                      aria-controls={`panel${record.data.id}-content`}
+                      id={`panel${record.data.id}-header`}
+                      sx={{
+                        "& .MuiAccordionSummary-content": { alignItems: "center" },
+                      }}
+                    >
+                      <Typography sx={{ flexGrow: 1 }}>{record.data.name}</Typography>
+                      <Tooltip title={record.isActive ?? true ? "Active in scene" : "Inactive"}>
+                        <Switch
+                          size="small"
+                          checked={record.isActive ?? true}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleToggleActive(record, e.target.checked)}
+                        />
+                      </Tooltip>
+                      <Box
+                        component="span"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openCharacterSheet(record.data.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation();
+                            openCharacterSheet(record.data.id);
+                          }
+                        }}
+                        sx={{
+                          ml: 1,
+                          cursor: "pointer",
+                          color: alpha(theme.palette.primary.main, 0.5),
+                          display: "inline-flex",
+                          alignItems: "center",
+                          borderRadius: "50%",
+                          padding: "4px",
+                          "&:hover": {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                            color: theme.palette.primary.main,
+                          },
+                        }}
+                      >
+                        <OpenInNewIcon fontSize="small" />
+                      </Box>
+                      <Box
+                        component="span"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPendingDeleteRecord(record);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation();
+                            setPendingDeleteRecord(record);
+                          }
+                        }}
+                        sx={{
+                          ml: 1,
+                          cursor: "pointer",
+                          color: alpha(theme.palette.primary.main, 0.5),
+                          display: "inline-flex",
+                          alignItems: "center",
+                          borderRadius: "50%",
+                          padding: "4px",
+                          "&:hover": {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                            color: theme.palette.primary.main,
+                          },
+                        }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </Box>
+                    </AccordionSummary>
+                    <NpcCard {...record.data} />
+                  </Accordion>
+                ))}
               </Box>
-              <Box
-                component="span"
-                role="button"
-                tabIndex={0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPendingDeleteRecord(record);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.stopPropagation();
-                    setPendingDeleteRecord(record);
-                  }
-                }}
-                sx={{
-                  ml: 1,
-                  cursor: "pointer",
-                  color: alpha(theme.palette.primary.main, 0.5),
-                  display: "inline-flex",
-                  alignItems: "center",
-                  borderRadius: "50%",
-                  padding: "4px",
-                  "&:hover": {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    color: theme.palette.primary.main,
-                  },
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </Box>
-            </AccordionSummary>
-            <NpcCard {...record.data} />
-          </Accordion>
-        ))}
-      </Box>
+            </React.Fragment>
+          ),
+      )}
 
       <Dialog open={nameDialogOpen} onClose={cancelCreate}>
         <DialogTitle>Create NPC</DialogTitle>

@@ -31,6 +31,7 @@ interface CharacterState {
   addCharacter: (record: CharacterRecord) => void;
   removeCharacter: (characterId: number) => void;
   setProtagonist: (characterId: number) => void;
+  setActive: (characterId: number, isActive: boolean) => void;
   resetCharacters: () => void;
 }
 
@@ -85,6 +86,13 @@ const useCharacterStore = create<CharacterState>()(
         set((state) => ({
           characters: state.characters.map((r) =>
             r.isNpc ? r : { ...r, isProtagonist: r.data.id === characterId },
+          ),
+        })),
+
+      setActive: (characterId, isActive) =>
+        set((state) => ({
+          characters: state.characters.map((r) =>
+            r.data.id === characterId ? { ...r, isActive } : r,
           ),
         })),
 

@@ -95,6 +95,7 @@ export const CharacterSheetPopup: React.FC = () => {
           content: activeRecord.data,
           is_protagonist: activeRecord.isProtagonist,
           is_npc: activeRecord.isNpc ?? false,
+          is_active: activeRecord.isActive ?? true,
         });
       } catch (err) {
         console.error("Failed to sync character sheet on close:", err);

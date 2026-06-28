@@ -18,6 +18,8 @@ export interface CharacterRecord {
   sheetId: number | null;
   isProtagonist: boolean;
   isNpc?: boolean;
+  /** Whether the NPC is part of the current scene; undefined is treated as active. */
+  isActive?: boolean;
   data: CharacterProps;
 }
 
