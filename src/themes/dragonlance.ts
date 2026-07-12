@@ -1,6 +1,14 @@
 import { createTheme, Theme } from "@mui/material/styles";
 import { keyframes } from "@emotion/react";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+  titleOutlineTextShadow,
+} from "./helper";
 
 // Slow ember flicker for headings — a heraldic title catching torchlight,
 // not a strobing effect, so the easing lingers near the bright end.
@@ -199,17 +207,28 @@ export const dragonlanceTheme = createTheme({
     body1: {
       lineHeight: 1.75,
       letterSpacing: "0.01em",
-      fontSize: "1rem",
+      fontSize: "1.25rem",
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "0.95rem",
+      fontSize: "1.1rem",
       color: "#c9a878",
     },
     caption: {
       fontFamily: dragonlanceMonoFontFamily,
-      fontSize: "0.82rem",
+      fontSize: "1.1rem",
       color: "#80684a",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: dragonlanceBodyFontFamily,
+      fontSize: "1.35rem",
+      lineHeight: 1.3,
+      letterSpacing: "0.02em",
     },
   },
   shape: {
@@ -218,23 +237,12 @@ export const dragonlanceTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.secondary.light,
-          textDecoration: "none",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            color: theme.palette.primary.light,
-            textShadow: `0 0 8px ${theme.palette.primary.light}80`,
-          },
-        }),
+        ...baseCssBaselineRules(),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(
+            theme.palette.secondary.light,
+            theme.palette.primary.light,
+          ),
       },
     },
     MuiPaper: {
@@ -270,7 +278,7 @@ export const dragonlanceTheme = createTheme({
           fontFamily: dragonlanceBodyFontFamily,
           textShadow: emberCarvedShadow(),
           color: theme.palette.text.secondary,
-          fontSize: "0.95rem",
+          fontSize: "1.25rem",
           transition: "all 0.3s ease",
           position: "relative",
           paddingTop: "0.65rem",
@@ -303,21 +311,7 @@ export const dragonlanceTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -326,7 +320,7 @@ export const dragonlanceTheme = createTheme({
             fontFamily: dragonlanceHeadingFontFamily,
             textShadow: emberCarvedShadow(),
             letterSpacing: "0.04em",
-            fontSize: "0.92rem",
+            fontSize: "1.0rem",
             borderRadius: "2px",
             border: `1px solid ${mainColor}88`,
             borderBottom: `2px solid ${mainColor}55`,
@@ -393,24 +387,12 @@ export const dragonlanceTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary",
+        color: "primary", // this MUST stay primary, not textPrimary. We base our theme on primary.
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-          const palette = theme.palette[colorKey] || theme.palette.primary;
+          const palette = resolveButtonPalette(theme, ownerState.color);
           return {
             color: palette.main,
             textShadow: ownerState.variant?.startsWith("h")
@@ -553,6 +535,13 @@ export const dragonlanceTheme = createTheme({
         content: () => ({ "&.Mui-expanded": { margin: "12px 0" } }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({
@@ -599,15 +588,21 @@ export const dragonlanceTheme = createTheme({
           // Fast on focus specifically — a slow fade here reads as input
           // lag (the cursor lands instantly, but the highlight visibly
           // catching up afterwards looks like the click was sluggish).
-          transition: "border-color 0.1s ease, box-shadow 0.1s ease, background-color 0.3s ease",
+          transition:
+            "border-color 0.1s ease, box-shadow 0.1s ease, background-color 0.3s ease",
           "&.Mui-focused": {
             boxShadow: `0 0 0 1px ${theme.palette.secondary.main}77, 0 0 10px ${theme.palette.secondary.main}33`,
             borderColor: `${theme.palette.secondary.main}77`,
           },
           "&:hover": { borderColor: `${theme.palette.primary.dark}77` },
         }),
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "1.05rem" : "1.35rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontStyle: "italic",
@@ -628,6 +623,13 @@ export const dragonlanceTheme = createTheme({
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: `${theme.palette.secondary.main}88`,
           },
+        }),
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -684,10 +686,7 @@ export const dragonlanceTheme = createTheme({
       },
     },
   },
-  spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+  spinButtonBackgroundImage: (color) => spinButtonArrowSvg(color),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": { width: "0.5em", cursor: "default !important" },
     "&::-webkit-scrollbar-track": {
@@ -722,23 +721,10 @@ export const dragonlanceTheme = createTheme({
   // would override (undo) this outline on every tick.
   titleOverlayStyle: {
     color: "#fdf0d8",
+    // Disables the ember-flicker `animation` every other h2 gets, since
+    // that keyframe animates `text-shadow` itself each frame and would
+    // override (undo) the static outline below.
     animation: "none",
-    // Outline via offset text-shadow copies only — combining this with
-    // `-webkit-text-stroke` drew two independent, slightly misaligned
-    // outline techniques on top of each other, which showed up as visible
-    // ghosting/doubling on curves when zoomed in. All 8 directions (not
-    // just the 4 diagonals) so straight stroke edges on letters like D/R/N
-    // don't get a thin gap between two diagonal shadows.
-    textShadow: [
-      "-1px -1px 0 #5c0f14",
-      "1px -1px 0 #5c0f14",
-      "-1px 1px 0 #5c0f14",
-      "1px 1px 0 #5c0f14",
-      "0 -1px 0 #5c0f14",
-      "0 1px 0 #5c0f14",
-      "-1px 0 0 #5c0f14",
-      "1px 0 0 #5c0f14",
-      "0 3px 10px rgba(0,0,0,0.8)",
-    ].join(", "),
+    textShadow: titleOutlineTextShadow("#5c0f14"),
   },
 });

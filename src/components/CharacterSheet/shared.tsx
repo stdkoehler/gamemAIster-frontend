@@ -57,12 +57,20 @@ interface SheetSectionProps {
   children: React.ReactNode;
 }
 
-export const SheetSection: React.FC<SheetSectionProps> = ({ title, children }) => (
+export const SheetSection: React.FC<SheetSectionProps> = ({
+  title,
+  children,
+}) => (
   <Box sx={{ mb: 2 }}>
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
       <Typography
         variant="overline"
-        sx={{ fontWeight: "bold", letterSpacing: "0.15em", lineHeight: 1 }}
+        sx={{
+          fontWeight: "bold",
+          letterSpacing: "0.15em",
+          lineHeight: 1,
+          fontSize: "0.9rem",
+        }}
       >
         {title}
       </Typography>
@@ -80,9 +88,16 @@ interface FieldRowProps {
   label: string;
   children: React.ReactNode;
   inline?: boolean;
+  /** Minimum width reserved for the label when inline, so child inputs align across rows. */
+  labelMinWidth?: number | string;
 }
 
-export const FieldRow: React.FC<FieldRowProps> = ({ label, children, inline = true }) => (
+export const FieldRow: React.FC<FieldRowProps> = ({
+  label,
+  children,
+  inline = true,
+  labelMinWidth = 100,
+}) => (
   <Box
     sx={{
       display: "flex",
@@ -92,7 +107,13 @@ export const FieldRow: React.FC<FieldRowProps> = ({ label, children, inline = tr
       mb: 0.5,
     }}
   >
-    <Typography variant="caption" sx={{ minWidth: inline ? 100 : undefined, color: "text.secondary" }}>
+    <Typography
+      variant="caption"
+      sx={{
+        minWidth: inline ? labelMinWidth : undefined,
+        color: "text.secondary",
+      }}
+    >
       {label}:
     </Typography>
     {children}
@@ -136,7 +157,12 @@ export const NumInput: React.FC<NumInputProps> = ({
       }}
       variant="outlined"
       size="small"
-      inputProps={{ min, max, step: resolvedStep, style: { textAlign: "center", padding: "4px 2.2em 4px 6px" } }}
+      inputProps={{
+        min,
+        max,
+        step: resolvedStep,
+        style: { textAlign: "center", padding: "4px 2.2em 4px 6px" },
+      }}
       sx={{
         width: resolvedWidth,
         "& input[type=number]::-webkit-inner-spin-button": {
@@ -181,12 +207,16 @@ export const TextInput: React.FC<TextInputProps> = ({
   placeholder,
 }) => {
   const [local, setLocal] = React.useState(value);
-  React.useEffect(() => { setLocal(value); }, [value]);
+  React.useEffect(() => {
+    setLocal(value);
+  }, [value]);
   return (
     <TextField
       value={local}
       onChange={(e) => setLocal(e.target.value)}
-      onBlur={() => { if (local !== value) onChange(local); }}
+      onBlur={() => {
+        if (local !== value) onChange(local);
+      }}
       label={label}
       multiline={multiline}
       rows={rows}
@@ -219,7 +249,9 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 }) => {
   const joined = value.join("\n");
   const [local, setLocal] = React.useState(joined);
-  React.useEffect(() => { setLocal(value.join("\n")); }, [value]);
+  React.useEffect(() => {
+    setLocal(value.join("\n"));
+  }, [value]);
   return (
     <TextField
       multiline
@@ -227,7 +259,10 @@ export const ListEditor: React.FC<ListEditorProps> = ({
       value={local}
       onChange={(e) => setLocal(e.target.value)}
       onBlur={() => {
-        const items = local.split("\n").map((s) => s.trim()).filter(Boolean);
+        const items = local
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean);
         onChange(items);
       }}
       label={label}
@@ -249,7 +284,11 @@ interface ChipListEditorProps {
   label?: string;
 }
 
-export const ChipListEditor: React.FC<ChipListEditorProps> = ({ value, onChange, label }) => {
+export const ChipListEditor: React.FC<ChipListEditorProps> = ({
+  value,
+  onChange,
+  label,
+}) => {
   const [newItem, setNewItem] = React.useState("");
   const add = () => {
     const trimmed = newItem.trim();
@@ -265,7 +304,9 @@ export const ChipListEditor: React.FC<ChipListEditorProps> = ({ value, onChange,
           {label}:
         </Typography>
       )}
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5, mb: 0.5 }}>
+      <Box
+        sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5, mb: 0.5 }}
+      >
         {value.map((item) => (
           <Chip
             key={item}
@@ -279,7 +320,12 @@ export const ChipListEditor: React.FC<ChipListEditorProps> = ({ value, onChange,
         <TextField
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
           size="small"
           placeholder="Add item..."
           sx={{ flex: 1 }}
@@ -324,12 +370,18 @@ export const RecordNumEditor: React.FC<RecordNumEditorProps> = ({
   return (
     <Box>
       {label && (
-        <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 0.5 }}>
+        <Typography
+          variant="caption"
+          sx={{ color: "text.secondary", display: "block", mb: 0.5 }}
+        >
           {label}:
         </Typography>
       )}
       {Object.entries(value).map(([k, v]) => (
-        <Box key={k} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
+        <Box
+          key={k}
+          sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}
+        >
           <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
             {k}
           </Typography>
@@ -365,7 +417,12 @@ export const RecordNumEditor: React.FC<RecordNumEditorProps> = ({
           <TextField
             value={newKey}
             onChange={(e) => setNewKey(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKey(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addKey();
+              }
+            }}
             size="small"
             placeholder="Add entry..."
             sx={{ flex: 1 }}
@@ -391,7 +448,10 @@ interface TwoColProps {
 }
 
 export const TwoCol: React.FC<TwoColProps> = ({
-  left, right, leftFlex = 1, rightFlex = 1,
+  left,
+  right,
+  leftFlex = 1,
+  rightFlex = 1,
 }) => (
   <Box sx={{ display: "flex", gap: 2 }}>
     <Box sx={{ flex: leftFlex }}>{left}</Box>

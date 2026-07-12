@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import Draggable from "react-draggable";
 import { Box, Paper, Tabs, Tab, IconButton, Tooltip, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
@@ -11,10 +11,6 @@ import useAppStore from "../../stores/appStore";
 import { CharacterProps } from "../../models/CharacterProps";
 import { GameType } from "../../models/Types";
 import { GAME_SYSTEMS } from "../../gameSystemRegistry";
-import {
-  upsertCharacterSheet,
-  getCharacterSheets,
-} from "../../functions/restInterface";
 import ShadowrunSheet from "./ShadowrunSheet";
 import VampireSheet from "./VampireSheet";
 import CthulhuSheet from "./CthulhuSheet";
@@ -53,10 +49,9 @@ export const CharacterSheetPopup: React.FC = () => {
     closeSheet,
     openSheet,
     updateCharacterData,
-    setCharacters,
+    flushPendingSaves,
   } = useCharacterStore();
   const gameType = useAppStore((s) => s.gameType);
-  const missionId = useAppStore((s) => s.mission);
   const nodeRef = useRef<HTMLDivElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,16 +61,10 @@ export const CharacterSheetPopup: React.FC = () => {
     (r) => r.data.gameType === gameType && !!r.isNpc === activeIsNpc,
   );
 
-  // Sync from backend when the popup opens
-  useEffect(() => {
-    if (!isSheetOpen || missionId === null) return;
-    getCharacterSheets(missionId)
-      .then((fresh) => {
-        if (fresh.length > 0) setCharacters(fresh);
-      })
-      .catch((err) => console.error("Failed to sync character sheets:", err));
-  }, [isSheetOpen, missionId, setCharacters]);
-
+  // `characters` is fetched from the backend exactly once, when the mission
+  // loads (see App.tsx) - re-fetching here on every sheet open would clobber
+  // any edit that hasn't been persisted yet (debounced by `updateCharacterData`),
+  // which is what caused stat edits to randomly revert.
   const activeId =
     activeCharacterId !== null && visibleChars.some((r) => r.data.id === activeCharacterId)
       ? activeCharacterId
@@ -83,25 +72,12 @@ export const CharacterSheetPopup: React.FC = () => {
 
   const activeRecord = visibleChars.find((r) => r.data.id === activeId) ?? visibleChars[0];
 
-  // Save active character to backend, then close
-  const handleClose = useCallback(async () => {
-    if (activeRecord && activeRecord.sheetId !== null && missionId !== null) {
-      try {
-        await upsertCharacterSheet({
-          character_sheet_id: activeRecord.sheetId,
-          mission_id: missionId,
-          name: activeRecord.data.name,
-          game_type: gameType,
-          content: activeRecord.data,
-          is_protagonist: activeRecord.isProtagonist,
-          is_npc: activeRecord.isNpc ?? false,
-        });
-      } catch (err) {
-        console.error("Failed to sync character sheet on close:", err);
-      }
-    }
+  // Flush any debounced edit immediately instead of waiting for the save
+  // timer, so closing the sheet right after an edit can't lose it.
+  const handleClose = useCallback(() => {
+    flushPendingSaves();
     closeSheet();
-  }, [activeRecord, missionId, gameType, closeSheet]);
+  }, [flushPendingSaves, closeSheet]);
 
   const handleExport = useCallback(() => {
     if (!activeRecord) return;

@@ -19,8 +19,9 @@ interface MarkdownRendererProps {
  * It uses the `react-markdown` library for parsing and rendering.
  * - The `remarkBreaks` plugin is used to interpret line breaks in Markdown as `<br>` elements.
  * - Custom components are provided for:
- *   - `p` (paragraph): Renders as an MUI Typography component with specific styling (margin, line height, font size, letter spacing).
- *                      The `component="div"` prop is used to ensure it behaves like a block element for layout purposes.
+ *   - `p` (paragraph): Renders as an MUI Typography using the theme's `chatText` variant (font/size/line-height/letter-spacing
+ *                      come from the active theme), plus paragraph margins set here. `component="div"` makes it behave
+ *                      as a block element for layout purposes.
  *   - `hr` (horizontal rule): Renders as an MUI Box component styled as a horizontal line with the specified color.
  *
  * @param props - The props for the component. See {@link MarkdownRendererProps}.
@@ -43,14 +44,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         components={{
           p: ({ node, ref, ...props }) => (
             <Typography
+              variant="chatText"
               color={color}
               component="div"
               sx={{
                 marginTop: "0.5em",
                 marginBottom: "1em",
-                lineHeight: 1.7,
-                fontSize: "1.05rem",
-                letterSpacing: "0.02em",
               }}
               {...props}
             />

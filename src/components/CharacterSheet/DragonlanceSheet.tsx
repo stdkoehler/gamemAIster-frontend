@@ -58,6 +58,8 @@ const SKILL_ABILITY: Record<string, Ability> = {
 
 const SPELL_LEVELS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
 
+const labelMinWidth = 130;
+
 const abilityMod = (score: number) => Math.floor((score - 10) / 2);
 const fmtMod = (n: number) => (n >= 0 ? `+${n}` : `${n}`);
 
@@ -243,25 +245,25 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
           leftFlex={2}
           left={
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-              <FieldRow label="Name">
+              <FieldRow label="Name" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.name} onChange={(v) => up("name", v)} />
               </FieldRow>
-              <FieldRow label="Race">
+              <FieldRow label="Race" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.race} onChange={(v) => up("race", v)} />
               </FieldRow>
-              <FieldRow label="Class & Level">
+              <FieldRow label="Class & Level" labelMinWidth={labelMinWidth}>
                 <TextInput
                   value={c.characterClass}
                   onChange={(v) => up("characterClass", v)}
                 />
               </FieldRow>
-              <FieldRow label="Background">
+              <FieldRow label="Background" labelMinWidth={labelMinWidth}>
                 <TextInput
                   value={c.background}
                   onChange={(v) => up("background", v)}
                 />
               </FieldRow>
-              <FieldRow label="Alignment">
+              <FieldRow label="Alignment" labelMinWidth={labelMinWidth}>
                 <TextInput
                   value={c.alignment ?? ""}
                   onChange={(v) => up("alignment", v)}
@@ -498,7 +500,7 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
               >
                 {Object.entries(SKILL_ABILITY).map(([skill, ability]) => (
                   <React.Fragment key={skill}>
-                    <Typography variant="body2" sx={{ fontSize: "0.78rem" }}>
+                    <Typography variant="body2">
                       {skill}{" "}
                       <Typography
                         component="span"

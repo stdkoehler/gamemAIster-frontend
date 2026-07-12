@@ -194,6 +194,19 @@ const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <FieldRow label="Assets">
                 <TextInput value={c.assets ?? ""} onChange={(v) => up("assets", v)} />
               </FieldRow>
+              <FieldRow label="Armor Name">
+                <TextInput
+                  value={c.armor?.name ?? ""}
+                  onChange={(v) => up("armor", { ...(c.armor ?? { name: "", rating: 0 }), name: v })}
+                />
+              </FieldRow>
+              <FieldRow label="Armor Rating">
+                <NumInput
+                  value={c.armor?.rating ?? 0}
+                  onChange={(v) => up("armor", { ...(c.armor ?? { name: "", rating: 0 }), rating: v })}
+                  max={20}
+                />
+              </FieldRow>
               <Box sx={{ mt: 0.75 }}>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>Gear</Typography>
                 <ListEditor value={c.gear ?? []} onChange={(v) => up("gear", v)} rows={3} />

@@ -1,5 +1,25 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { ThemeColorWithMain } from "./helper";
+import { keyframes } from "@emotion/react";
+import {
+  baseCssBaselineRules,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+  titleOutlineTextShadow,
+} from "./helper";
+
+// A holographic projection's brightness drifting, not a hard on/off flicker
+// — long held stretches at each end so it reads as a slow breathing glow.
+const holoPulse = keyframes`
+  0%, 100% { text-shadow: 0 0 2px #7c4dff, 0 0 4px rgba(94,53,177,0.8), 0 0 8px rgba(94,53,177,0.47), 0 0 12px rgba(94,53,177,0.27); }
+  50% { text-shadow: 0 0 3px #7c4dff, 0 0 7px rgba(94,53,177,0.95), 0 0 14px rgba(94,53,177,0.6), 0 0 20px rgba(94,53,177,0.35); }
+`;
+
+// Sparse scattered points — a faint starfield rather than a regular grid,
+// echoing the void-of-space background without competing with content.
+const expanseStarfieldTexture =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='3' cy='4' r='0.6' fill='%23ede7f6' fill-opacity='0.06'/%3E%3Ccircle cx='22' cy='16' r='0.5' fill='%23ede7f6' fill-opacity='0.05'/%3E%3Ccircle cx='33' cy='31' r='0.7' fill='%23ede7f6' fill-opacity='0.06'/%3E%3Ccircle cx='12' cy='27' r='0.4' fill='%23ede7f6' fill-opacity='0.04'/%3E%3C/svg%3E\")";
 
 // Sci-fi glow text shadow for futuristic elements
 function techGlowShadow(theme: Theme): string {
@@ -21,10 +41,9 @@ function subtleTechShadow(theme: Theme): string {
 
 const expanseModernFontFamily =
   '"Orbitron", "Roboto Condensed", "Arial", sans-serif'; // Primary sci-fi font
-const expanseDisplayFontFamily = '"Audiowide", "Orbitron", sans-serif'; // Bold display font for headings
 const expanseBodyFontFamily = '"Roboto", "Arial", sans-serif'; // Clean readable font for body text
 const expanseMonoFontFamily = '"Roboto Mono", "Courier New", monospace'; // Monospace for tech/data displays
-const expanseHeadingFontFamily = '"Exo 2", "Audiowide", "Orbitron", sans-serif'; // Main heading font
+const expanseHeadingFontFamily = '"Audiowide", "Orbitron", sans-serif'; // Main heading font
 
 export const expanseTheme = createTheme({
   palette: {
@@ -90,7 +109,7 @@ export const expanseTheme = createTheme({
       textTransform: "uppercase",
     },
     h2: {
-      fontFamily: expanseDisplayFontFamily,
+      fontFamily: expanseHeadingFontFamily,
       fontWeight: 600,
       letterSpacing: "0.05em",
       fontSize: "2.2rem",
@@ -147,14 +166,25 @@ export const expanseTheme = createTheme({
     },
     body2: {
       lineHeight: 1.5,
-      fontSize: "0.9rem",
+      fontSize: "1.0rem",
       fontFamily: expanseBodyFontFamily,
     },
     caption: {
       fontFamily: expanseMonoFontFamily,
-      fontSize: "0.8rem",
+      fontSize: "0.9rem",
       color: "#546e7a",
       letterSpacing: "0.03em",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: expanseBodyFontFamily,
+      fontSize: "1.2rem",
+      lineHeight: 1.425,
+      letterSpacing: "0.02em",
     },
   },
   shape: {
@@ -171,14 +201,7 @@ export const expanseTheme = createTheme({
             fontStyle: "normal",
           },
         ],
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules("0.2s"),
         body: ({ theme }: { theme: Theme }) => ({
           background: `linear-gradient(135deg, ${theme.palette.background.default} 0%, #0d1117 50%, ${theme.palette.background.paper} 100%)`,
           backgroundAttachment: "fixed",
@@ -196,21 +219,16 @@ export const expanseTheme = createTheme({
             zIndex: -1,
           },
         }),
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.primary.light,
-          textDecoration: "none",
-          transition: "all 0.2s ease",
-          "&:hover": {
-            color: theme.palette.info.light,
-            textShadow: `0 0 8px ${theme.palette.info.light}80`,
-          },
-        }),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(theme.palette.primary.light, theme.palette.info.light),
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundImage: `linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
+          backgroundImage: `
+            ${expanseStarfieldTexture},
+            linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
           backdropFilter: "blur(8px)",
           boxShadow:
             "0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
@@ -276,22 +294,7 @@ export const expanseTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -337,25 +340,12 @@ export const expanseTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary",
+        color: "primary", // this MUST stay primary, not textPrimary. We base our theme on primary.
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const palette = theme.palette[colorKey] || theme.palette.primary;
+          const palette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = palette.main;
 
           return {
@@ -367,6 +357,7 @@ export const expanseTheme = createTheme({
         },
         h1: ({ theme }) => ({
           textShadow: holoTextShadow(theme),
+          animation: `${holoPulse} 4s ease-in-out infinite`,
           "&::after": {
             content: '""',
             display: "block",
@@ -419,7 +410,9 @@ export const expanseTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor: `${theme.palette.background.default}DD`,
-          backgroundImage: `linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
+          backgroundImage: `
+            ${expanseStarfieldTexture},
+            linear-gradient(135deg, ${theme.palette.background.paper}E6, ${theme.palette.background.default}CC)`,
           backdropFilter: "blur(12px)",
           boxShadow:
             "0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
@@ -508,6 +501,13 @@ export const expanseTheme = createTheme({
         }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({
@@ -564,8 +564,13 @@ export const expanseTheme = createTheme({
             borderColor: `${theme.palette.info.main}55`,
           },
         }),
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "12px 16px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.2rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontFamily: expanseBodyFontFamily,
@@ -586,6 +591,13 @@ export const expanseTheme = createTheme({
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: `${theme.palette.info.main}88`,
           },
+        }),
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -655,9 +667,7 @@ export const expanseTheme = createTheme({
     },
   },
   spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+    spinButtonArrowSvg(color, { strokeWidth: 2 }),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.4em",
@@ -671,6 +681,7 @@ export const expanseTheme = createTheme({
       backgroundColor: theme.palette.primary.dark + "AA",
       border: `1px solid ${theme.palette.primary.main}66`,
       borderRadius: "2px",
+      background: `linear-gradient(45deg, ${theme.palette.primary.dark}90, ${theme.palette.info.dark}60)`,
       boxShadow: `0 0 6px ${theme.palette.primary.main}44`,
       "&:hover": {
         backgroundColor: theme.palette.primary.main + "CC",
@@ -678,7 +689,19 @@ export const expanseTheme = createTheme({
       },
       cursor: "default !important",
     },
+    "&::-webkit-scrollbar-corner": {
+      backgroundColor: theme.palette.background.default,
+    },
   }),
   logo: "/src/assets/expanse/ComfyUI_temp_rpdvh_00062_.png",
   trackColors: { low: "#388e3c", mid: "#f57c00", high: "#d32f2f" },
+  // The hero banner's right side is a bright orange planet curve — the
+  // default h2 (flat black drop-shadow only, no outline) loses the
+  // holographic glow these functions are built for and risks washing out
+  // against that brightness. Ceres-station violet-white with a deep
+  // ion-purple outline keeps it legible across the whole image.
+  titleOverlayStyle: {
+    color: "#ede7f6",
+    textShadow: titleOutlineTextShadow("#1a0f4a"),
+  },
 });

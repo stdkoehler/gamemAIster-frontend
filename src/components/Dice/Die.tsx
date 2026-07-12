@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { keyframes } from "@emotion/react";
 import { Theme, useTheme } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { DiceSymbol, DiceSymbolId } from "../../dice/diceSymbols";
+import { DiceSymbol, DiceSymbolId } from "./diceSymbols";
 
 export type DieFace =
   | { kind: "number"; text?: string }

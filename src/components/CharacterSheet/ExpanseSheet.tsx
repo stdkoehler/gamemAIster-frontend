@@ -3,8 +3,14 @@ import { Box, Typography, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { ExpanseCharacter, AgeWeapon } from "../../models/CharacterProps";
 import {
-  SheetSection, FieldRow, NumInput, TextInput,
-  ListEditor, RecordNumEditor, TwoCol, ChipListEditor,
+  SheetSection,
+  FieldRow,
+  NumInput,
+  TextInput,
+  ListEditor,
+  RecordNumEditor,
+  TwoCol,
+  ChipListEditor,
 } from "./shared";
 
 interface Props {
@@ -12,16 +18,27 @@ interface Props {
   onUpdate: (c: ExpanseCharacter) => void;
 }
 
+const labelMinWidth = 130;
+
 const ABILITIES = [
-  "Accuracy", "Communication", "Constitution",
-  "Dexterity", "Fighting", "Intelligence",
-  "Perception", "Strength", "Willpower",
+  "Accuracy",
+  "Communication",
+  "Constitution",
+  "Dexterity",
+  "Fighting",
+  "Intelligence",
+  "Perception",
+  "Strength",
+  "Willpower",
 ] as const;
 
 const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
   const [c, setC] = useState(character);
 
-  const up = <K extends keyof ExpanseCharacter>(k: K, v: ExpanseCharacter[K]) => {
+  const up = <K extends keyof ExpanseCharacter>(
+    k: K,
+    v: ExpanseCharacter[K],
+  ) => {
     const next = { ...c, [k]: v };
     setC(next);
     onUpdate(next);
@@ -53,20 +70,29 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
           leftFlex={2}
           left={
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-              <FieldRow label="Name">
+              <FieldRow label="Name" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.name} onChange={(v) => up("name", v)} />
               </FieldRow>
-              <FieldRow label="Origin">
+              <FieldRow label="Origin" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.origin} onChange={(v) => up("origin", v)} />
               </FieldRow>
-              <FieldRow label="Background">
-                <TextInput value={c.background} onChange={(v) => up("background", v)} />
+              <FieldRow label="Background" labelMinWidth={labelMinWidth}>
+                <TextInput
+                  value={c.background}
+                  onChange={(v) => up("background", v)}
+                />
               </FieldRow>
-              <FieldRow label="Faction">
-                <TextInput value={c.faction} onChange={(v) => up("faction", v)} />
+              <FieldRow label="Faction" labelMinWidth={labelMinWidth}>
+                <TextInput
+                  value={c.faction}
+                  onChange={(v) => up("faction", v)}
+                />
               </FieldRow>
-              <FieldRow label="Drive">
-                <TextInput value={c.drive ?? ""} onChange={(v) => up("drive", v)} />
+              <FieldRow label="Drive" labelMinWidth={labelMinWidth}>
+                <TextInput
+                  value={c.drive ?? ""}
+                  onChange={(v) => up("drive", v)}
+                />
               </FieldRow>
             </Box>
           }
@@ -74,7 +100,8 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
             <TextInput
               value={c.description}
               onChange={(v) => up("description", v)}
-              multiline rows={6}
+              multiline
+              rows={6}
               label="Description / Background"
             />
           }
@@ -87,7 +114,7 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
             {/* ── Abilities ── */}
             <SheetSection title="Abilities">
               {ABILITIES.map((a) => (
-                <FieldRow key={a} label={a}>
+                <FieldRow key={a} label={a} labelMinWidth={labelMinWidth}>
                   <NumInput
                     value={c.abilities[a]}
                     onChange={(v) => upAbility(a, v)}
@@ -101,30 +128,56 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Derived ── */}
             <SheetSection title="Derived Stats">
-              <FieldRow label="Speed">
-                <NumInput value={c.speed} onChange={(v) => up("speed", v)} max={30} />
+              <FieldRow label="Speed" labelMinWidth={labelMinWidth}>
+                <NumInput
+                  value={c.speed}
+                  onChange={(v) => up("speed", v)}
+                  max={30}
+                />
               </FieldRow>
-              <FieldRow label="Defense">
-                <NumInput value={c.defense} onChange={(v) => up("defense", v)} max={30} />
+              <FieldRow label="Defense" labelMinWidth={labelMinWidth}>
+                <NumInput
+                  value={c.defense}
+                  onChange={(v) => up("defense", v)}
+                  max={30}
+                />
               </FieldRow>
-              <FieldRow label="Toughness">
-                <NumInput value={c.toughness ?? 0} onChange={(v) => up("toughness", v)} max={10} />
+              <FieldRow label="Toughness" labelMinWidth={labelMinWidth}>
+                <NumInput
+                  value={c.toughness ?? 0}
+                  onChange={(v) => up("toughness", v)}
+                  max={10}
+                />
               </FieldRow>
             </SheetSection>
 
             {/* ── Health & Fortune ── */}
             <SheetSection title="Health & Fortune">
-              <Typography variant="caption" sx={{ color: "text.secondary" }}>Health</Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                Health
+              </Typography>
               <Box sx={{ display: "flex", gap: 1, mb: 0.75 }}>
-                <FieldRow label="Cur">
-                  <NumInput value={c.health.current} onChange={(v) => upHealth("current", v)} max={200} />
+                <FieldRow label="Cur" labelMinWidth={labelMinWidth}>
+                  <NumInput
+                    value={c.health.current}
+                    onChange={(v) => upHealth("current", v)}
+                    max={200}
+                  />
                 </FieldRow>
-                <FieldRow label="Max">
-                  <NumInput value={c.health.max} onChange={(v) => upHealth("max", v)} max={200} />
+                <FieldRow label="Max" labelMinWidth={labelMinWidth}>
+                  <NumInput
+                    value={c.health.max}
+                    onChange={(v) => upHealth("max", v)}
+                    max={200}
+                  />
                 </FieldRow>
               </Box>
-              <FieldRow label="Fortune">
-                <NumInput value={c.fortune} onChange={(v) => up("fortune", v)} max={20} />
+              <FieldRow label="Fortune" labelMinWidth={labelMinWidth}>
+                <NumInput
+                  value={c.fortune}
+                  onChange={(v) => up("fortune", v)}
+                  max={20}
+                />
               </FieldRow>
             </SheetSection>
 
@@ -160,28 +213,64 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
               {(c.weapons ?? []).map((w, i) => (
-                <Box key={i} sx={{ mb: 1, p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
+                <Box
+                  key={i}
+                  sx={{
+                    mb: 1,
+                    p: 1,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                  }}
+                >
                   <Box sx={{ display: "flex", gap: 0.5, mb: 0.5 }}>
-                    <TextInput value={w.name} onChange={(v) => upWeapon(i, { name: v })} label="Name" />
-                    <IconButton size="small" onClick={() => {
-                      const ws = [...(c.weapons ?? [])];
-                      ws.splice(i, 1);
-                      up("weapons", ws);
-                    }} sx={{ p: 0.25 }}>×</IconButton>
+                    <TextInput
+                      value={w.name}
+                      onChange={(v) => upWeapon(i, { name: v })}
+                      label="Name"
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        const ws = [...(c.weapons ?? [])];
+                        ws.splice(i, 1);
+                        up("weapons", ws);
+                      }}
+                      sx={{ p: 0.25 }}
+                    >
+                      ×
+                    </IconButton>
                   </Box>
                   <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
                     <FieldRow label="Damage">
-                      <TextInput value={w.damage} onChange={(v) => upWeapon(i, { damage: v })} fullWidth={false} />
+                      <TextInput
+                        value={w.damage}
+                        onChange={(v) => upWeapon(i, { damage: v })}
+                        fullWidth={false}
+                      />
                     </FieldRow>
                     <FieldRow label="Min Str">
-                      <NumInput value={w.minStr ?? 0} onChange={(v) => upWeapon(i, { minStr: v })} max={6} />
+                      <NumInput
+                        value={w.minStr ?? 0}
+                        onChange={(v) => upWeapon(i, { minStr: v })}
+                        max={6}
+                      />
                     </FieldRow>
                     <FieldRow label="Range">
-                      <TextInput value={w.range ?? ""} onChange={(v) => upWeapon(i, { range: v })} fullWidth={false} />
+                      <TextInput
+                        value={w.range ?? ""}
+                        onChange={(v) => upWeapon(i, { range: v })}
+                        fullWidth={false}
+                      />
                     </FieldRow>
                   </Box>
                   <Box sx={{ mt: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: "text.secondary" }}>Qualities</Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "text.secondary" }}
+                    >
+                      Qualities
+                    </Typography>
                     <ChipListEditor
                       value={w.qualities ?? []}
                       onChange={(v) => upWeapon(i, { qualities: v })}
@@ -204,18 +293,42 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Armor & Gear ── */}
             <SheetSection title="Armor & Gear">
-              <FieldRow label="Armor">
-                <TextInput value={c.armor ?? ""} onChange={(v) => up("armor", v)} />
+              <FieldRow label="Armor Name">
+                <TextInput
+                  value={c.armor?.name ?? ""}
+                  onChange={(v) =>
+                    up("armor", { ...(c.armor ?? { name: "", rating: 0 }), name: v })
+                  }
+                />
+              </FieldRow>
+              <FieldRow label="Armor Rating">
+                <NumInput
+                  value={c.armor?.rating ?? 0}
+                  onChange={(v) =>
+                    up("armor", { ...(c.armor ?? { name: "", rating: 0 }), rating: v })
+                  }
+                  max={10}
+                />
               </FieldRow>
               <Box sx={{ mt: 0.75 }}>
-                <Typography variant="caption" sx={{ color: "text.secondary" }}>Gear</Typography>
-                <ListEditor value={c.gear ?? []} onChange={(v) => up("gear", v)} rows={3} />
+                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                  Gear
+                </Typography>
+                <ListEditor
+                  value={c.gear ?? []}
+                  onChange={(v) => up("gear", v)}
+                  rows={3}
+                />
               </Box>
             </SheetSection>
 
             {/* ── Relationships ── */}
             <SheetSection title="Relationships">
-              <ListEditor value={c.relationships ?? []} onChange={(v) => up("relationships", v)} rows={3} />
+              <ListEditor
+                value={c.relationships ?? []}
+                onChange={(v) => up("relationships", v)}
+                rows={3}
+              />
             </SheetSection>
           </>
         }
@@ -223,7 +336,12 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
       {/* ── Notes ── */}
       <SheetSection title="Notes">
-        <TextInput value={c.notes ?? ""} onChange={(v) => up("notes", v)} multiline rows={4} />
+        <TextInput
+          value={c.notes ?? ""}
+          onChange={(v) => up("notes", v)}
+          multiline
+          rows={4}
+        />
       </SheetSection>
     </Box>
   );

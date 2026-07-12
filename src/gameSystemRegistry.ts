@@ -7,6 +7,12 @@ interface GameSystemConfig {
    *  character sheet popup's title when opened for a PC (e.g. "Runners"). */
   partyLabel: string;
   sheetWidth?: number;
+  /** Max height (px) of the dice roller popup — falls back to the
+   *  roller's own default if unset. Systems whose sections need more
+   *  vertical room (e.g. Dragonlance's d20 + damage sections both with
+   *  their own Roll button and preview) can raise it so the roll log
+   *  underneath isn't pushed out of frame. */
+  diceMaxHeight?: number;
 }
 
 export const GAME_SYSTEMS: Record<GameType, GameSystemConfig> = {
@@ -46,6 +52,7 @@ export const GAME_SYSTEMS: Record<GameType, GameSystemConfig> = {
     sheetTitle: "Dragonlance: Shadow of the Dragon Queen (D&D 5E)",
     partyLabel: "Heroes",
     sheetWidth: 1100,
+    diceMaxHeight: 760,
   },
   [GameType.CUSTOM]: {
     title: "Custom",

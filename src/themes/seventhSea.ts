@@ -1,5 +1,27 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import { keyframes } from "@emotion/react";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+  titleOutlineTextShadow,
+} from "./helper";
+
+// A ship's lantern swaying — brightness drifting up and down slowly and
+// unevenly, not a steady metronome fade.
+const lanternSway = keyframes`
+  0%, 100% { text-shadow: 0px 0px 1px rgba(0,0,0,0.6), 0 0 4px rgba(216,184,104,0.67), 0 0 8px rgba(216,184,104,0.33); }
+  40% { text-shadow: 0px 0px 1px rgba(0,0,0,0.6), 0 0 6px rgba(216,184,104,0.9), 0 0 13px rgba(216,184,104,0.5); }
+  70% { text-shadow: 0px 0px 1px rgba(0,0,0,0.6), 0 0 3px rgba(216,184,104,0.55), 0 0 7px rgba(216,184,104,0.27); }
+`;
+
+// A faint repeating wave-crest line — nautical without drawing attention,
+// the same scale as the grid/dot/checker textures the other themes use.
+const seventhSeaWaveTexture =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Cpath d='M0 4c2-3 4-3 6 0s4 3 6 0 4-3 6 0' stroke='%23D8B868' stroke-opacity='0.06' stroke-width='1' fill='none'/%3E%3C/svg%3E\")";
 
 // Specific text shadow style for a "nautical glow" effect (good for 7th Sea)
 function nauticalTextShadow(theme: Theme, ownerStateColor?: string): string {
@@ -32,12 +54,13 @@ function subtleMaritimeShadow(theme: Theme): string {
 const seventhSeaFontFamily =
   '"Libre Baskerville", "Baskerville", "Times New Roman", serif'; // Base serif for readability
 const seventhSeaModernFontFamily = '"Crimson Text", "Georgia", serif'; // More modern elegant serif
-const seventhSeaDisplayFontFamily = '"Pirata One", "Blackadder ITC", cursive'; // Pirate-style display font
-const seventhSeaSansFontFamily = '"Cinzel", "Optima", "Gill Sans", sans-serif'; // Elegant caps font for headers
+const seventhSeaSansFontFamily =
+  '"Grenze", "Cinzel", "Optima", "Gill Sans", sans-serif'; // Elegant caps font for headers
 const seventhSeaScriptFontFamily =
   '"Kaushan Script", "Brush Script MT", cursive'; // Handwritten script for flavor
 const seventhSeaHeadingFontFamily =
   '"Pirata One", "Cinzel", "Libre Baskerville", serif'; // Primary heading font
+const seventhSeaButtonFontFamily = '"Pirata One", "Grenze", "Cinzel", serif';
 
 export const seventhSeaTheme = createTheme({
   palette: {
@@ -85,14 +108,14 @@ export const seventhSeaTheme = createTheme({
     text: {
       primary: "#A39880", // deep ink
       secondary: "#aa8c5e", // faded brown ink
-      disabled: "#2D1C0C", // dusted ink
+      disabled: "#5C5346", // dusted ink
     },
   },
   typography: {
     fontFamily: seventhSeaFontFamily,
     allVariants: {
       fontFamily: seventhSeaFontFamily,
-      color: "#2D1C0C", // inked text
+      color: "#C9B896", // lantern-lit parchment
     },
     h1: {
       fontFamily: seventhSeaHeadingFontFamily,
@@ -100,14 +123,14 @@ export const seventhSeaTheme = createTheme({
       fontSize: "2.5rem",
       letterSpacing: "0.02em",
       margin: "0.5em 0 0.7em",
-      color: "#4A3010", // deep sepia
+      color: "#E8C97A", // golden parchment glow
     },
     h2: {
-      fontFamily: seventhSeaDisplayFontFamily,
+      fontFamily: seventhSeaHeadingFontFamily,
       fontWeight: 600,
       letterSpacing: "0.01em",
       fontSize: "2rem",
-      color: "#5A3E21",
+      color: "#DCC08A",
     },
     h3: {
       fontFamily: seventhSeaSansFontFamily,
@@ -115,7 +138,7 @@ export const seventhSeaTheme = createTheme({
       fontSize: "1.7rem",
       letterSpacing: "0.03em",
       textTransform: "uppercase",
-      color: "#5A4A32",
+      color: "#CBAE7E",
     },
     h4: {
       fontFamily: seventhSeaSansFontFamily,
@@ -123,25 +146,25 @@ export const seventhSeaTheme = createTheme({
       fontSize: "1.4rem",
       letterSpacing: "0.05em",
       textTransform: "uppercase",
-      color: "#6D5A3F",
+      color: "#BFA378",
     },
     h5: {
       fontFamily: seventhSeaFontFamily,
       fontSize: "1.2rem",
       letterSpacing: "0.02em",
-      color: "#7A664C",
+      color: "#AE9972",
     },
     h6: {
       fontFamily: seventhSeaFontFamily,
       fontSize: "1.1rem",
       letterSpacing: "0.01em",
-      color: "#7A664C",
+      color: "#AE9972",
     },
     subtitle1: {
       fontFamily: seventhSeaScriptFontFamily,
       fontStyle: "normal",
       fontSize: "1.1rem",
-      color: "#6C5438",
+      color: "#B89F76",
     },
     subtitle2: {
       fontFamily: seventhSeaModernFontFamily,
@@ -150,28 +173,39 @@ export const seventhSeaTheme = createTheme({
       color: "#9A8666",
     },
     button: {
-      fontFamily: seventhSeaSansFontFamily,
+      fontFamily: seventhSeaButtonFontFamily,
       textTransform: "uppercase",
       fontWeight: 500,
       letterSpacing: "0.06em",
-      color: "#2D1C0C",
+      color: "#C9B896",
     },
     body1: {
       lineHeight: 1.7,
       letterSpacing: "0.01em",
       fontSize: "1rem",
-      color: "#2D1C0C",
+      color: "#C9B896",
     },
     body2: {
       lineHeight: 1.6,
       fontSize: "0.95rem",
-      color: "#5A4A32",
+      color: "#B6A37C",
     },
     caption: {
       fontFamily: seventhSeaModernFontFamily,
       fontStyle: "italic",
-      fontSize: "0.85rem",
+      fontSize: "1.1rem",
       color: "#A08868",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: seventhSeaFontFamily,
+      fontSize: "1.05rem",
+      lineHeight: 1.7,
+      letterSpacing: "0.02em",
     },
   },
 
@@ -189,35 +223,26 @@ export const seventhSeaTheme = createTheme({
             fontStyle: "normal",
           },
         ],
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules(),
         body: ({ theme }: { theme: Theme }) => ({
           background: `radial-gradient(ellipse at top, ${theme.palette.primary.dark}22 0%, transparent 50%),
             radial-gradient(ellipse at bottom, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
           backgroundAttachment: "fixed",
           backgroundSize: "cover",
         }),
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.secondary.main,
-          textDecoration: "none",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            color: theme.palette.secondary.light,
-            textShadow: `0 0 8px ${theme.palette.secondary.light}80`,
-          },
-        }),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(
+            theme.palette.secondary.main,
+            theme.palette.secondary.light,
+          ),
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundImage: `linear-gradient(135deg, ${theme.palette.background.paper}CC, ${theme.palette.background.default}E6)`,
+          backgroundImage: `
+            ${seventhSeaWaveTexture},
+            linear-gradient(135deg, ${theme.palette.background.paper}CC, ${theme.palette.background.default}E6)`,
           boxShadow:
             "0 4px 20px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
           borderRadius: theme.shape.borderRadius,
@@ -246,7 +271,7 @@ export const seventhSeaTheme = createTheme({
           textShadow: subtleMaritimeShadow(theme),
           color: theme.palette.text.secondary,
           letterSpacing: "0.04em",
-          fontSize: "0.9rem",
+          fontSize: "1.15rem",
           textTransform: "uppercase",
           transition: "all 0.3s ease",
           position: "relative",
@@ -285,32 +310,18 @@ export const seventhSeaTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
 
           return {
-            // Pirata One gives that unmistakable pirate scroll/broadside feel
-            fontFamily: seventhSeaDisplayFontFamily,
+            // Grenze keeps the blackletter pirate-scroll feel without
+            // Pirata One's illegibility at button size/weight.
+            fontFamily: seventhSeaButtonFontFamily,
             textShadow: subtleMaritimeShadow(theme),
             letterSpacing: "0.04em",
-            fontSize: "0.9rem",
+            fontSize: "1.2rem",
             borderRadius: "2px",
             // Main border + heavier bottom like a carved-wood plank edge
             border: `1px solid ${mainColor}99`,
@@ -358,26 +369,12 @@ export const seventhSeaTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary",
+        color: "primary", // this MUST stay primary, not textPrimary. We base our theme on primary.
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
 
           return {
@@ -389,6 +386,7 @@ export const seventhSeaTheme = createTheme({
         },
         h1: ({ theme }) => ({
           textShadow: oceanTextShadow(theme, "primary"),
+          animation: `${lanternSway} 5s ease-in-out infinite`,
           position: "relative",
           "&::after": {
             content: '""',
@@ -444,6 +442,7 @@ export const seventhSeaTheme = createTheme({
         root: ({ theme }) => ({
           backgroundColor: `${theme.palette.background.default}CC`,
           backgroundImage: `
+            ${seventhSeaWaveTexture},
             linear-gradient(135deg, ${theme.palette.background.paper}CC, ${theme.palette.background.default}E6),
             linear-gradient(45deg, transparent 40%, ${theme.palette.secondary.main}08 50%, transparent 60%)
           `,
@@ -538,6 +537,13 @@ export const seventhSeaTheme = createTheme({
         }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({
@@ -594,8 +600,13 @@ export const seventhSeaTheme = createTheme({
             borderColor: `${theme.palette.secondary.main}55`,
           },
         }),
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.05rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontStyle: "italic",
@@ -616,6 +627,13 @@ export const seventhSeaTheme = createTheme({
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: `${theme.palette.secondary.main}88`,
           },
+        }),
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -679,9 +697,7 @@ export const seventhSeaTheme = createTheme({
     },
   },
   spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`
-    )}")`,
+    spinButtonArrowSvg(color, { strokeWidth: 1.5 }),
   scrollbarStyles: (theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.5em",
@@ -725,4 +741,13 @@ export const seventhSeaTheme = createTheme({
   }),
   logo: "/src/assets/seventh_sea/ComfyUI_temp_kokjp_00005_.png",
   trackColors: { low: "#4a8a6a", mid: "#d68730", high: "#7a3020" },
+  // The hero banner is a fiery orange sunset/smoke skyline behind black
+  // ship silhouettes — the default h2 (golden parchment, flat black
+  // drop-shadow only) can wash out against the brighter smoke clouds.
+  // A pale parchment fill with a dark scorched-wood outline keeps it
+  // legible across both the dark silhouettes and the bright haze.
+  titleOverlayStyle: {
+    color: "#FAE4A0",
+    textShadow: titleOutlineTextShadow("#3a1a0c"),
+  },
 });

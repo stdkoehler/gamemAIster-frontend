@@ -1,5 +1,12 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+} from "./helper";
 
 function firelightTextShadow(theme: Theme, ownerStateColor?: string): string {
   const color = getSafePaletteColor(theme, ownerStateColor);
@@ -140,18 +147,29 @@ export const slavicTheme = createTheme({
     body1: {
       lineHeight: 1.8,
       letterSpacing: "0.01em",
-      fontSize: "1rem",
+      fontSize: "1.2rem",
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "0.95rem",
+      fontSize: "1.1rem",
       color: "#a89870",
     },
     caption: {
       fontFamily: slavicMonoFontFamily,
       fontStyle: "italic",
-      fontSize: "0.85rem",
+      fontSize: "1.05rem",
       color: "#806848",
+    },
+    tagLabel: {
+      fontSize: "1rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: slavicBodyFontFamily,
+      fontSize: "1.25rem",
+      lineHeight: 1.3,
+      letterSpacing: "0.02em",
     },
   },
   shape: {
@@ -160,14 +178,7 @@ export const slavicTheme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules(),
         body: ({ theme }: { theme: Theme }) => ({
           background: `
             radial-gradient(ellipse at 50% 0%, ${theme.palette.secondary.dark}22 0%, transparent 55%),
@@ -175,15 +186,11 @@ export const slavicTheme = createTheme({
           backgroundAttachment: "fixed",
           backgroundSize: "cover",
         }),
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.secondary.light,
-          textDecoration: "none",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            color: theme.palette.secondary.main,
-            textShadow: `0 0 8px ${theme.palette.secondary.main}80`,
-          },
-        }),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(
+            theme.palette.secondary.light,
+            theme.palette.secondary.main,
+          ),
       },
     },
     MuiPaper: {
@@ -219,7 +226,7 @@ export const slavicTheme = createTheme({
           fontFamily: slavicBodyFontFamily,
           textShadow: subtleSlavicShadow(),
           color: theme.palette.text.secondary,
-          fontSize: "0.95rem",
+          fontSize: "1.25rem",
           transition: "all 0.3s ease",
           position: "relative",
           paddingTop: "0.65rem",
@@ -256,22 +263,7 @@ export const slavicTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -328,25 +320,12 @@ export const slavicTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary",
+        color: "primary", // this MUST stay primary, not textPrimary. We base our theme on primary.
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const palette = theme.palette[colorKey] || theme.palette.primary;
+          const palette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = palette.main;
 
           return {
@@ -499,6 +478,13 @@ export const slavicTheme = createTheme({
         }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({
@@ -554,8 +540,13 @@ export const slavicTheme = createTheme({
             borderColor: `${theme.palette.secondary.dark}66`,
           },
         }),
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "1.05rem" : "1.25rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontStyle: "italic",
@@ -576,6 +567,13 @@ export const slavicTheme = createTheme({
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: `${theme.palette.secondary.main}88`,
           },
+        }),
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
         }),
       },
     },
@@ -636,9 +634,7 @@ export const slavicTheme = createTheme({
     },
   },
   spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+    spinButtonArrowSvg(color, { strokeWidth: 1.5 }),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.5em",

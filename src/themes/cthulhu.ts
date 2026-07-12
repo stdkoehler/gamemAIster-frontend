@@ -1,5 +1,11 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+} from "./helper";
 
 function antiquarianTextShadow(theme: Theme, ownerStateColor?: string): string {
   const baseColor = getSafePaletteColor(theme, ownerStateColor);
@@ -96,6 +102,18 @@ export const cthulhuTheme = createTheme({
       fontSize: "1.3rem",
       color: "#1f1f1f",
     },
+    h5: {
+      fontFamily: cthulhuFontFamily,
+      fontStyle: "italic",
+      fontSize: "1.15rem",
+      color: "#3a3a3a",
+    },
+    h6: {
+      fontFamily: cthulhuFontFamily,
+      fontStyle: "italic",
+      fontSize: "1.05rem",
+      color: "#3a3a3a",
+    },
     button: {
       fontFamily: cthulhuFontFamily,
       textTransform: "capitalize",
@@ -115,6 +133,17 @@ export const cthulhuTheme = createTheme({
       fontFamily: cthulhuMonoFontFamily,
       fontSize: "0.85rem",
       color: "#5f5f5f",
+    },
+    tagLabel: {
+      fontSize: "0.65rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: cthulhuFontFamily,
+      fontSize: "1.05rem",
+      lineHeight: 1.7,
+      letterSpacing: "0.02em",
     },
     subtitle1: {
       fontFamily: cthulhuHeadingFontFamily,
@@ -176,27 +205,10 @@ export const cthulhuTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = (buttonPalette as any).main || theme.palette.primary.main;
-          const darkColor = (buttonPalette as any).dark || theme.palette.primary.dark;
-          const contrastTextColor =
-            (buttonPalette as any).contrastText ||
-            theme.palette.primary.contrastText;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
+          const mainColor = buttonPalette.main;
+          const darkColor = buttonPalette.dark;
+          const contrastTextColor = buttonPalette.contrastText;
 
           return {
             // Playfair Display gives the formal, antiquarian 1920s academic look
@@ -267,7 +279,8 @@ export const cthulhuTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary", // Using text.primary instead of primary.main
+        color: "primary", // this MUST stay primary, not textPrimary. We base our theme on primary.
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => ({
@@ -340,6 +353,13 @@ export const cthulhuTheme = createTheme({
         }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({
@@ -377,6 +397,118 @@ export const cthulhuTheme = createTheme({
         }),
       },
     },
+    MuiInputBase: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontFamily: cthulhuFontFamily,
+          background:
+            theme.palette.mode === "light"
+              ? "rgba(255,255,255,0.55)"
+              : "rgba(0,0,0,0.3)",
+          borderRadius: theme.shape.borderRadius,
+          border: `1px solid ${theme.palette.text.secondary}33`,
+          transition: "all 0.2s ease",
+          "&.Mui-focused": {
+            boxShadow: `0 0 0 1px ${theme.palette.secondary.main}77, 0 0 8px ${theme.palette.secondary.main}33`,
+            borderColor: `${theme.palette.secondary.main}77`,
+          },
+          "&:hover": {
+            borderColor: `${theme.palette.secondary.main}55`,
+          },
+        }),
+        input: ({ ownerState, theme }) => ({
+          padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.05rem",
+          "&::placeholder": {
+            color: theme.palette.text.disabled,
+            fontStyle: "italic",
+          },
+        }),
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        notchedOutline: ({ theme }) => ({
+          borderColor: `${theme.palette.text.secondary}33`,
+          transition: "all 0.2s ease",
+        }),
+        root: ({ theme }) => ({
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: `${theme.palette.secondary.main}55`,
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: `${theme.palette.secondary.main}77`,
+          },
+        }),
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
+        }),
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderBottom: `1px solid ${theme.palette.text.secondary}33`,
+        }),
+        indicator: ({ theme }) => ({
+          backgroundColor: theme.palette.secondary.main,
+          height: 2,
+        }),
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontFamily: cthulhuFontFamily,
+          letterSpacing: "0.02em",
+          fontSize: "0.9rem",
+          textTransform: "none",
+          minHeight: 48,
+          transition: "all 0.2s ease",
+          "&:hover": {
+            color: theme.palette.primary.dark,
+            textShadow: antiquarianTextShadow(theme, "primary"),
+          },
+          "&.Mui-selected": {
+            color: theme.palette.secondary.dark,
+            textShadow: antiquarianTextShadow(theme, "secondary"),
+          },
+        }),
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          fontFamily: cthulhuFontFamily,
+          fontSize: "0.78rem",
+          background:
+            theme.palette.mode === "light"
+              ? "rgba(255,255,255,0.5)"
+              : "rgba(0,0,0,0.3)",
+          borderRadius: theme.shape.borderRadius,
+          border: `1px solid ${theme.palette.text.secondary}33`,
+          "&.MuiChip-colorPrimary": {
+            backgroundColor: `${theme.palette.primary.main}1f`,
+            borderColor: `${theme.palette.primary.main}55`,
+            color: theme.palette.primary.dark,
+          },
+          "&.MuiChip-colorSecondary": {
+            backgroundColor: `${theme.palette.secondary.main}1f`,
+            borderColor: `${theme.palette.secondary.main}55`,
+            color: theme.palette.secondary.dark,
+          },
+        }),
+        label: () => ({ paddingLeft: 12, paddingRight: 12 }),
+      },
+    },
     MuiCssBaseline: {
       styleOverrides: {
         "@font-face": [
@@ -387,21 +519,11 @@ export const cthulhuTheme = createTheme({
             fontStyle: "normal",
           },
         ],
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules(),
       },
     },
   },
-  spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+  spinButtonBackgroundImage: (color) => spinButtonArrowSvg(color),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.5em",

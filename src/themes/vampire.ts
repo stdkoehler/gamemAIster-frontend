@@ -1,5 +1,29 @@
 import { createTheme, Theme } from "@mui/material/styles";
-import { getSafePaletteColor, ThemeColorWithMain } from "./helper";
+import { keyframes } from "@emotion/react";
+import {
+  baseCssBaselineRules,
+  getSafePaletteColor,
+  inputLabelFocusMaskStyle,
+  linkHoverStyle,
+  resolveButtonPalette,
+  spinButtonArrowSvg,
+  titleOutlineTextShadow,
+} from "./helper";
+
+// A slow heartbeat — two quick pulses then a long rest, not a steady
+// breathing fade, so it reads as a pulse rather than a glow cycling.
+const bloodPulse = keyframes`
+  0%, 60% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 3px rgba(192,0,0,0.6), 0 0 7px rgba(192,0,0,0.38); }
+  68% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 5px rgba(192,0,0,0.85), 0 0 14px rgba(192,0,0,0.55); }
+  76% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 3px rgba(192,0,0,0.6), 0 0 7px rgba(192,0,0,0.38); }
+  84% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 5px rgba(192,0,0,0.85), 0 0 14px rgba(192,0,0,0.55); }
+  100% { text-shadow: 0px 0px 1px rgba(0,0,0,0.7), 0 0 3px rgba(192,0,0,0.6), 0 0 7px rgba(192,0,0,0.38); }
+`;
+
+// Sparse diagonal cross-hatch — a gothic ironwork lattice rather than a
+// dense weave, so it stays a texture and never competes with content.
+const vampireLatticeTexture =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M0 0L14 14ZM14 0L0 14Z' stroke='%23c00000' stroke-opacity='0.05' stroke-width='1'/%3E%3C/svg%3E\")";
 
 function gothicTextShadow(theme: Theme, ownerStateColor?: string): string {
   const baseColor = getSafePaletteColor(theme, ownerStateColor);
@@ -21,10 +45,19 @@ function subtleGothicShadow(_: Theme): string {
 
 const vampireFontFamily = '"IM Fell English SC", "Georgia", serif'; // Base font for that classic vampire feel
 const vampireModernFontFamily = '"Cormorant Garamond", "Georgia", serif'; // More modern elegant serif
-const vampireDisplayFontFamily = '"Cinzel Decorative", serif'; // Ornate display font for headings
-const vampireSansFontFamily = '"Trajan Pro", "Trajan", "Optima", sans-serif'; // Clan-like sans font
+// "Trajan Pro"/"Optima" are commercial fonts this app never loads (no
+// Google Fonts entry for either), so without a real loaded fallback this
+// silently degraded to a bland generic sans — the opposite of the gothic
+// look every other variant has. Cinzel (loaded in index.html) is an
+// engraved-capitals serif that reads as a clan emblem instead.
+const vampireSansFontFamily = '"Cinzel", "Trajan Pro", Georgia, serif';
+// Cinzel Decorative leads (same family as the buttons' Cinzel, just the
+// ornate cut) so headings and chrome read as one consistent typeface
+// rather than introducing Merlinn — an unrelated custom face — as the
+// primary look. Merlinn stays as a fallback since it's self-hosted and
+// survives a Google Fonts outage that Cinzel Decorative wouldn't.
 const vampireHeadingFontFamily =
-  '"Merlinn", Cinzel Decorative, "IM Fell English SC", "Georgia", serif'; // Use Merlinn as primary heading font
+  '"Cinzel Decorative", "Merlinn", "IM Fell English SC", "Georgia", serif';
 
 export const vampireTheme = createTheme({
   palette: {
@@ -94,7 +127,12 @@ export const vampireTheme = createTheme({
       margin: "0.5em 0 0.7em",
     },
     h2: {
-      fontFamily: vampireDisplayFontFamily,
+      // Shares h1's heading font (Merlinn / Cinzel Decorative fallback)
+      // rather than its own separate display face — h1 (the adventure
+      // title) and h2 (the persistent game-system title overlay) are both
+      // on screen at once, and having two different ornate display fonts
+      // side by side read as inconsistent rather than atmospheric.
+      fontFamily: vampireHeadingFontFamily,
       fontWeight: 600,
       letterSpacing: "0.01em",
       fontSize: "2rem",
@@ -143,17 +181,29 @@ export const vampireTheme = createTheme({
     body1: {
       lineHeight: 1.7,
       letterSpacing: "0.01em",
-      fontSize: "1rem",
+      fontSize: "1.3rem",
     },
     body2: {
       lineHeight: 1.6,
-      fontSize: "0.95rem",
+      fontSize: "1.25rem",
     },
     caption: {
       fontFamily: vampireModernFontFamily,
       fontStyle: "italic",
-      fontSize: "0.85rem",
+      fontSize: "1.2rem",
+      fontWeight: "800",
       color: "#9c8e87",
+    },
+    tagLabel: {
+      fontSize: "1.2rem",
+      letterSpacing: "0.15em",
+      textTransform: "uppercase",
+    },
+    chatText: {
+      fontFamily: vampireModernFontFamily,
+      fontSize: "1.4rem",
+      lineHeight: 1.2,
+      letterSpacing: "0.01em",
     },
   },
   shape: {
@@ -170,34 +220,25 @@ export const vampireTheme = createTheme({
             fontStyle: "normal",
           },
         ],
-        "*, *::before, *::after": {
-          transition:
-            "background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s",
-        },
-        "html, body": {
-          height: "100%",
-          scrollBehavior: "smooth",
-        },
+        ...baseCssBaselineRules(),
         body: ({ theme }: { theme: Theme }) => ({
           background: `radial-gradient(circle at 50% 50%, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
           backgroundAttachment: "fixed",
           backgroundSize: "cover",
         }),
-        a: ({ theme }: { theme: Theme }) => ({
-          color: theme.palette.primary.main,
-          textDecoration: "none",
-          transition: "all 0.3s ease",
-          "&:hover": {
-            color: theme.palette.primary.light,
-            textShadow: `0 0 8px ${theme.palette.primary.light}80`,
-          },
-        }),
+        a: ({ theme }: { theme: Theme }) =>
+          linkHoverStyle(
+            theme.palette.primary.main,
+            theme.palette.primary.light,
+          ),
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundImage: `linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
+          backgroundImage: `
+            ${vampireLatticeTexture},
+            linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
           boxShadow: "0 4px 15px rgba(0, 0, 0, 0.5)",
           borderRadius: theme.shape.borderRadius,
           borderTop: "1px solid rgba(255, 255, 255, 0.07)",
@@ -264,22 +305,7 @@ export const vampireTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
           const mainColor = buttonPalette.main;
           const lightColor = buttonPalette.light;
           const contrastTextColor = buttonPalette.contrastText;
@@ -288,6 +314,8 @@ export const vampireTheme = createTheme({
             fontFamily: vampireSansFontFamily,
             textShadow: subtleGothicShadow(theme),
             letterSpacing: "0.1em",
+            fontSize: "0.9rem",
+            fontWeight: "600",
             borderRadius: 0,
             // V5 WoD chamfered corners — angular, corporate-gothic
             clipPath:
@@ -322,38 +350,32 @@ export const vampireTheme = createTheme({
     },
     MuiTypography: {
       defaultProps: {
-        color: "textPrimary", // Using text.primary for better contrast
+        color: "primary", // this MUST stay primary, not textPrimary. We base our theme on primary.
+        variantMapping: { tagLabel: "span", chatText: "div" },
       },
       styleOverrides: {
         root: ({ theme, ownerState }) => {
           // if we don't overwrite color here, if color = "primary" is passed, primary.main will be used.
-          const colorKey =
-            ownerState.color &&
-            [
-              "primary",
-              "secondary",
-              "error",
-              "warning",
-              "info",
-              "success",
-            ].includes(ownerState.color) &&
-            ownerState.color !== "inherit"
-              ? (ownerState.color as ThemeColorWithMain)
-              : "primary";
-
-          const buttonPalette =
-            theme.palette[colorKey] || theme.palette.primary;
-          const mainColor = buttonPalette.main;
+          const buttonPalette = resolveButtonPalette(theme, ownerState.color);
+          const isHeading = ownerState.variant?.startsWith("h");
+          // Headings are large and already carry a glow (gothicTextShadow
+          // below), so the deep blood-red `main` reads fine there. Smaller
+          // body/caption text has neither the size nor the shadow strength
+          // to survive `main`'s ~2.8:1 contrast against the near-black
+          // paper background (e.g. roll log entries), so it uses the
+          // brighter `light` tone instead — still blood-red, just legible.
+          const color = isHeading ? buttonPalette.main : buttonPalette.light;
 
           return {
-            color: mainColor,
-            textShadow: ownerState.variant?.startsWith("h")
+            color,
+            textShadow: isHeading
               ? gothicTextShadow(theme, ownerState.color)
               : subtleGothicShadow(theme),
           };
         },
         h1: ({ theme }) => ({
           textShadow: bloodTextShadow(theme, "primary"),
+          animation: `${bloodPulse} 4.5s ease-in-out infinite`,
           marginBottom: "0em",
           "&::after": {
             content: '""',
@@ -405,7 +427,9 @@ export const vampireTheme = createTheme({
       styleOverrides: {
         root: ({ theme }) => ({
           backgroundColor: `${theme.palette.background.default}B3`,
-          backgroundImage: `linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
+          backgroundImage: `
+            ${vampireLatticeTexture},
+            linear-gradient(to bottom, ${theme.palette.background.paper}B3, ${theme.palette.background.default}E6)`,
           backdropFilter: "blur(10px)",
           boxShadow: "0 4px 15px rgba(0, 0, 0, 0.5)",
           borderRadius: theme.shape.borderRadius,
@@ -496,6 +520,13 @@ export const vampireTheme = createTheme({
         }),
       },
     },
+    MuiDialogContentText: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiListItem: {
       styleOverrides: {
         root: ({ theme }) => ({
@@ -538,7 +569,10 @@ export const vampireTheme = createTheme({
     MuiInputBase: {
       styleOverrides: {
         root: ({ theme, ownerState }) => {
-          const focusColor = getSafePaletteColor(theme, ownerState.color as string | undefined);
+          const focusColor = getSafePaletteColor(
+            theme,
+            ownerState.color as string | undefined,
+          );
           return {
             fontFamily: vampireModernFontFamily,
             background: "rgba(0, 0, 0, 0.2)",
@@ -554,8 +588,13 @@ export const vampireTheme = createTheme({
             },
           };
         },
-        input: ({ theme }) => ({
+        input: ({ ownerState, theme }) => ({
           padding: "10px 14px",
+          // Matches chatText (the narrative display variant) at default
+          // size so toggling a chat message between display/edit doesn't
+          // shift its apparent size; the compact MAIN_SEND send-bar uses
+          // MUI's "small" size to ask for the smaller variant instead.
+          fontSize: ownerState.size === "small" ? "0.95rem" : "1.4rem",
           "&::placeholder": {
             color: theme.palette.text.disabled,
             fontStyle: "italic",
@@ -570,7 +609,10 @@ export const vampireTheme = createTheme({
           transition: "all 0.3s ease",
         }),
         root: ({ theme, ownerState }) => {
-          const focusColor = getSafePaletteColor(theme, ownerState.color as string | undefined);
+          const focusColor = getSafePaletteColor(
+            theme,
+            ownerState.color as string | undefined,
+          );
           return {
             "&:hover .MuiOutlinedInput-notchedOutline": {
               borderColor: `${focusColor}66`,
@@ -580,6 +622,13 @@ export const vampireTheme = createTheme({
             },
           };
         },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          "&.Mui-focused": inputLabelFocusMaskStyle(theme),
+        }),
       },
     },
     MuiTabs: {
@@ -642,9 +691,7 @@ export const vampireTheme = createTheme({
     },
   },
   spinButtonBackgroundImage: (color) =>
-    `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/></svg>`,
-    )}")`,
+    spinButtonArrowSvg(color, { strokeWidth: 1.5 }),
   scrollbarStyles: (theme: Theme) => ({
     "&::-webkit-scrollbar": {
       width: "0.5em",
@@ -668,15 +715,28 @@ export const vampireTheme = createTheme({
           ? `1px solid ${theme.palette.primary.light + "30"}`
           : `1px solid ${theme.palette.primary.dark + "60"}`,
       borderRadius: "2px",
+      background: `linear-gradient(45deg, ${theme.palette.primary.dark}90, ${theme.palette.secondary.dark}60)`,
       "&:hover": {
         backgroundColor:
           theme.palette.mode === "light"
             ? theme.palette.primary.main + "60"
             : theme.palette.primary.dark + "AA",
+        boxShadow: `0 0 6px ${theme.palette.secondary.dark}66`,
       },
       cursor: "default !important",
+    },
+    "&::-webkit-scrollbar-corner": {
+      backgroundColor: theme.palette.background.default,
     },
   }),
   logo: "/src/assets/vampire/vtm_00004_.png",
   trackColors: { low: "#4a7a54", mid: "#a98f5b", high: "#c00000" },
+  // The hero banner (vtm_00004_.png) is a busy purple/red night skyline —
+  // the default h2 (blood red on whatever's behind it) can read close in
+  // value to the image's own red-toned regions. A pale rose-ivory fill with
+  // a dark dried-blood outline guarantees contrast against any of it.
+  titleOverlayStyle: {
+    color: "#f3dcd6",
+    textShadow: titleOutlineTextShadow("#5c0000"),
+  },
 });

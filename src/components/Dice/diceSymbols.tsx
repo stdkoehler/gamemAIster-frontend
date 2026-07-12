@@ -1,12 +1,12 @@
 import React from "react";
-import ankhSvg from "../assets/vampire/dice/ankh.svg?raw";
-import ankhCritSvg from "../assets/vampire/dice/ankh-crit.svg?raw";
-import ankhFangsSvg from "../assets/vampire/dice/ankh-fangs.svg?raw";
-import skullSvg from "../assets/vampire/dice/skull.svg?raw";
-import elderSignSvg from "../assets/callofcthulhu/dice/elder_sign.svg?raw";
-import hitSvg from "../assets/shadowrun/dice/hit.svg?raw";
-import slavicBaneSvg from "../assets/slavic800ad/dice/bane.svg?raw";
-import slavicSuccessSvg from "../assets/slavic800ad/dice/success.svg?raw";
+import ankhSvg from "../../assets/vampire/dice/ankh.svg?raw";
+import ankhCritSvg from "../../assets/vampire/dice/ankh-crit.svg?raw";
+import ankhFangsSvg from "../../assets/vampire/dice/ankh-fangs.svg?raw";
+import skullSvg from "../../assets/vampire/dice/skull.svg?raw";
+import elderSignSvg from "../../assets/callofcthulhu/dice/elder_sign.svg?raw";
+import hitSvg from "../../assets/shadowrun/dice/hit.svg?raw";
+import slavicBaneSvg from "../../assets/slavic800ad/dice/bane.svg?raw";
+import slavicSuccessSvg from "../../assets/slavic800ad/dice/success.svg?raw";
 
 export type DiceSymbolId =
   | "vtm-ankh"

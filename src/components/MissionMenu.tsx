@@ -5,6 +5,11 @@ import Box from "@mui/material/Box";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Modal from "@mui/material/Modal";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
 import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import BookIcon from "@mui/icons-material/Book";
@@ -71,9 +76,7 @@ type StyledTextFieldProps = ComponentProps<typeof TextField> & {
  */
 export const StyledTextField = React.memo(
   ({ color, ...props }: StyledTextFieldProps) => {
-    return (
-      <TextField {...props} color={color} sx={textfieldStyle(color)} />
-    );
+    return <TextField {...props} color={color} sx={textfieldStyle(color)} />;
   },
 );
 
@@ -90,8 +93,13 @@ interface BaseMissionModalProps {
 }
 
 /**
- * A reusable modal wrapper that enforces a fixed header, scrollable body, and fixed footer.
- * Encapsulates the layout logic originally defined in NewMissionModal.
+ * A reusable modal wrapper with a fixed title, scrollable body, and fixed
+ * action footer. Built on MUI's `Dialog` (matching NpcCard's dialogs)
+ * rather than a hand-rolled `Modal`+`Paper`: `Dialog`'s content pane is
+ * itself a themed `Paper` under the hood, so it already picks up the same
+ * gradient texture/accent border every other themed surface gets, while
+ * also giving us focus trap, Escape-to-close, and scroll lock for free
+ * instead of reimplementing them.
  */
 const BaseMissionModal = ({
   open,
@@ -101,65 +109,22 @@ const BaseMissionModal = ({
   children,
   actions,
 }: BaseMissionModalProps) => {
-  const theme = useTheme();
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      <Box
-        sx={[
-          modalStyle,
-          { p: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden" },
-        ]}
-        style={{
-          backgroundColor: theme.palette.background.default,
-          backgroundImage: "none",
-        }}
-      >
-        {/* --- FIXED HEADER --- */}
-        <Box sx={{ p: 3, pb: 1 }}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            {title}
-          </Typography>
-          {description && (
-            <Box id="modal-modal-description" sx={{ mt: 2 }}>
-              {typeof description === "string" ? (
-                <Typography>{description}</Typography>
-              ) : (
-                description
-              )}
-            </Box>
-          )}
-        </Box>
-
-        {/* --- SCROLLABLE BODY --- */}
-        <Box
-          sx={{
-            flex: 1, // Takes up remaining space
-            overflowY: "auto",
-            px: 3, // Horizontal padding for content
-            pb: 3, // Bottom padding so last items aren't cramped
-          }}
-        >
-          {children}
-        </Box>
-
-        {/* --- FIXED FOOTER --- */}
-        <Box
-          sx={{
-            p: 2,
-            px: 3,
-            display: "flex",
-            justifyContent: "flex-end",
-          }}
-        >
-          {actions}
-        </Box>
-      </Box>
-    </Modal>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        {description &&
+          (typeof description === "string" ? (
+            <DialogContentText sx={{ mb: 2 }}>
+              {description}
+            </DialogContentText>
+          ) : (
+            <Box sx={{ mb: 2 }}>{description}</Box>
+          ))}
+        {children}
+      </DialogContent>
+      <DialogActions>{actions}</DialogActions>
+    </Dialog>
   );
 };
 
@@ -954,20 +919,17 @@ export function MissionMenu({
   return (
     <Box sx={{ width: "100%", px: 0 }}>
       {/* Section label */}
-      <Box
-        component="span"
+      <Typography
+        variant="tagLabel"
         sx={{
           display: "block",
-          fontSize: "0.6rem",
-          letterSpacing: "0.2em",
           color: alpha(theme.palette.primary.main, 0.38),
-          textTransform: "uppercase",
           mb: 0.75,
           mt: 0,
         }}
       >
         Mission
-      </Box>
+      </Typography>
       <Button
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
@@ -995,12 +957,6 @@ export function MissionMenu({
         slotProps={{
           list: {
             "aria-labelledby": "basic-button",
-          },
-          paper: {
-            style: {
-              backgroundColor: theme.palette.background.default,
-              backgroundImage: "none",
-            },
           },
         }}
         sx={menuStyle}

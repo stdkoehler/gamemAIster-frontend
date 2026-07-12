@@ -5,6 +5,13 @@ export interface StatTrack {
   max: number;
 }
 
+// Shared shape for a single worn armor item: a flavor name plus the
+// protection rating subtracted from incoming damage.
+export interface ArmorItem {
+  name: string;
+  rating: number;
+}
+
 // =====================
 // Shadowrun 5th Edition
 // =====================
@@ -211,6 +218,9 @@ export interface VampireCharacter {
   // Weapons with V5 corebook stats (all natures can carry weapons)
   weapons?: V5Weapon[];
 
+  // Armor — converts superficial damage from mundane sources; all natures can wear it
+  armor?: ArmorItem;
+
   // Disciplines — level plus the specific powers chosen within that discipline.
   // V5 requires explicitly selecting powers; having Dominate 3 does not mean
   // all three level-1/2/3 powers are known — they must be purchased individually.
@@ -350,6 +360,7 @@ export interface CthulhuCharacter {
 
   // Equipment
   weapons?: CocWeapon[];
+  armor?: ArmorItem; // e.g. heavy leather jacket (1), Kevlar vest (8) — subtracted from damage
   gear?: string[];
   spendingLevel?: string;
   cash?: number;
@@ -515,7 +526,7 @@ export interface ExpanseCharacter {
 
   // Equipment
   weapons?: AgeWeapon[];
-  armor?: string;
+  armor?: ArmorItem;
   gear?: string[];
 
   // Drive & Relationships
@@ -533,9 +544,23 @@ export interface ExpanseCharacter {
 // Broken when any attribute is reduced to 0.
 // =====================
 
+// Forbidden Lands armor: a flat rating that absorbs damage, degraded by
+// one point per Bane rolled when damage gets through — so unlike the other
+// systems' single-number ArmorItem, this needs a current/max track.
 export interface SlavicArmor {
   name: string;
-  rating: number; // armor protection value (reduces damage)
+  rating: StatTrack;
+}
+
+// Forbidden Lands weapon stats: GRIP (hands required), DAMAGE (Strength
+// damage on a hit), RANGE (max effective range band), FEATURES (e.g.
+// "Parrying", "Long", "Toxic", "Hooked", "Slow").
+export interface SlavicWeapon {
+  name: string;
+  grip: "1H" | "2H";
+  damage: number;
+  range: "Arm's Length" | "Near" | "Short" | "Long";
+  features?: string[];
 }
 
 export interface SlavicCharacter {
@@ -567,25 +592,29 @@ export interface SlavicCharacter {
     Empathy: number;
   };
 
-  // Skills 0–5 (under their governing attribute)
+  // Skills 0–5 (under their governing attribute) — the canonical Forbidden
+  // Lands 16-skill list, 4 per attribute.
   skills: {
     // Strength
+    Might: number;
     Endurance: number;
-    Fight: number;
+    Melee: number;
+    Crafting: number;
     // Agility
-    Sneak: number;
+    Stealth: number;
+    "Sleight of Hand": number;
     Move: number;
     Marksmanship: number;
     // Wits
-    Scout: number;
+    Scouting: number;
     Lore: number;
     Survival: number;
-    Craft: number;
-    // Empathy
     Insight: number;
+    // Empathy
     Manipulation: number;
-    Healing: number;
     Performance: number;
+    Healing: number;
+    "Animal Handling": number;
   };
 
   // Talents (special abilities from calling or general pool)
@@ -595,7 +624,7 @@ export interface SlavicCharacter {
   wyrd?: StatTrack;
 
   // Equipment
-  weapons?: string[];
+  weapons?: SlavicWeapon[];
   armor?: SlavicArmor;
   gear?: string[];
 

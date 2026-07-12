@@ -376,6 +376,7 @@ export async function getLoadMissions(
         sheetId: s.character_sheet_id,
         isProtagonist: s.is_protagonist,
         isNpc: s.is_npc,
+        isActive: s.is_active,
         data: s.content,
       }))
     : [];
@@ -401,12 +402,29 @@ export async function upsertCharacterSheet(payload: {
   content: CharacterProps;
   is_protagonist: boolean;
   is_npc?: boolean;
+  is_active?: boolean;
 }): Promise<CharacterSheetPayload> {
   return await apiRequest<CharacterSheetPayload>(
     "/mission/upsert-character-sheet",
     "POST",
-    { ...payload, is_npc: payload.is_npc ?? false },
+    { ...payload, is_npc: payload.is_npc ?? false, is_active: payload.is_active ?? true },
   );
+}
+
+/**
+ * Marks an NPC as active/inactive in the current scene without rewriting its
+ * full content blob, so only active NPCs are injected into the LLM prompt.
+ */
+export async function setNpcActive(
+  character_sheet_id: number,
+  mission_id: number,
+  is_active: boolean,
+): Promise<void> {
+  await apiRequest<void>("/mission/set-npc-active", "POST", {
+    character_sheet_id,
+    mission_id,
+    is_active,
+  });
 }
 
 /**
@@ -445,6 +463,7 @@ export async function getCharacterSheets(
     sheetId: s.character_sheet_id,
     isProtagonist: s.is_protagonist,
     isNpc: s.is_npc,
+    isActive: s.is_active,
     data: s.content,
   }));
 }

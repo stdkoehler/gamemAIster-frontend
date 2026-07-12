@@ -1,4 +1,5 @@
-import { Theme } from "@mui/material/styles";
+import { CSSProperties } from "react";
+import { PaletteColor, Theme } from "@mui/material/styles";
 
 // Declare custom theme properties
 declare module "@mui/material/styles" {
@@ -8,6 +9,10 @@ declare module "@mui/material/styles" {
     logo: string;
     titleOverlayStyle?: Record<string, any>;
     trackColors: { low: string; mid: string; high: string };
+    // Highlight color for chrome that should follow a theme's "active"
+    // accent (e.g. the selected character-sheet tab) rather than its
+    // dominant primary color. Falls back to primary when unset.
+    accentColor?: string;
   }
   interface ThemeOptions {
     spinButtonBackgroundImage?: (color: string) => string;
@@ -15,6 +20,7 @@ declare module "@mui/material/styles" {
     logo?: string;
     titleOverlayStyle?: Record<string, any>;
     trackColors?: { low: string; mid: string; high: string };
+    accentColor?: string;
   }
   // Allow new color names if you add them to palette
   interface PaletteOptions {
@@ -23,6 +29,40 @@ declare module "@mui/material/styles" {
   }
   interface Palette {
     // tertiary: PaletteColor;
+  }
+
+  // A small, uppercase, letter-spaced label — the sidebar section headers
+  // ("Mission", "Characters", "NPCs") and the Player/Gamemaster role tags
+  // above chat messages. These used to each hardcode their own
+  // fontSize/letterSpacing/textTransform independently (and had drifted
+  // out of sync with each other as a result) instead of sharing one
+  // definition. Deliberately a variant of its own rather than reusing
+  // "caption" — caption is also used for plain, normal-case body labels
+  // (e.g. FieldRow's "Name:") that should NOT pick up uppercase/spacing
+  // just because this changes.
+  //
+  // chatText: the narrative prose in the chat — old History entries and
+  // the current FieldContainer message both render through
+  // MarkdownRenderer's paragraph component. fontFamily/fontSize/lineHeight
+  // were previously hardcoded identically in MarkdownRenderer.tsx for every
+  // theme, which meant a theme's actual body font (whose x-height can vary
+  // a lot — e.g. Libre Baskerville vs. EB Garamond render very differently
+  // at the same rem value) had no theme-level way to compensate.
+  interface TypographyVariants {
+    tagLabel: CSSProperties;
+    chatText: CSSProperties;
+  }
+  interface TypographyVariantsOptions {
+    tagLabel?: CSSProperties;
+    chatText?: CSSProperties;
+  }
+}
+
+// Lets consumers pass variant="tagLabel"/"chatText" to <Typography>.
+declare module "@mui/material/Typography" {
+  interface TypographyPropsVariantOverrides {
+    tagLabel: true;
+    chatText: true;
   }
 }
 
@@ -96,4 +136,161 @@ export function getSafePaletteColor(
   }
 
   return defaultColor;
+}
+
+// --- SHARED BUILDING BLOCKS FOR PER-SYSTEM THEMES ---
+//
+// Every theme in src/themes/<system>.ts independently re-derives the same
+// handful of structural pieces (a color-key resolver for MuiButton, the
+// MuiCssBaseline transition/scroll-behavior reset, the focus-glow mask on
+// MuiInputLabel, the spin-button arrow SVG). Those pieces are identical in
+// *shape* across themes and differ only in which colors/numbers get passed
+// in — exactly the kind of thing that gets silently missed in one theme
+// when a fix lands in another (see CLAUDE.md's "CSS specificity gotcha").
+// Pulling them out here means a future fix only needs to land once.
+//
+// What's deliberately NOT here: anything that encodes a theme's actual
+// creative identity (its text-shadow "feel", card textures, animations,
+// clipPaths, font choices, Typography scale). Those vary too much in
+// substance — not just in color — to generalize without flattening what
+// makes each theme distinct.
+
+/**
+ * Resolves `ownerState.color` (e.g. on a Button) to that color's full
+ * `PaletteColor` (main/light/dark/contrastText), defaulting to `primary`
+ * for unset/unknown/"inherit" values. Replaces the ~15-line colorKey
+ * lookup block duplicated near-verbatim in every theme's MuiButton (and
+ * some MuiTypography) `styleOverrides.root`.
+ */
+export function resolveButtonPalette(
+  theme: Theme,
+  colorPropValue?: string
+): PaletteColor {
+  const known: ThemeColorWithMain[] = [
+    "primary",
+    "secondary",
+    "error",
+    "warning",
+    "info",
+    "success",
+  ];
+  const key = known.includes(colorPropValue as ThemeColorWithMain)
+    ? (colorPropValue as ThemeColorWithMain)
+    : "primary";
+  return theme.palette[key] ?? theme.palette.primary;
+}
+
+/**
+ * Picks a button's text color from its resolved PaletteColor, preferring
+ * `contrastText` but falling back to `main` when contrastText is literal
+ * black — MUI's default palette gives warning/info/success a black
+ * contrastText, which disappears against the translucent/gradient button
+ * backgrounds these themes use.
+ */
+export function resolveButtonTextColor(paletteColor: PaletteColor): string {
+  const { contrastText, main } = paletteColor;
+  return contrastText && contrastText !== "#000000" && contrastText !== "#000"
+    ? contrastText
+    : main;
+}
+
+/**
+ * The MuiCssBaseline rules every theme sets character-for-character
+ * identically: a blanket color/background/border/shadow transition (so
+ * switching themes, or any of the focus/hover accent swaps elsewhere in
+ * these themes, animates instead of snapping), and `html, body` sized to
+ * fill the viewport with smooth-scroll. `transitionDuration` covers the
+ * one theme (Expanse) that uses 0.2s instead of the otherwise-universal
+ * 0.3s.
+ */
+export function baseCssBaselineRules(transitionDuration: string = "0.3s") {
+  return {
+    "*, *::before, *::after": {
+      transition: `background-color ${transitionDuration}, color ${transitionDuration}, border-color ${transitionDuration}, box-shadow ${transitionDuration}`,
+    },
+    "html, body": {
+      height: "100%",
+      scrollBehavior: "smooth",
+    },
+  };
+}
+
+/**
+ * Shape shared by every theme's `a` (link) rule inside MuiCssBaseline:
+ * a base color, no underline, and a hover state that shifts to a second
+ * color with a matching glow. Each theme picks its own two colors.
+ */
+export function linkHoverStyle(baseColor: string, hoverColor: string) {
+  return {
+    color: baseColor,
+    textDecoration: "none",
+    transition: "all 0.3s ease",
+    "&:hover": {
+      color: hoverColor,
+      textShadow: `0 0 8px ${hoverColor}80`,
+    },
+  };
+}
+
+/**
+ * The `&.Mui-focused` mask on MuiInputLabel: every theme whose
+ * MuiInputBase/MuiOutlinedInput grows a blurred focus-glow box-shadow
+ * needs this, or that glow bleeds up into the floating label sitting on
+ * the border line (the label otherwise has nothing else covering it).
+ * Fully generic — no per-theme color/number inputs, since it's meant to
+ * leave the label's own color alone and just block what's behind it.
+ */
+export function inputLabelFocusMaskStyle(theme: Theme) {
+  return {
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.background.default,
+    padding: "0 4px",
+    borderRadius: theme.shape.borderRadius,
+  };
+}
+
+/**
+ * The up/down spin-button arrow glyph used by `spinButtonBackgroundImage`.
+ * Every theme's version is the same `viewBox 0 0 24 48` SVG with
+ * round caps/joins; they differ only in stroke width and whether the
+ * arrows are drawn as two `<polyline>`s or one two-stroke `<path>`.
+ */
+export function spinButtonArrowSvg(
+  color: string,
+  options?: { strokeWidth?: number; doublePolyline?: boolean }
+): string {
+  const strokeWidth = options?.strokeWidth ?? 1.25;
+  const shape = options?.doublePolyline
+    ? "<polyline points='6 30 12 36 18 30'></polyline><polyline points='6 18 12 12 18 18'></polyline>"
+    : "<path d='M6 30 L12 36 L18 30 M6 18 L12 12 L18 18'/>";
+  return `url("data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 48' fill='none' stroke='${color}' stroke-width='${strokeWidth}' stroke-linecap='round' stroke-linejoin='round'>${shape}</svg>`
+  )}")`;
+}
+
+/**
+ * 8-direction offset-copy text outline (not `-webkit-text-stroke`, which
+ * draws an independent, slightly misaligned outline on top of text-shadow
+ * and visibly ghosts/doubles on curves when combined with it) plus a soft
+ * drop shadow for depth. All 8 directions, not just the 4 diagonals, so
+ * straight stroke edges on letters like D/R/N don't get a thin gap between
+ * two diagonal shadows.
+ *
+ * Used for `titleOverlayStyle` — the game-title text rendered over the
+ * (often bright/busy) hero banner image in App.tsx — so it stays legible in
+ * the theme's own color against any background brightness, rather than a
+ * generic black stroke.
+ */
+export function titleOutlineTextShadow(outlineColor: string): string {
+  return [
+    `-1px -1px 0 ${outlineColor}`,
+    `1px -1px 0 ${outlineColor}`,
+    `-1px 1px 0 ${outlineColor}`,
+    `1px 1px 0 ${outlineColor}`,
+    `0 -1px 0 ${outlineColor}`,
+    `0 1px 0 ${outlineColor}`,
+    `-1px 0 0 ${outlineColor}`,
+    `1px 0 0 ${outlineColor}`,
+    `0 3px 10px rgba(0,0,0,0.8)`,
+  ].join(", ");
 }

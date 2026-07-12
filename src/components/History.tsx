@@ -1,10 +1,15 @@
+import { useRef, useEffect, useState, useCallback } from "react";
 import {
-  useRef,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
-import { Typography, Box, Button, CircularProgress, useTheme, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+  Typography,
+  Box,
+  Button,
+  CircularProgress,
+  useTheme,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import StopIcon from "@mui/icons-material/Stop";
@@ -23,6 +28,7 @@ import MemoizedFieldContainer from "./MemoizedFieldContainer";
 import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
 import useAppStore from "../stores/appStore";
+import useCharacterStore from "../stores/characterStore";
 import { useShallow } from "zustand/react/shallow";
 
 type HistoryProps = {
@@ -64,6 +70,7 @@ const History = ({ mission, disabled }: HistoryProps) => {
     (state) => state.rollbackOptimisticUpdate,
   );
   const commitPlayerInput = useHistoryStore((state) => state.commitPlayerInput);
+  const flushPendingCharacterSaves = useCharacterStore((state) => state.flushPendingSaves);
 
   // ===== TTS VOICE =====
   const ttsVoice = useAppStore((state) => state.ttsVoice);
@@ -109,6 +116,11 @@ const History = ({ mission, disabled }: HistoryProps) => {
     async (inputValue: string): Promise<void> => {
       if (mission === null || inputValue === "") return;
 
+      // The GM prompt is built from the latest backend character data each
+      // turn, so make sure any debounced sidebar/sheet edit reached the
+      // backend before it does, instead of waiting for the save timer.
+      flushPendingCharacterSaves();
+
       const { originalState, prevInteractionContext } =
         performOptimisticUpdate(inputValue);
 
@@ -152,12 +164,15 @@ const History = ({ mission, disabled }: HistoryProps) => {
       updateLlmOutput,
       updateLlmThinking,
       rollbackOptimisticUpdate,
+      flushPendingCharacterSaves,
     ],
   );
 
   const sendRegenerateWithStreaming = useCallback(
     async (inputValue: string): Promise<void> => {
       if (mission === null || inputValue === "") return;
+
+      flushPendingCharacterSaves();
 
       const prevInteraction = {
         playerInput: inputValue,
@@ -197,7 +212,14 @@ const History = ({ mission, disabled }: HistoryProps) => {
         console.error("Failed to regenerate:", error);
       }
     },
-    [mission, llmOutput, commitPlayerInput, updateLlmOutput, updateLlmThinking],
+    [
+      mission,
+      llmOutput,
+      commitPlayerInput,
+      updateLlmOutput,
+      updateLlmThinking,
+      flushPendingCharacterSaves,
+    ],
   );
 
   // ===== AUDIO MANAGEMENT =====
@@ -229,7 +251,9 @@ const History = ({ mission, disabled }: HistoryProps) => {
       cleanupAudio();
       const audioElem = USE_TTS_STREAM
         ? await sendTextToSpeechStream(llmOutput, ttsVoice)
-        : new Audio(URL.createObjectURL(await sendTextToSpeech(llmOutput, ttsVoice)));
+        : new Audio(
+            URL.createObjectURL(await sendTextToSpeech(llmOutput, ttsVoice)),
+          );
       audioElem.onended = () => setIsPlaying(false);
       audioElem.onerror = (e) => {
         console.error("Audio error:", e);
@@ -268,14 +292,11 @@ const History = ({ mission, disabled }: HistoryProps) => {
           <Box key={index} sx={{ mb: 2 }}>
             {/* Player role label */}
             <Typography
-              variant="caption"
+              variant="tagLabel"
               color="secondary"
               sx={{
                 display: "block",
                 color: alpha(theme.palette.secondary.main, 0.45),
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                fontSize: "0.65rem",
                 mt: index > 0 ? 1.5 : 0,
                 mb: 0.5,
               }}
@@ -284,17 +305,17 @@ const History = ({ mission, disabled }: HistoryProps) => {
             </Typography>
             {/* Player action echo */}
             <Box sx={{ mb: 1.5 }}>
-              <MarkdownRenderer value={interaction.playerInput} color="secondary" />
+              <MarkdownRenderer
+                value={interaction.playerInput}
+                color="secondary"
+              />
             </Box>
             {/* GM role label */}
             <Typography
-              variant="caption"
+              variant="tagLabel"
               sx={{
                 display: "block",
                 color: alpha(theme.palette.primary.main, 0.45),
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                fontSize: "0.65rem",
                 mt: 1.5,
                 mb: 0.5,
               }}
@@ -372,65 +393,69 @@ const History = ({ mission, disabled }: HistoryProps) => {
         />
 
         {/* TTS controls — only visible when there is GM output to play */}
-        {llmOutput && <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 1,
-            mt: 0.5,
-            flexWrap: "wrap",
-          }}
-        >
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel id="tts-voice-label">Voice</InputLabel>
-            <Select
-              labelId="tts-voice-label"
-              value={ttsVoice}
-              label="Voice"
-              onChange={(e) => setTtsVoice(e.target.value as TtsVoice)}
-              disabled={disabled || isPlaying || loadingAudio}
-            >
-              {Object.values(TtsVoice).map((v) => (
-                <MenuItem key={v} value={v}>{v}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {isPlaying ? (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<StopIcon />}
-              onClick={handleStopTTS}
-              disabled={disabled}
-              size="small"
-            >
-              Stop Audio
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={
-                loadingAudio ? (
-                  <CircularProgress size={16} />
-                ) : (
-                  <PlayArrowIcon />
-                )
-              }
-              onClick={handlePlayTTS}
-              disabled={disabled || loadingAudio || isPlaying}
-              size="small"
-            >
-              {loadingAudio ? "Synthesizing..." : "Play"}
-            </Button>
-          )}
-          {audioError && (
-            <Typography color="error" variant="caption">
-              {audioError}
-            </Typography>
-          )}
-        </Box>}
+        {llmOutput && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 1,
+              mt: 0.5,
+              flexWrap: "wrap",
+            }}
+          >
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel id="tts-voice-label">Voice</InputLabel>
+              <Select
+                labelId="tts-voice-label"
+                value={ttsVoice}
+                label="Voice"
+                onChange={(e) => setTtsVoice(e.target.value as TtsVoice)}
+                disabled={disabled || isPlaying || loadingAudio}
+              >
+                {Object.values(TtsVoice).map((v) => (
+                  <MenuItem key={v} value={v}>
+                    {v}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {isPlaying ? (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<StopIcon />}
+                onClick={handleStopTTS}
+                disabled={disabled}
+                size="small"
+              >
+                Stop Audio
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={
+                  loadingAudio ? (
+                    <CircularProgress size={16} />
+                  ) : (
+                    <PlayArrowIcon />
+                  )
+                }
+                onClick={handlePlayTTS}
+                disabled={disabled || loadingAudio || isPlaying}
+                size="small"
+              >
+                {loadingAudio ? "Synthesizing..." : "Play"}
+              </Button>
+            )}
+            {audioError && (
+              <Typography color="error" variant="caption">
+                {audioError}
+              </Typography>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Input bar — fixed at bottom, outside the scroll area */}
