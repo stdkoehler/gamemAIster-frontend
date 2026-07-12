@@ -37,12 +37,25 @@ type HistoryProps = {
 };
 
 const USE_TTS_STREAM = true;
+// How close to the bottom (px) still counts as "at the bottom" for
+// stick-to-bottom auto-scroll.
+const NEAR_BOTTOM_THRESHOLD_PX = 80;
 
 const History = ({ mission, disabled }: HistoryProps) => {
   console.log("History component rendered");
   const theme = useTheme();
   const llmOutputFieldRef = useRef<FieldContainerHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Wraps everything inside the scroll area so a ResizeObserver can watch
+  // its actual rendered height — content (e.g. the streaming GM reply) can
+  // grow across more than one paint (conditionally-mounted TTS controls,
+  // MUI measurement passes, font metrics), so keying off React state alone
+  // under-shoots the true bottom.
+  const scrollContentRef = useRef<HTMLDivElement>(null);
+  // Whether the user is parked at (or near) the bottom of the scroll area.
+  // Starts true so the initial render/mission load lands on the latest
+  // content; a scroll listener keeps it current from then on.
+  const isNearBottomRef = useRef(true);
 
   // ===== STORE STATE =====
   const { playerInput, playerInputOld, llmThinking, llmOutput, interactions } =
@@ -82,13 +95,40 @@ const History = ({ mission, disabled }: HistoryProps) => {
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
 
-  // Auto-scroll to bottom when content changes
+  // Stick-to-bottom auto-scroll: a 'scroll' listener tracks whether the user
+  // is parked near the bottom, and a ResizeObserver on the content wrapper
+  // scrolls to the bottom whenever the scrollable content's actual rendered
+  // height changes (streaming text, edits, new interactions, conditionally
+  // mounted controls, ...) — but only if the user was already near the
+  // bottom, so this never fights someone reading back through history or
+  // scrolling away from a fast-streaming response. Reacting to the real
+  // layout outcome (rather than to the specific state that caused it) means
+  // it can't under/overshoot when content grows across more than one paint.
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  }, [interactions, llmOutput, playerInputOld]);
+    const content = scrollContentRef.current;
+    if (!container || !content) return;
+
+    const handleScroll = () => {
+      const distanceFromBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+      isNearBottomRef.current = distanceFromBottom < NEAR_BOTTOM_THRESHOLD_PX;
+    };
+    const scrollToBottomIfNear = () => {
+      if (isNearBottomRef.current) {
+        container.scrollTop = container.scrollHeight;
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    scrollToBottomIfNear();
+    const resizeObserver = new ResizeObserver(scrollToBottomIfNear);
+    resizeObserver.observe(content);
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // ===== API CALLBACKS =====
   const stopGeneration = useCallback(async (): Promise<void> => {
@@ -361,101 +401,103 @@ const History = ({ mission, disabled }: HistoryProps) => {
           },
         }}
       >
-        {InteractionList(interactions)}
+        <Box ref={scrollContentRef}>
+          {InteractionList(interactions)}
 
-        {/* Previous player input for current turn (editable / regeneratable) */}
-        {playerInputOld && (
-          <Box sx={{ mt: 2 }}>
-            <MemoizedFieldContainer
-              sendCallback={sendRegenerateWithStreaming}
-              stopCallback={stopGeneration}
-              onCommit={updatePlayerInputOld}
-              value={playerInputOld}
-              instance="Player"
-              color="secondary"
-              type={FieldContainerType.PLAYER_OLD}
-              disabled={disabled}
-            />
-          </Box>
-        )}
-
-        {/* Current GM output */}
-        <MemoizedFieldContainer
-          ref={llmOutputFieldRef}
-          onCommit={updateLlmOutput}
-          onStreamComplete={updateLlmOutput}
-          value={llmOutput}
-          thinking={llmThinking}
-          instance="Gamemaster"
-          color="primary"
-          type={FieldContainerType.GAMEMASTER}
-          disabled={disabled}
-        />
-
-        {/* TTS controls — only visible when there is GM output to play */}
-        {llmOutput && (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 1,
-              mt: 0.5,
-              flexWrap: "wrap",
-            }}
-          >
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel id="tts-voice-label">Voice</InputLabel>
-              <Select
-                labelId="tts-voice-label"
-                value={ttsVoice}
-                label="Voice"
-                onChange={(e) => setTtsVoice(e.target.value as TtsVoice)}
-                disabled={disabled || isPlaying || loadingAudio}
-              >
-                {Object.values(TtsVoice).map((v) => (
-                  <MenuItem key={v} value={v}>
-                    {v}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {isPlaying ? (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<StopIcon />}
-                onClick={handleStopTTS}
+          {/* Previous player input for current turn (editable / regeneratable) */}
+          {playerInputOld && (
+            <Box sx={{ mt: 2 }}>
+              <MemoizedFieldContainer
+                sendCallback={sendRegenerateWithStreaming}
+                stopCallback={stopGeneration}
+                onCommit={updatePlayerInputOld}
+                value={playerInputOld}
+                instance="Player"
+                color="secondary"
+                type={FieldContainerType.PLAYER_OLD}
                 disabled={disabled}
-                size="small"
-              >
-                Stop Audio
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={
-                  loadingAudio ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <PlayArrowIcon />
-                  )
-                }
-                onClick={handlePlayTTS}
-                disabled={disabled || loadingAudio || isPlaying}
-                size="small"
-              >
-                {loadingAudio ? "Synthesizing..." : "Play"}
-              </Button>
-            )}
-            {audioError && (
-              <Typography color="error" variant="caption">
-                {audioError}
-              </Typography>
-            )}
-          </Box>
-        )}
+              />
+            </Box>
+          )}
+
+          {/* Current GM output */}
+          <MemoizedFieldContainer
+            ref={llmOutputFieldRef}
+            onCommit={updateLlmOutput}
+            onStreamComplete={updateLlmOutput}
+            value={llmOutput}
+            thinking={llmThinking}
+            instance="Gamemaster"
+            color="primary"
+            type={FieldContainerType.GAMEMASTER}
+            disabled={disabled}
+          />
+
+          {/* TTS controls — only visible when there is GM output to play */}
+          {llmOutput && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 1,
+                mt: 0.5,
+                flexWrap: "wrap",
+              }}
+            >
+              <FormControl size="small" sx={{ minWidth: 160 }}>
+                <InputLabel id="tts-voice-label">Voice</InputLabel>
+                <Select
+                  labelId="tts-voice-label"
+                  value={ttsVoice}
+                  label="Voice"
+                  onChange={(e) => setTtsVoice(e.target.value as TtsVoice)}
+                  disabled={disabled || isPlaying || loadingAudio}
+                >
+                  {Object.values(TtsVoice).map((v) => (
+                    <MenuItem key={v} value={v}>
+                      {v}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {isPlaying ? (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<StopIcon />}
+                  onClick={handleStopTTS}
+                  disabled={disabled}
+                  size="small"
+                >
+                  Stop Audio
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={
+                    loadingAudio ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <PlayArrowIcon />
+                    )
+                  }
+                  onClick={handlePlayTTS}
+                  disabled={disabled || loadingAudio || isPlaying}
+                  size="small"
+                >
+                  {loadingAudio ? "Synthesizing..." : "Play"}
+                </Button>
+              )}
+              {audioError && (
+                <Typography color="error" variant="caption">
+                  {audioError}
+                </Typography>
+              )}
+            </Box>
+          )}
+        </Box>
       </Box>
 
       {/* Input bar — fixed at bottom, outside the scroll area */}
