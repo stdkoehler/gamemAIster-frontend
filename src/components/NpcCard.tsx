@@ -49,6 +49,8 @@ import {
   SlavicCharacter,
   SlavicWeapon,
   DragonlanceCharacter,
+  DesolateFrontierCharacter,
+  DesolateFrontierWeapon,
 } from "../models/CharacterProps";
 import { GameType } from "../models/Types";
 import { CharacterRecord } from "../models/MissionModels";
@@ -893,6 +895,97 @@ const DragonlanceNpcCard: React.FC<DragonlanceCharacter & WithUpdate> = (c) => {
   );
 };
 
+const DESOLATE_FRONTIER_COMBAT_SKILLS: Array<keyof DesolateFrontierCharacter["skills"]> = [
+  "Might",
+  "Endurance",
+  "Melee",
+  "Stealth",
+  "Move",
+  "Marksmanship",
+];
+
+const DesolateFrontierNpcCard: React.FC<DesolateFrontierCharacter & WithUpdate> = (c) => {
+  const { onCharacterUpdate } = c;
+  const combatSkills = Object.fromEntries(
+    DESOLATE_FRONTIER_COMBAT_SKILLS.map((k) => [k, c.skills[k]]).filter(
+      ([, v]) => (v as number) > 0,
+    ),
+  );
+
+  // Build per-attribute damage tracks from attributeDamage vs attributes
+  const attrTracks: {
+    label: string;
+    track: StatTrack;
+    onChange?: (val: number) => void;
+    inverse: boolean;
+  }[] = (["Strength", "Agility", "Wits", "Empathy"] as const).map((attr) => ({
+    label: attr,
+    track: { current: c.attributeDamage[attr], max: c.attributes[attr] },
+    onChange: onCharacterUpdate
+      ? (val: number) =>
+          onCharacterUpdate({
+            ...c,
+            attributeDamage: { ...c.attributeDamage, [attr]: val },
+          })
+      : undefined,
+    inverse: true,
+  }));
+
+  return (
+    <Box sx={cardBoxStyle}>
+      <Typography variant="h5">{c.name}</Typography>
+      <Typography variant="body2">
+        {c.origin} — {c.profession}
+      </Typography>
+      <Divider sx={{ my: 1 }} />
+      <Grid container spacing={2} justifyContent="center">
+        <Grid>
+          <KeyValueList title="Attributes" entries={c.attributes} />
+        </Grid>
+        <Grid>
+          <Box sx={skillsBoxStyle}>
+            <KeyValueList title="Combat Skills" entries={combatSkills} />
+          </Box>
+        </Grid>
+      </Grid>
+      {c.weapons && c.weapons.length > 0 && (
+        <Box sx={{ my: 1 }}>
+          <Typography variant="body2" fontWeight="bold">
+            Weapons:
+          </Typography>
+          {c.weapons.map((w: DesolateFrontierWeapon, i) => (
+            <Typography key={i} variant="body2">
+              {w.name} ({w.grip}) — {w.damage} dmg, {w.range}
+              {w.features && w.features.length > 0
+                ? ` [${w.features.join(", ")}]`
+                : ""}
+            </Typography>
+          ))}
+        </Box>
+      )}
+      {c.armor && (
+        <Typography variant="body2">
+          Armor: {c.armor.name} (Rating {c.armor.rating.current}/{c.armor.rating.max})
+        </Typography>
+      )}
+      {c.talents.length > 0 && <TagList title="Talents" items={c.talents} />}
+      <Divider sx={{ my: 1 }} />
+      <Grid container spacing={2} sx={trackGridStyle}>
+        {attrTracks.map(({ label, track, onChange, inverse }) => (
+          <Grid key={label}>
+            <StatMeter
+              label={label}
+              track={track}
+              onChange={onChange}
+              inverse={inverse}
+            />
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
+};
+
 // =====================
 // NpcCard dispatcher
 // =====================
@@ -913,6 +1006,8 @@ export const NpcCard: React.FC<CharacterProps & WithUpdate> = (props) => {
       return <SlavicNpcCard {...props} />;
     case GameType.DRAGONLANCE:
       return <DragonlanceNpcCard {...props} />;
+    case GameType.DESOLATE_FRONTIER:
+      return <DesolateFrontierNpcCard {...props} />;
     default:
       return null;
   }

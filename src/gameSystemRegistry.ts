@@ -54,6 +54,11 @@ export const GAME_SYSTEMS: Record<GameType, GameSystemConfig> = {
     sheetWidth: 1100,
     diceMaxHeight: 760,
   },
+  [GameType.DESOLATE_FRONTIER]: {
+    title: "The Desolate Frontier",
+    sheetTitle: "The Desolate Frontier",
+    partyLabel: "Company",
+  },
   [GameType.CUSTOM]: {
     title: "Custom",
     sheetTitle: "Custom",

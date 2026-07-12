@@ -7,6 +7,7 @@ import {
   ExpanseCharacter,
   SlavicCharacter,
   DragonlanceCharacter,
+  DesolateFrontierCharacter,
 } from "../models/CharacterProps";
 import { GameType } from "../models/Types";
 
@@ -289,6 +290,32 @@ const DEFAULT_DRAGONLANCE: DragonlanceCharacter = {
   proficienciesAndLanguages: ["Common", "Solamnic", "Heavy Armor", "Shields", "Martial Weapons"],
 };
 
+const DEFAULT_DESOLATE_FRONTIER: DesolateFrontierCharacter = {
+  gameType: GameType.DESOLATE_FRONTIER,
+  id: 10008,
+  name: "Josiah Metcalf",
+  origin: "Prospector",
+  originAbility: "Nose for Ore — gains an extra die when searching for valuable resources",
+  profession: "Prospector",
+  age: "Middle-aged",
+  description:
+    "A stubborn, sun-weathered prospector who has worked the same silver claim alone for three seasons. Quick with a rifle when claim jumpers come calling, slow to trust anyone offering help for free.",
+  attributes: { Strength: 3, Agility: 3, Wits: 4, Empathy: 2 },
+  attributeDamage: { Strength: 3, Agility: 3, Wits: 4, Empathy: 2 },
+  skills: {
+    Might: 2, Endurance: 3, Melee: 1, Crafting: 2,
+    Stealth: 1, "Sleight of Hand": 1, Move: 2, Marksmanship: 3,
+    Scouting: 3, Lore: 2, Survival: 4, Insight: 2,
+    Manipulation: 1, Performance: 0, Healing: 1, "Animal Handling": 2,
+  },
+  talents: ["Trail Wise", "Iron Nerve"],
+  grit: { current: 2, max: 3 },
+  weapons: [{ name: "Single-Shot Trapdoor Rifle", grip: "2H", damage: 3, range: "Long" }],
+  armor: { name: "Leather Duster", rating: { current: 1, max: 1 } },
+  gear: ["Prospector's Pan", "Assay Kit", "Draft Mule", "Canteen"],
+  experience: 0,
+};
+
 export const DEFAULT_CHARACTERS: CharacterProps[] = [
   DEFAULT_SR,
   DEFAULT_VTM,
@@ -297,6 +324,7 @@ export const DEFAULT_CHARACTERS: CharacterProps[] = [
   DEFAULT_EXPANSE,
   DEFAULT_SLAVIC,
   DEFAULT_DRAGONLANCE,
+  DEFAULT_DESOLATE_FRONTIER,
 ];
 
 // ── NPC dummies (dynamic IDs) ────────────────────────────────────────────────
@@ -410,6 +438,9 @@ export function createNpcDummy(gameType: GameType, id: number): CharacterProps |
     case GameType.DRAGONLANCE:
       return { ...DEFAULT_DRAGONLANCE, id };
 
+    case GameType.DESOLATE_FRONTIER:
+      return { ...DEFAULT_DESOLATE_FRONTIER, id };
+
     default:
       return null;
   }
@@ -512,6 +543,21 @@ export function createBlankCharacter(gameType: GameType, id: number): CharacterP
         hitPoints: { current: 10, max: 10 },
         weapons: [], armorName: null, shield: false, gear: [],
         spellcasting: { ability: null, saveDc: null, knownSpells: [] },
+      };
+
+    case GameType.DESOLATE_FRONTIER:
+      return {
+        gameType: GameType.DESOLATE_FRONTIER, id, name: "New Character",
+        origin: "", originAbility: "", profession: "", description: "",
+        attributes: { Strength: 3, Agility: 3, Wits: 3, Empathy: 3 },
+        attributeDamage: { Strength: 3, Agility: 3, Wits: 3, Empathy: 3 },
+        skills: {
+          Might: 0, Endurance: 0, Melee: 0, Crafting: 0,
+          Stealth: 0, "Sleight of Hand": 0, Move: 0, Marksmanship: 0,
+          Scouting: 0, Lore: 0, Survival: 0, Insight: 0,
+          Manipulation: 0, Performance: 0, Healing: 0, "Animal Handling": 0,
+        },
+        talents: [],
       };
 
     default:

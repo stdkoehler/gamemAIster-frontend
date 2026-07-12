@@ -18,6 +18,7 @@ import SeventhSeaSheet from "./SeventhSeaSheet";
 import ExpanseSheet from "./ExpanseSheet";
 import SlavicSheet from "./SlavicSheet";
 import DragonlanceSheet from "./DragonlanceSheet";
+import DesolateFrontierSheet from "./DesolateFrontierSheet";
 
 function renderSheet(char: CharacterProps, onUpdate: (c: CharacterProps) => void) {
   switch (char.gameType) {
@@ -35,6 +36,8 @@ function renderSheet(char: CharacterProps, onUpdate: (c: CharacterProps) => void
       return <SlavicSheet character={char} onUpdate={onUpdate} />;
     case GameType.DRAGONLANCE:
       return <DragonlanceSheet character={char} onUpdate={onUpdate} />;
+    case GameType.DESOLATE_FRONTIER:
+      return <DesolateFrontierSheet character={char} onUpdate={onUpdate} />;
     default:
       return null;
   }

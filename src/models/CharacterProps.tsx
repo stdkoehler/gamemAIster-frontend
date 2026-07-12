@@ -723,6 +723,105 @@ export interface DragonlanceCharacter {
 }
 
 // =====================
+// The Desolate Frontier
+// Based on Forbidden Lands (Free League Publishing) —
+// Year Zero Engine; 4 attributes each act as both stat and health pool.
+// Damage is dealt to the governing attribute directly (not a separate HP pool).
+// Broken when any attribute is reduced to 0. A grim, realistic post-Civil War
+// American frontier (1870s-1880s) — no supernatural elements.
+// =====================
+
+// Forbidden Lands armor: a flat rating that absorbs damage, degraded by
+// one point per Bane rolled when damage gets through — so unlike the other
+// systems' single-number ArmorItem, this needs a current/max track.
+export interface DesolateFrontierArmor {
+  name: string;
+  rating: StatTrack;
+}
+
+// Forbidden Lands weapon stats: GRIP (hands required), DAMAGE (Strength
+// damage on a hit), RANGE (max effective range band), FEATURES (e.g.
+// "Concealable", "Two-handed", "Slow").
+export interface DesolateFrontierWeapon {
+  name: string;
+  grip: "1H" | "2H";
+  damage: number;
+  range: "Arm's Length" | "Near" | "Short" | "Long";
+  features?: string[];
+}
+
+export interface DesolateFrontierCharacter {
+  gameType: GameType.DESOLATE_FRONTIER;
+  id: number;
+  name: string;
+  origin: string; // e.g. Homesteader, Drifter, Ex-Soldier, Outlaw, Native Scout, Freedman
+  originAbility: string; // each origin has a unique special ability
+  profession: string; // Gunslinger, Lawman, Outlaw, Rancher, Prospector, Preacher, Gambler...
+  age?: string; // Young / Middle-aged / Old (affects starting attribute values)
+  description: string;
+
+  // Attributes 2–5 (one die per point: d6/d8/d10/d12)
+  // In Forbidden Lands each attribute is also its own damage track.
+  // A character is Broken in an aspect when that attribute's current value = 0.
+  attributes: {
+    Strength: number;
+    Agility: number;
+    Wits: number;
+    Empathy: number;
+  };
+
+  // Attribute damage — tracks current value after taking damage.
+  // Broken conditions: Strength/Agility → Exhausted; Wits → Confused; Empathy → Hopeless.
+  attributeDamage: {
+    Strength: number; // current (starts equal to attributes.Strength)
+    Agility: number;
+    Wits: number;
+    Empathy: number;
+  };
+
+  // Skills 0–5 (under their governing attribute) — the canonical Forbidden
+  // Lands 16-skill list, 4 per attribute.
+  skills: {
+    // Strength
+    Might: number;
+    Endurance: number;
+    Melee: number;
+    Crafting: number;
+    // Agility
+    Stealth: number;
+    "Sleight of Hand": number;
+    Move: number;
+    Marksmanship: number;
+    // Wits
+    Scouting: number;
+    Lore: number;
+    Survival: number;
+    Insight: number;
+    // Empathy
+    Manipulation: number;
+    Performance: number;
+    Healing: number;
+    "Animal Handling": number;
+  };
+
+  // Talents (special abilities from profession or general pool)
+  talents: string[];
+
+  // Grit — willpower / resolve points, spent to push rolls or fuel talents
+  grit?: StatTrack;
+
+  // Equipment
+  weapons?: DesolateFrontierWeapon[];
+  armor?: DesolateFrontierArmor;
+  gear?: string[];
+
+  // Experience (used to unlock new skills and talents)
+  experience?: number;
+
+  notes?: string;
+}
+
+// =====================
 // Discriminated union — used by both NpcCard and (future) CharacterCard
 // =====================
 
@@ -733,4 +832,5 @@ export type CharacterProps =
   | SeventhSeaCharacter
   | ExpanseCharacter
   | SlavicCharacter
-  | DragonlanceCharacter;
+  | DragonlanceCharacter
+  | DesolateFrontierCharacter;

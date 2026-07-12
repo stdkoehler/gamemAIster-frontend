@@ -26,6 +26,7 @@ const TYPES = [
   ["expanse", "ExpanseCharacter"],
   ["slavic", "SlavicCharacter"],
   ["dragonlance", "DragonlanceCharacter"],
+  ["desolate_frontier", "DesolateFrontierCharacter"],
 ];
 
 mkdirSync(outputDir, { recursive: true });

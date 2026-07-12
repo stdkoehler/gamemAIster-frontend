@@ -173,7 +173,7 @@ const LoadingModal = ({ open }: { open: boolean }) => (
   </Modal>
 );
 
-const gamesWithHeroModeSwitch = [GameType.EXPANSE]; // Add more GameTypes as needed
+const gamesWithHeroModeSwitch = [GameType.EXPANSE, GameType.DESOLATE_FRONTIER]; // Add more GameTypes as needed
 
 const NewMissionModal = ({
   open,
@@ -260,6 +260,7 @@ const NewMissionModal = ({
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
         <MenuItem value={GameType.DRAGONLANCE}>Dragonlance (D&D 5E)</MenuItem>
+        <MenuItem value={GameType.DESOLATE_FRONTIER}>The Desolate Frontier</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
 
@@ -658,6 +659,7 @@ function FilterableLoadMissionModal({
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
         <MenuItem value={GameType.DRAGONLANCE}>Dragonlance (D&D 5E)</MenuItem>
+        <MenuItem value={GameType.DESOLATE_FRONTIER}>The Desolate Frontier</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
       <Autocomplete
