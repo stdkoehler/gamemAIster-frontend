@@ -21,10 +21,15 @@ interface Props {
   onUpdate: (c: DesolateFrontierCharacter) => void;
 }
 
+const labelMinWidth = 130;
+
 const ATTRS = ["Strength", "Agility", "Wits", "Empathy"] as const;
 
 // Canonical Forbidden Lands 16-skill list, 4 per attribute.
-const SKILLS_BY_ATTR: Record<string, (keyof DesolateFrontierCharacter["skills"])[]> = {
+const SKILLS_BY_ATTR: Record<
+  string,
+  (keyof DesolateFrontierCharacter["skills"])[]
+> = {
   Strength: ["Might", "Endurance", "Melee", "Crafting"],
   Agility: ["Stealth", "Sleight of Hand", "Move", "Marksmanship"],
   Wits: ["Scouting", "Lore", "Survival", "Insight"],
@@ -78,28 +83,28 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
           leftFlex={2}
           left={
             <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
-              <FieldRow label="Name">
+              <FieldRow label="Name" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.name} onChange={(v) => up("name", v)} />
               </FieldRow>
-              <FieldRow label="Origin">
+              <FieldRow label="Origin" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.origin} onChange={(v) => up("origin", v)} />
               </FieldRow>
-              <FieldRow label="Origin Ability">
+              <FieldRow label="Origin Ability" labelMinWidth={labelMinWidth}>
                 <TextInput
                   value={c.originAbility}
                   onChange={(v) => up("originAbility", v)}
                 />
               </FieldRow>
-              <FieldRow label="Profession">
+              <FieldRow label="Profession" labelMinWidth={labelMinWidth}>
                 <TextInput
                   value={c.profession}
                   onChange={(v) => up("profession", v)}
                 />
               </FieldRow>
-              <FieldRow label="Age">
+              <FieldRow label="Age" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.age ?? ""} onChange={(v) => up("age", v)} />
               </FieldRow>
-              <FieldRow label="Experience">
+              <FieldRow label="Experience" labelMinWidth={labelMinWidth}>
                 <NumInput
                   value={c.experience ?? 0}
                   onChange={(v) => up("experience", v)}
@@ -259,7 +264,13 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
               {(c.weapons ?? []).map((w, i) => (
                 <Box
                   key={i}
-                  sx={{ mb: 1, p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+                  sx={{
+                    mb: 1,
+                    p: 1,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                  }}
                 >
                   <Box sx={{ display: "flex", gap: 0.5, mb: 0.5 }}>
                     <TextInput
@@ -329,7 +340,12 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
                 onClick={() =>
                   up("weapons", [
                     ...(c.weapons ?? []),
-                    { name: "New Weapon", grip: "1H", damage: 1, range: "Arm's Length" },
+                    {
+                      name: "New Weapon",
+                      grip: "1H",
+                      damage: 1,
+                      range: "Arm's Length",
+                    },
                   ])
                 }
               >
@@ -344,7 +360,10 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
                   value={c.armor?.name ?? ""}
                   onChange={(v) =>
                     up("armor", {
-                      ...(c.armor ?? { name: "", rating: { current: 0, max: 0 } }),
+                      ...(c.armor ?? {
+                        name: "",
+                        rating: { current: 0, max: 0 },
+                      }),
                       name: v,
                     })
                   }
@@ -356,8 +375,14 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
                     value={c.armor?.rating?.current ?? 0}
                     onChange={(v) =>
                       up("armor", {
-                        ...(c.armor ?? { name: "", rating: { current: 0, max: 0 } }),
-                        rating: { ...(c.armor?.rating ?? { current: 0, max: 0 }), current: v },
+                        ...(c.armor ?? {
+                          name: "",
+                          rating: { current: 0, max: 0 },
+                        }),
+                        rating: {
+                          ...(c.armor?.rating ?? { current: 0, max: 0 }),
+                          current: v,
+                        },
                       })
                     }
                     max={10}
@@ -367,8 +392,14 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
                     value={c.armor?.rating?.max ?? 0}
                     onChange={(v) =>
                       up("armor", {
-                        ...(c.armor ?? { name: "", rating: { current: 0, max: 0 } }),
-                        rating: { ...(c.armor?.rating ?? { current: 0, max: 0 }), max: v },
+                        ...(c.armor ?? {
+                          name: "",
+                          rating: { current: 0, max: 0 },
+                        }),
+                        rating: {
+                          ...(c.armor?.rating ?? { current: 0, max: 0 }),
+                          max: v,
+                        },
                       })
                     }
                     max={10}
