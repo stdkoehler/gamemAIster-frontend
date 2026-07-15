@@ -32,13 +32,13 @@ export const desolateFrontierTheme = createTheme({
     mode: "dark",
     primary: {
       light: "#c8a878", // sun-bleached tan
-      main: "#9a7848", // weathered wood
+      main: "#9a7848", // weathered wood <- theme 1
       dark: "#5a4020", // dark saddle leather
       contrastText: "#f0e0c0", // dusty parchment
     },
     secondary: {
       light: "#d88838", // desert clay
-      main: "#b0601a", // rust / ochre
+      main: "#b0601a", // rust / ochre <- theme 2
       dark: "#6a3608", // dried rust
       contrastText: "#ffe8c8",
     },
@@ -72,7 +72,7 @@ export const desolateFrontierTheme = createTheme({
     },
     text: {
       primary: "#e0cca0", // dusty parchment
-      secondary: "#b09868", // saddle leather
+      secondary: "#b09868", // saddle leather <. theme 3
       disabled: "#5c4c30", // faded ash
     },
   },
@@ -663,6 +663,6 @@ export const desolateFrontierTheme = createTheme({
   // Placeholder pointing at an existing generated asset until the project
   // owner drops in a purpose-made western hero image under
   // src/assets/desolate_frontier/ (see other themes' `logo` for the pattern).
-  logo: "/src/assets/slavic800ad/ComfyUI_temp_pzmrj_00017_.png",
+  logo: "/src/assets/desolate_frontier/ComfyUI_temp_uovqn_00008_.png",
   trackColors: { low: "#687838", mid: "#9a6828", high: "#821c18" },
 });
