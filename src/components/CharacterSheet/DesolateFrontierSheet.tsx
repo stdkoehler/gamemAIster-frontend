@@ -259,6 +259,14 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
               />
             </SheetSection>
 
+            {/* ── Pride ── */}
+            <SheetSection title="Prides">
+              <ChipListEditor
+                value={c.prides}
+                onChange={(v) => up("prides", v)}
+              />
+            </SheetSection>
+
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
               {(c.weapons ?? []).map((w, i) => (

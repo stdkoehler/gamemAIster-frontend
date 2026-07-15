@@ -136,7 +136,9 @@ export interface V5Weapon {
   damage: number;
   skill: "Brawl" | "Melee" | "Firearms";
   range?: number;
-  properties?: Array<"Concealable" | "Two-handed" | "Loud" | "Automatic" | "Special">;
+  properties?: Array<
+    "Concealable" | "Two-handed" | "Loud" | "Automatic" | "Special"
+  >;
 }
 
 // nature drives which optional blocks apply:
@@ -158,9 +160,9 @@ export interface VampireCharacter {
   sire?: string;
   generation?: number; // 4th–16th
   predatorType?: string; // Alleycat, Sandman, Siren, Bagger, etc.
-  birthday?: string;     // mortal birth date
-  embraced?: string;     // date of embrace
-  apparentAge?: number;  // apparent age in years
+  birthday?: string; // mortal birth date
+  embraced?: string; // date of embrace
+  apparentAge?: number; // apparent age in years
 
   ambition?: string;
   desire?: string;
@@ -224,10 +226,13 @@ export interface VampireCharacter {
   // Disciplines — level plus the specific powers chosen within that discipline.
   // V5 requires explicitly selecting powers; having Dominate 3 does not mean
   // all three level-1/2/3 powers are known — they must be purchased individually.
-  disciplines?: Record<string, {
-    level: number; // highest level purchased (1–5)
-    powers: string[]; // e.g. ["Cloud Memory", "Compel", "Mesmerize"]
-  }>;
+  disciplines?: Record<
+    string,
+    {
+      level: number; // highest level purchased (1–5)
+      powers: string[]; // e.g. ["Cloud Memory", "Compel", "Mesmerize"]
+    }
+  >;
 
   // Merits & Flaws (Advantages / Flaws in V5 terminology); name → level 1–5
   merits?: Record<string, number>;
@@ -323,12 +328,24 @@ export interface CthulhuCharacter {
     moveRate: number; // 7–9 based on STR/DEX vs SIZ
     // Half and Fifth values for each characteristic
     half: {
-      STR: number; DEX: number; INT: number; CON: number;
-      APP: number; POW: number; SIZ: number; EDU: number;
+      STR: number;
+      DEX: number;
+      INT: number;
+      CON: number;
+      APP: number;
+      POW: number;
+      SIZ: number;
+      EDU: number;
     };
     fifth: {
-      STR: number; DEX: number; INT: number; CON: number;
-      APP: number; POW: number; SIZ: number; EDU: number;
+      STR: number;
+      DEX: number;
+      INT: number;
+      CON: number;
+      APP: number;
+      POW: number;
+      SIZ: number;
+      EDU: number;
     };
   };
 
@@ -380,7 +397,9 @@ export interface SeventhSeaWeapon {
   name: string;
   trait: "Brawn" | "Finesse" | "Wits"; // Trait used with Weaponry or Aim
   type: "fencing" | "heavy" | "firearm" | "improvised" | "thrown";
-  properties?: Array<"Dueling" | "Paired" | "Reload" | "Reach" | "Gunpowder" | "Defensive">;
+  properties?: Array<
+    "Dueling" | "Paired" | "Reload" | "Reach" | "Gunpowder" | "Defensive"
+  >;
 }
 
 export interface SeventhSeaCharacter {
@@ -806,6 +825,9 @@ export interface DesolateFrontierCharacter {
 
   // Talents (special abilities from profession or general pool)
   talents: string[];
+
+  // Pride
+  prides: string[];
 
   // Grit — willpower / resolve points, spent to push rolls or fuel talents
   grit?: StatTrack;
