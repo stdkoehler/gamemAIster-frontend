@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, TextField } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import {
   DesolateFrontierCharacter,
   DesolateFrontierWeapon,
+  DesolateFrontierBounty,
 } from "../../models/CharacterProps";
 import {
   SheetSection,
@@ -25,15 +26,48 @@ const labelMinWidth = 130;
 
 const ATTRS = ["Strength", "Agility", "Wits", "Empathy"] as const;
 
-// Canonical Forbidden Lands 16-skill list, 4 per attribute.
+// The Damned Frontier's custom 16-skill list, 4 per attribute (ruleset §1).
 const SKILLS_BY_ATTR: Record<
   string,
   (keyof DesolateFrontierCharacter["skills"])[]
 > = {
-  Strength: ["Might", "Endurance", "Melee", "Crafting"],
-  Agility: ["Stealth", "Sleight of Hand", "Move", "Marksmanship"],
-  Wits: ["Scouting", "Lore", "Survival", "Insight"],
-  Empathy: ["Manipulation", "Performance", "Healing", "Animal Handling"],
+  Strength: ["Melee", "Endurance", "Labor", "Intimidation"],
+  Agility: ["Shooting", "Riding", "Sleight of Hand", "Move"],
+  Wits: ["Tracking", "Survival", "Gambling", "Repair"],
+  Empathy: ["Persuasion", "Leadership", "Animal Handling", "Healing"],
+};
+
+const ReputationAdder: React.FC<{ onAdd: (tag: string) => void }> = ({
+  onAdd,
+}) => {
+  const [tag, setTag] = useState("");
+  const add = () => {
+    const trimmed = tag.trim();
+    if (trimmed) {
+      onAdd(trimmed);
+      setTag("");
+    }
+  };
+  return (
+    <Box sx={{ display: "flex", gap: 0.5 }}>
+      <TextField
+        value={tag}
+        onChange={(e) => setTag(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            add();
+          }
+        }}
+        size="small"
+        placeholder="Add tag (e.g. Lawman)..."
+        sx={{ flex: 1 }}
+      />
+      <IconButton size="small" onClick={add}>
+        <AddIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
 };
 
 const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
@@ -66,13 +100,39 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
     onUpdate(next);
   };
 
-  const upGrit = (field: "current" | "max", v: number) => {
+  const upWillpower = (field: "current" | "max", v: number) => {
     const next = {
       ...c,
-      grit: { ...(c.grit ?? { current: 0, max: 0 }), [field]: v },
+      willpower: { ...(c.willpower ?? { current: 0, max: 0 }), [field]: v },
     };
     setC(next);
     onUpdate(next);
+  };
+
+  const upBountyAmount = (v: number) => {
+    const next: DesolateFrontierBounty = {
+      ...(c.bounty ?? { amount: 0, level: "Minor" }),
+      amount: v,
+    };
+    up("bounty", next);
+  };
+
+  const upBountyLevel = (v: DesolateFrontierBounty["level"]) => {
+    const next: DesolateFrontierBounty = {
+      ...(c.bounty ?? { amount: 0, level: "Minor" }),
+      level: v,
+    };
+    up("bounty", next);
+  };
+
+  const upReputation = (tag: string, level: number | null) => {
+    const next = { ...(c.reputation ?? {}) };
+    if (level === null) {
+      delete next[tag];
+    } else {
+      next[tag] = level;
+    }
+    up("reputation", next);
   };
 
   return (
@@ -112,6 +172,15 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
                   width={80}
                 />
               </FieldRow>
+              <FieldRow label="Cash ($)" labelMinWidth={labelMinWidth}>
+                <NumInput
+                  value={c.cash ?? 0}
+                  onChange={(v) => up("cash", v)}
+                  max={999999}
+                  float
+                  width={90}
+                />
+              </FieldRow>
             </Box>
           }
           right={
@@ -120,8 +189,18 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
                 value={c.description}
                 onChange={(v) => up("description", v)}
                 multiline
-                rows={6}
+                rows={4}
                 label="Description"
+              />
+              <TextInput
+                value={c.pride ?? ""}
+                onChange={(v) => up("pride", v)}
+                label="Pride"
+              />
+              <TextInput
+                value={c.darkSecret ?? ""}
+                onChange={(v) => up("darkSecret", v)}
+                label="Dark Secret"
               />
             </Box>
           }
@@ -226,27 +305,82 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
               ))}
             </SheetSection>
 
-            {/* ── Grit ── */}
-            {c.grit !== undefined && (
-              <SheetSection title="Grit">
+            {/* ── Willpower (fuels Grit/Luck/Faith, ruleset §8) ── */}
+            {c.willpower !== undefined && (
+              <SheetSection title="Willpower">
                 <Box sx={{ display: "flex", gap: 2 }}>
                   <FieldRow label="Current">
                     <NumInput
-                      value={c.grit!.current}
-                      onChange={(v) => upGrit("current", v)}
+                      value={c.willpower!.current}
+                      onChange={(v) => upWillpower("current", v)}
                       max={10}
                     />
                   </FieldRow>
                   <FieldRow label="Max">
                     <NumInput
-                      value={c.grit!.max}
-                      onChange={(v) => upGrit("max", v)}
+                      value={c.willpower!.max}
+                      onChange={(v) => upWillpower("max", v)}
                       max={10}
                     />
                   </FieldRow>
                 </Box>
               </SheetSection>
             )}
+
+            {/* ── Reputation & Bounty (ruleset §10) ── */}
+            <SheetSection title="Reputation & Bounty">
+              {Object.entries(c.reputation ?? {}).map(([tag, level]) => (
+                <Box
+                  key={tag}
+                  sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}
+                >
+                  <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
+                    {tag}
+                  </Typography>
+                  <NumInput
+                    value={level}
+                    onChange={(v) => upReputation(tag, v)}
+                    min={-2}
+                    max={2}
+                    width={56}
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={() => upReputation(tag, null)}
+                    sx={{ p: 0.25 }}
+                  >
+                    ×
+                  </IconButton>
+                </Box>
+              ))}
+              <ReputationAdder onAdd={(tag) => upReputation(tag, 1)} />
+              <Box sx={{ display: "flex", gap: 2, mt: 1.5, alignItems: "center" }}>
+                <FieldRow label="Bounty ($)">
+                  <NumInput
+                    value={c.bounty?.amount ?? 0}
+                    onChange={upBountyAmount}
+                    max={999999}
+                    width={90}
+                  />
+                </FieldRow>
+                <FieldRow label="Level">
+                  <TextInput
+                    value={c.bounty?.level ?? ""}
+                    onChange={(v) =>
+                      upBountyLevel(v as DesolateFrontierBounty["level"])
+                    }
+                    fullWidth={false}
+                  />
+                </FieldRow>
+              </Box>
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", display: "block", mt: 0.5 }}
+              >
+                Reputation: -2/-1/1/2 = Extreme Negative/Negative/Positive/
+                Extreme Positive. Bounty level: Minor/Moderate/Major/Legendary.
+              </Typography>
+            </SheetSection>
           </>
         }
         right={
@@ -256,14 +390,6 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <ChipListEditor
                 value={c.talents}
                 onChange={(v) => up("talents", v)}
-              />
-            </SheetSection>
-
-            {/* ── Pride ── */}
-            <SheetSection title="Prides">
-              <ChipListEditor
-                value={c.prides}
-                onChange={(v) => up("prides", v)}
               />
             </SheetSection>
 
@@ -421,6 +547,15 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <ListEditor
                 value={c.gear ?? []}
                 onChange={(v) => up("gear", v)}
+                rows={3}
+              />
+            </SheetSection>
+
+            {/* ── Relationships ── */}
+            <SheetSection title="Relationships & Bonds">
+              <ListEditor
+                value={c.relationships ?? []}
+                onChange={(v) => up("relationships", v)}
                 rows={3}
               />
             </SheetSection>

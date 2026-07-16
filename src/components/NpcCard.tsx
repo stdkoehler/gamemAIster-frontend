@@ -896,12 +896,12 @@ const DragonlanceNpcCard: React.FC<DragonlanceCharacter & WithUpdate> = (c) => {
 };
 
 const DESOLATE_FRONTIER_COMBAT_SKILLS: Array<keyof DesolateFrontierCharacter["skills"]> = [
-  "Might",
-  "Endurance",
   "Melee",
-  "Stealth",
+  "Endurance",
+  "Shooting",
   "Move",
-  "Marksmanship",
+  "Sleight of Hand",
+  "Tracking",
 ];
 
 const DesolateFrontierNpcCard: React.FC<DesolateFrontierCharacter & WithUpdate> = (c) => {

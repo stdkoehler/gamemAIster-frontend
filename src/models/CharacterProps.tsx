@@ -743,11 +743,13 @@ export interface DragonlanceCharacter {
 
 // =====================
 // The Desolate Frontier
-// Based on Forbidden Lands (Free League Publishing) —
+// A homebrew Western conversion of Forbidden Lands (Free League Publishing) —
 // Year Zero Engine; 4 attributes each act as both stat and health pool.
 // Damage is dealt to the governing attribute directly (not a separate HP pool).
 // Broken when any attribute is reduced to 0. A grim, realistic post-Civil War
-// American frontier (1870s-1880s) — no supernatural elements.
+// American frontier (1870s-1890s) — no supernatural elements. See the
+// "DAMNED FRONTIER" ruleset doc for the full custom skill list, Willpower
+// (Grit/Luck/Faith) subsystem, and Reputation & Bounty system.
 // =====================
 
 // Forbidden Lands armor: a flat rating that absorbs damage, degraded by
@@ -769,13 +771,25 @@ export interface DesolateFrontierWeapon {
   features?: string[];
 }
 
+// Reputation tag → standing, per the Reputation & Bounty system: Extreme
+// Negative (-2) / Negative (-1) / Positive (+1) / Extreme Positive (+2).
+// e.g. { "Lawman": 1, "Indian Fighter": -2 }
+export type DesolateFrontierReputation = Record<string, number>;
+
+// A price on the character's head, tracked once it's incurred (omitted
+// entirely when the character has no active bounty).
+export interface DesolateFrontierBounty {
+  amount: number; // dollars
+  level: "Minor" | "Moderate" | "Major" | "Legendary";
+}
+
 export interface DesolateFrontierCharacter {
   gameType: GameType.DESOLATE_FRONTIER;
   id: number;
   name: string;
   origin: string; // e.g. Homesteader, Drifter, Ex-Soldier, Outlaw, Native Scout, Freedman
   originAbility: string; // each origin has a unique special ability
-  profession: string; // Gunslinger, Lawman, Outlaw, Rancher, Prospector, Preacher, Gambler...
+  profession: string; // Archetype: Gunslinger, Lawman, Outlaw, Rancher, Prospector, Doctor, Preacher, Drifter...
   age?: string; // Young / Middle-aged / Old (affects starting attribute values)
   description: string;
 
@@ -790,7 +804,8 @@ export interface DesolateFrontierCharacter {
   };
 
   // Attribute damage — tracks current value after taking damage.
-  // Broken conditions: Strength/Agility → Exhausted; Wits → Confused; Empathy → Hopeless.
+  // Broken conditions: Strength → Knocked senseless; Agility → Exhausted;
+  // Wits → Terrified/confused; Empathy → Despair (violent outburst or withdrawal).
   attributeDamage: {
     Strength: number; // current (starts equal to attributes.Strength)
     Agility: number;
@@ -798,44 +813,54 @@ export interface DesolateFrontierCharacter {
     Empathy: number;
   };
 
-  // Skills 0–5 (under their governing attribute) — the canonical Forbidden
-  // Lands 16-skill list, 4 per attribute.
+  // Skills 0–5 (under their governing attribute) — the Damned Frontier's
+  // custom 16-skill list, 4 per attribute (see ruleset §1).
   skills: {
     // Strength
-    Might: number;
-    Endurance: number;
     Melee: number;
-    Crafting: number;
+    Endurance: number;
+    Labor: number;
+    Intimidation: number;
     // Agility
-    Stealth: number;
+    Shooting: number;
+    Riding: number;
     "Sleight of Hand": number;
     Move: number;
-    Marksmanship: number;
     // Wits
-    Scouting: number;
-    Lore: number;
+    Tracking: number;
     Survival: number;
-    Insight: number;
+    Gambling: number;
+    Repair: number;
     // Empathy
-    Manipulation: number;
-    Performance: number;
-    Healing: number;
+    Persuasion: number;
+    Leadership: number;
     "Animal Handling": number;
+    Healing: number;
   };
 
-  // Talents (special abilities from profession or general pool)
+  // Talents (special abilities from profession or general pool; see ruleset §11)
   talents: string[];
 
-  // Pride
-  prides: string[];
+  // Pride — once per session, re-roll all dice if it applies (core FL trait)
+  pride?: string;
+  darkSecret?: string;
 
-  // Grit — willpower / resolve points, spent to push rolls or fuel talents
-  grit?: StatTrack;
+  // Willpower — fuels the Grit/Luck/Faith abilities that replace fantasy
+  // magic in this setting (ruleset §8).
+  willpower?: StatTrack;
+
+  // Reputation & Bounty (ruleset §10)
+  reputation?: DesolateFrontierReputation;
+  bounty?: DesolateFrontierBounty;
 
   // Equipment
   weapons?: DesolateFrontierWeapon[];
   armor?: DesolateFrontierArmor;
   gear?: string[];
+  cash?: number; // dollars on hand
+
+  // Relationships / bonds with other player characters
+  relationships?: string[];
 
   // Experience (used to unlock new skills and talents)
   experience?: number;
