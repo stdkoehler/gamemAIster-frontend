@@ -102,10 +102,11 @@ export interface LlmSettingsOverviewPayload {
   providers: LlmProviderSettingsPayload[];
 }
 
-/** Note: no `local_mode` here — which local client a model needs
- * (native-completions vs native-tool-calling) is a property of the model,
- * not a user choice, so the backend always derives it server-side from
- * `model_name` rather than accepting it from the client. */
+/** `local_mode` is only honored by the backend for a *custom* model_name —
+ * one that isn't a known preset from GET /settings/llm/local-models. For a
+ * known preset, which local client it needs is a property of the model, not
+ * a user choice, and is always derived server-side regardless of what's
+ * sent here. */
 export interface SaveLlmSettingsPayload {
   provider: LlmProvider;
   model_name?: string | null;
@@ -113,4 +114,5 @@ export interface SaveLlmSettingsPayload {
   local_host?: string | null;
   local_port?: number | null;
   local_interface?: LocalInterface | null;
+  local_mode?: LocalMode | null;
 }

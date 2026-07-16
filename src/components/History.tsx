@@ -21,6 +21,7 @@ import {
   sendTextToSpeech,
   sendTextToSpeechStream,
   sendPlayerInputToLlm,
+  LlmNotConfiguredError,
 } from "../functions/restInterface";
 import { Interaction } from "../models/MissionModels";
 import { TtsVoice } from "../models/Types";
@@ -29,6 +30,7 @@ import { FieldContainerType, FieldContainerHandle } from "./FieldContainer";
 import useHistoryStore from "../stores/historyStore";
 import useAppStore from "../stores/appStore";
 import useCharacterStore from "../stores/characterStore";
+import useNotificationStore from "../stores/notificationStore";
 import { useShallow } from "zustand/react/shallow";
 
 type HistoryProps = {
@@ -84,6 +86,7 @@ const History = ({ mission, disabled }: HistoryProps) => {
   );
   const commitPlayerInput = useHistoryStore((state) => state.commitPlayerInput);
   const flushPendingCharacterSaves = useCharacterStore((state) => state.flushPendingSaves);
+  const showError = useNotificationStore((state) => state.showError);
 
   // ===== TTS VOICE =====
   const ttsVoice = useAppStore((state) => state.ttsVoice);
@@ -195,7 +198,11 @@ const History = ({ mission, disabled }: HistoryProps) => {
         updateLlmThinking(streamedThinking);
       } catch (error) {
         rollbackOptimisticUpdate(originalState);
-        console.log("Failed to send player input:", error);
+        if (error instanceof LlmNotConfiguredError) {
+          showError(error.message);
+        } else {
+          console.log("Failed to send player input:", error);
+        }
       }
     },
     [
@@ -205,6 +212,7 @@ const History = ({ mission, disabled }: HistoryProps) => {
       updateLlmThinking,
       rollbackOptimisticUpdate,
       flushPendingCharacterSaves,
+      showError,
     ],
   );
 
@@ -249,7 +257,11 @@ const History = ({ mission, disabled }: HistoryProps) => {
         updateLlmOutput(streamedContent);
         updateLlmThinking(streamedThinking);
       } catch (error) {
-        console.error("Failed to regenerate:", error);
+        if (error instanceof LlmNotConfiguredError) {
+          showError(error.message);
+        } else {
+          console.error("Failed to regenerate:", error);
+        }
       }
     },
     [
@@ -259,6 +271,7 @@ const History = ({ mission, disabled }: HistoryProps) => {
       updateLlmOutput,
       updateLlmThinking,
       flushPendingCharacterSaves,
+      showError,
     ],
   );
 

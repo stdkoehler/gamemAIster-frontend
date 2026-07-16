@@ -55,6 +55,32 @@ const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
 // Helper Logic   //
 ////////////////////
 
+/** Thrown when the backend reports `error_code: "llm_not_configured"` (HTTP
+ * 428) — the user hasn't picked an LLM provider/model, or a key-based
+ * provider is missing its key. `message` is the backend's own friendly,
+ * user-facing text, ready to show as-is. */
+export class LlmNotConfiguredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LlmNotConfiguredError";
+  }
+}
+
+/** Reads a non-OK response body and, if it carries the backend's
+ * `llm_not_configured` shape, returns its friendly `detail` message so
+ * callers can throw `LlmNotConfiguredError` instead of a generic error. */
+async function readLlmNotConfiguredDetail(res: Response): Promise<string | null> {
+  try {
+    const data = await res.clone().json();
+    if (data?.error_code === "llm_not_configured" && typeof data.detail === "string") {
+      return data.detail;
+    }
+  } catch {
+    // Not JSON, or doesn't match the shape — not this error.
+  }
+  return null;
+}
+
 /**
  * Performs a fetch-based API request with streamlined error reporting and JSON parsing.
  * It's a generic function designed to be used by other specific API call functions.
@@ -96,6 +122,10 @@ async function apiRequest<T>(
     });
 
     if (!res.ok) {
+      const llmNotConfiguredDetail = await readLlmNotConfiguredDetail(res);
+      if (llmNotConfiguredDetail) {
+        throw new LlmNotConfiguredError(llmNotConfiguredDetail);
+      }
       let errorDetail = "";
       try {
         errorDetail = "\n" + (await res.text());
@@ -113,6 +143,9 @@ async function apiRequest<T>(
     const json = (await res.json()) as T;
     return json;
   } catch (err) {
+    if (err instanceof LlmNotConfiguredError) {
+      throw err;
+    }
     if (err instanceof TypeError) {
       // fetch() rejects with a TypeError (e.g. "Failed to fetch") when the
       // network request itself never completes, as opposed to the server
@@ -193,6 +226,10 @@ export async function sendPlayerInputToLlm({
     });
 
     if (!response.ok) {
+      const llmNotConfiguredDetail = await readLlmNotConfiguredDetail(response);
+      if (llmNotConfiguredDetail) {
+        throw new LlmNotConfiguredError(llmNotConfiguredDetail);
+      }
       throw new Error(`Failed to stream LLM: ${response.statusText}`);
     }
 
@@ -241,6 +278,9 @@ export async function sendPlayerInputToLlm({
       llmOutput: "❌ Error receiving LLM response.",
       llmThinking: "",
     });
+    if (err instanceof LlmNotConfiguredError) {
+      throw err;
+    }
     throw new Error(
       `Error streaming LLM output: ${
         err instanceof Error ? err.message : String(err)

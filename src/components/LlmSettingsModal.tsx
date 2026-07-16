@@ -32,6 +32,10 @@ const LOCAL_MODE_LABELS: Record<LocalMode, string> = {
   [LocalMode.NATIVE_TOOL_CALLING]: "Native tool-calling",
 };
 
+// Sentinel for the model dropdown's "type your own model name" option —
+// distinct from any real model id.
+const CUSTOM_MODEL_VALUE = "__custom__";
+
 // Providers whose model is free-text (matches the backend's per-provider
 // model-name overrides — see LOCAL_MODEL/OPENROUTER_MODEL env vars in
 // build_gamemaster()). DeepSeek/MiniMax use fixed chat/reasoning models.
@@ -65,7 +69,11 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
 
   const [formProvider, setFormProvider] =
     React.useState<LlmProvider>(activeProvider);
-  const [formModelName, setFormModelName] = React.useState("");
+  // The model dropdown's current selection — a known model id, or the
+  // CUSTOM_MODEL_VALUE sentinel when the user is typing their own.
+  const [formModelSelection, setFormModelSelection] = React.useState("");
+  // Only used while formModelSelection === CUSTOM_MODEL_VALUE.
+  const [formCustomModelName, setFormCustomModelName] = React.useState("");
   const [formApiKey, setFormApiKey] = React.useState("");
   const [formLocalHost, setFormLocalHost] = React.useState("");
   const [formLocalPort, setFormLocalPort] = React.useState(0);
@@ -75,6 +83,19 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
     LocalMode.NATIVE_COMPLETIONS,
   );
   const [saving, setSaving] = React.useState(false);
+
+  const isCustomModel = formModelSelection === CUSTOM_MODEL_VALUE;
+  const matchedKnownModel = knownModels.find(
+    (m) => m.id === formModelSelection,
+  );
+  // For OpenRouter (free-text) formModelSelection isn't used at all — its
+  // own TextField below tracks formCustomModelName directly.
+  const formModelName =
+    formProvider === LlmProvider.LOCAL
+      ? isCustomModel
+        ? formCustomModelName
+        : formModelSelection
+      : formCustomModelName;
 
   // Populate the form fields from a given provider's saved settings. The API
   // key input always starts blank (the key is never sent back to the client).
@@ -87,19 +108,25 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
       setFormLocalPort(s.localPort);
       setFormLocalInterface(s.localInterface);
       if (nextProvider === LlmProvider.LOCAL) {
-        // The model dropdown only offers known models — if the saved value
-        // isn't one (e.g. a legacy custom entry from before this was a
-        // closed list, or nothing saved yet), fall back to the first known
-        // model rather than showing an unselectable value.
-        const isKnown = knownModels.some((m) => m.id === s.modelName);
-        const modelName = isKnown ? s.modelName : (knownModels[0]?.id ?? "");
-        setFormModelName(modelName);
-        setFormLocalMode(
-          knownModels.find((m) => m.id === modelName)?.mode ??
-            LocalMode.NATIVE_COMPLETIONS,
-        );
+        const known = knownModels.find((m) => m.id === s.modelName);
+        if (known) {
+          setFormModelSelection(known.id);
+          setFormCustomModelName("");
+          setFormLocalMode(known.mode);
+        } else if (s.modelName) {
+          // A previously saved custom model.
+          setFormModelSelection(CUSTOM_MODEL_VALUE);
+          setFormCustomModelName(s.modelName);
+          setFormLocalMode(s.localMode);
+        } else {
+          // Nothing saved yet — default to the first known preset.
+          const first = knownModels[0];
+          setFormModelSelection(first?.id ?? CUSTOM_MODEL_VALUE);
+          setFormCustomModelName("");
+          setFormLocalMode(first?.mode ?? LocalMode.NATIVE_COMPLETIONS);
+        }
       } else {
-        setFormModelName(s.modelName);
+        setFormCustomModelName(s.modelName);
         setFormLocalMode(s.localMode);
       }
     },
@@ -129,7 +156,6 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
   }, [open, loaded, activeProvider]);
 
   const currentProviderHasApiKey = perProvider[formProvider]?.hasApiKey ?? false;
-  const matchedKnownModel = knownModels.find((m) => m.id === formModelName);
 
   // Swapping the provider restores that provider's own saved settings rather
   // than carrying the current form's values over.
@@ -137,14 +163,19 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
     applyProvider(nextProvider);
   };
 
-  // Which local client a model needs (native-completions vs native-tool-
-  // calling) is a property of the model, not a user choice — the dropdown
-  // only offers known models, so the mode always comes along with the pick
-  // rather than being a separate control.
-  const handleModelChange = (modelId: string) => {
-    setFormModelName(modelId);
-    const known = knownModels.find((m) => m.id === modelId);
-    setFormLocalMode(known?.mode ?? LocalMode.NATIVE_COMPLETIONS);
+  // Which local client a known model needs (native-completions vs native-
+  // tool-calling) is a property of the model, not a user choice — picking one
+  // brings its mode along automatically. Picking "Custom" hands mode choice
+  // to the user instead, since it genuinely can't be derived for a model we
+  // don't know anything about.
+  const handleModelSelectionChange = (value: string) => {
+    setFormModelSelection(value);
+    if (value === CUSTOM_MODEL_VALUE) {
+      setFormLocalMode(LocalMode.NATIVE_COMPLETIONS);
+    } else {
+      const known = knownModels.find((m) => m.id === value);
+      setFormLocalMode(known?.mode ?? LocalMode.NATIVE_COMPLETIONS);
+    }
   };
 
   const handleReset = async () => {
@@ -173,6 +204,7 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
         localHost: formLocalHost,
         localPort: formLocalPort,
         localInterface: formLocalInterface,
+        localMode: formLocalMode,
       });
       showNotification("LLM settings saved.", "success");
       onClose();
@@ -254,8 +286,8 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
             <TextField
               select
               label="Model"
-              value={formModelName}
-              onChange={(e) => handleModelChange(e.target.value)}
+              value={formModelSelection}
+              onChange={(e) => handleModelSelectionChange(e.target.value)}
               fullWidth
               disabled={knownModels.length === 0}
               helperText={
@@ -270,16 +302,63 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
                   {m.label}
                 </MenuItem>
               ))}
+              <MenuItem value={CUSTOM_MODEL_VALUE}>
+                Custom (type your own model name)…
+              </MenuItem>
             </TextField>
 
             {matchedKnownModel && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 1 }}
-              >
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 Client mode: {LOCAL_MODE_LABELS[formLocalMode]}
               </Typography>
+            )}
+
+            {isCustomModel && (
+              <>
+                <TextField
+                  label="Model name"
+                  value={formCustomModelName}
+                  onChange={(e) => setFormCustomModelName(e.target.value)}
+                  fullWidth
+                  placeholder="e.g. the model name/filename textgen-webui reports"
+                  sx={{ mt: 3 }}
+                />
+
+                <TextField
+                  select
+                  label="Client mode"
+                  value={formLocalMode}
+                  onChange={(e) =>
+                    setFormLocalMode(e.target.value as LocalMode)
+                  }
+                  fullWidth
+                  sx={{ mt: 3 }}
+                >
+                  {Object.values(LocalMode).map((m) => (
+                    <MenuItem key={m} value={m}>
+                      {LOCAL_MODE_LABELS[m]}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <Typography
+                  variant="body2"
+                  color={
+                    formLocalMode === LocalMode.NATIVE_TOOL_CALLING
+                      ? "warning.main"
+                      : "text.secondary"
+                  }
+                  sx={{ mt: 1 }}
+                >
+                  {formLocalMode === LocalMode.NATIVE_TOOL_CALLING
+                    ? "Experimental: requires your model's chat template to " +
+                      "support tool-calling, and uses sampling tuned for " +
+                      "Gemma 4-class models — results may vary for other " +
+                      "models."
+                    : "Works with any model served over textgen-webui's " +
+                      "native completions endpoint."}
+                </Typography>
+              </>
             )}
           </>
         )}
@@ -287,8 +366,8 @@ export function LlmSettingsModal({ open, onClose }: LlmSettingsModalProps) {
         {PROVIDERS_WITH_MODEL_FIELD.has(formProvider) && (
           <TextField
             label="Model name"
-            value={formModelName}
-            onChange={(e) => setFormModelName(e.target.value)}
+            value={formCustomModelName}
+            onChange={(e) => setFormCustomModelName(e.target.value)}
             fullWidth
             placeholder="e.g. deepseek/deepseek-v4-flash"
             sx={{ mt: 3 }}

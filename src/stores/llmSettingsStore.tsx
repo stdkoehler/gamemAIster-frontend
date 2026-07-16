@@ -64,18 +64,25 @@ interface LlmSettingsState {
     localHost: string;
     localPort: number;
     localInterface: LocalInterface;
+    /** Only meaningful (and only sent) for a custom model — a known preset's
+     * mode always comes from the registry, both here and server-side. */
+    localMode: LocalMode;
   }) => Promise<void>;
   resetSettings: () => Promise<void>;
 }
 
-/** Mirrors the backend's known_local_models.mode_for(): which local client a
- * model needs is a property of the model, not something the caller picks —
- * resolved here purely for client-side display, never sent to the backend. */
-const modeForModel = (
+/** Mirrors the backend's known_local_models.resolve_local_mode(): a known
+ * preset's mode always comes from the registry; a custom model's mode is
+ * whatever was requested (defaulting to NATIVE_COMPLETIONS). Resolved here
+ * purely for client-side display/caching — the backend re-derives its own
+ * copy independently and is the actual source of truth. */
+export const resolveLocalMode = (
   knownModels: KnownLocalModel[],
   modelName: string,
+  requestedMode: LocalMode,
 ): LocalMode =>
   knownModels.find((m) => m.id === modelName)?.mode ??
+  requestedMode ??
   LocalMode.NATIVE_COMPLETIONS;
 
 const useLlmSettingsStore = create<LlmSettingsState>()((set, get) => ({
@@ -117,6 +124,7 @@ const useLlmSettingsStore = create<LlmSettingsState>()((set, get) => ({
     localHost,
     localPort,
     localInterface,
+    localMode,
   }) => {
     const isLocal = provider === LlmProvider.LOCAL;
     // DeepSeek/MiniMax use fixed models — only LOCAL and OpenRouter carry a
@@ -130,6 +138,9 @@ const useLlmSettingsStore = create<LlmSettingsState>()((set, get) => ({
       local_host: isLocal ? localHost || DEFAULT_LOCAL_HOST : null,
       local_port: isLocal ? localPort || DEFAULT_LOCAL_PORT : null,
       local_interface: isLocal ? localInterface : null,
+      // Only honored server-side for a custom model_name — ignored (and
+      // re-derived from the registry) for a known preset.
+      local_mode: isLocal ? localMode : null,
     });
     set((state) => {
       const prev = state.perProvider[provider] ?? defaultProviderSettings();
@@ -146,7 +157,7 @@ const useLlmSettingsStore = create<LlmSettingsState>()((set, get) => ({
             localPort,
             localInterface,
             localMode: isLocal
-              ? modeForModel(state.knownModels, modelName)
+              ? resolveLocalMode(state.knownModels, modelName, localMode)
               : prev.localMode,
           },
         },
