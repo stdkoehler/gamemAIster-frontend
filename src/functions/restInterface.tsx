@@ -26,7 +26,14 @@
  */
 
 import { CharacterRecord, Interaction, Mission, MissionLoadData } from "../models/MissionModels";
-import { CharacterSheetPayload, MissionPayload, PromptPayload } from "../models/RestInterface";
+import {
+  CharacterSheetPayload,
+  MissionPayload,
+  PromptPayload,
+  LlmSettingsOverviewPayload,
+  SaveLlmSettingsPayload,
+  KnownLocalModel,
+} from "../models/RestInterface";
 import { PlayerInputData } from "../models/PlayerInputData";
 import { MissionLoadPayload } from "../models/RestInterface";
 import { CharacterProps } from "../models/CharacterProps";
@@ -63,7 +70,7 @@ const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
  */
 async function apiRequest<T>(
   path: string,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "DELETE",
   body?: any,
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
@@ -707,6 +714,43 @@ export async function sendTextToSpeechStream(
  * @returns {Promise<string>} - The transcribed text from the backend.
  * @throws {Error} If the request fails or the backend returns an error.
  */
+/**
+ * Fetches all of the current user's saved per-provider LLM settings plus
+ * which provider is active. `active_provider` is `null` when the user has
+ * saved nothing, in which case the backend falls back to its deployment-wide
+ * env-var configuration.
+ */
+export async function getLlmSettings(): Promise<LlmSettingsOverviewPayload> {
+  return await apiRequest<LlmSettingsOverviewPayload>("/settings/llm", "GET");
+}
+
+/**
+ * Saves the current user's LLM provider/model/API key. An omitted or blank
+ * `api_key` keeps whatever key is already stored for the user.
+ */
+export async function saveLlmSettings(
+  payload: SaveLlmSettingsPayload,
+): Promise<void> {
+  await apiRequest<void>("/settings/llm", "POST", payload);
+}
+
+/**
+ * Deletes the current user's stored LLM settings, reverting them to the
+ * backend's deployment-wide env-var configuration. Idempotent.
+ */
+export async function deleteLlmSettings(): Promise<void> {
+  await apiRequest<void>("/settings/llm", "DELETE");
+}
+
+/**
+ * Fetches the backend's known local models — each tagged with which local
+ * client mode (native-completions vs native-tool-calling) it needs, so the
+ * "LLM Settings" modal can offer them as one-click presets.
+ */
+export async function getKnownLocalModels(): Promise<KnownLocalModel[]> {
+  return await apiRequest<KnownLocalModel[]>("/settings/llm/local-models", "GET");
+}
+
 export async function sendSpeechToText(audioBlob: Blob): Promise<string> {
   const formData = new FormData();
   formData.append("file", audioBlob, "audio.webm");

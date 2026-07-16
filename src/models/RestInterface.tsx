@@ -53,3 +53,64 @@ export interface PromptPayload {
     llm_output: string;
   };
 }
+
+/** LLM providers selectable from the "LLM Settings" panel — mirrors the
+ * backend's `LlmProvider` enum (src/routers/schema/settings.py). */
+export enum LlmProvider {
+  LOCAL = "LOCAL",
+  DEEPSEEK = "DEEPSEEK",
+  MINIMAX = "MINIMAX",
+  OPENROUTER = "OPENROUTER",
+}
+
+/** Local server type — mirrors the backend's `LocalInterface` enum. Only
+ * TEXTGEN_WEBUI is functional today; OLLAMA is reserved/disabled in the UI
+ * until real support is built. */
+export enum LocalInterface {
+  TEXTGEN_WEBUI = "TEXTGEN_WEBUI",
+  OLLAMA = "OLLAMA",
+}
+
+/** Which local client/endpoint a model needs — mirrors the backend's
+ * `LocalMode` enum (src/routers/schema/settings.py). */
+export enum LocalMode {
+  NATIVE_COMPLETIONS = "NATIVE_COMPLETIONS",
+  NATIVE_TOOL_CALLING = "NATIVE_TOOL_CALLING",
+}
+
+export interface KnownLocalModel {
+  id: string;
+  label: string;
+  mode: LocalMode;
+}
+
+/** One provider's saved settings. `has_api_key` reports whether a key is
+ * stored without ever exposing it. */
+export interface LlmProviderSettingsPayload {
+  provider: LlmProvider;
+  model_name?: string | null;
+  has_api_key: boolean;
+  local_host?: string | null;
+  local_port?: number | null;
+  local_interface?: LocalInterface | null;
+  local_mode?: LocalMode | null;
+}
+
+/** All of a user's saved per-provider settings plus which one is active. */
+export interface LlmSettingsOverviewPayload {
+  active_provider: LlmProvider | null;
+  providers: LlmProviderSettingsPayload[];
+}
+
+/** Note: no `local_mode` here — which local client a model needs
+ * (native-completions vs native-tool-calling) is a property of the model,
+ * not a user choice, so the backend always derives it server-side from
+ * `model_name` rather than accepting it from the client. */
+export interface SaveLlmSettingsPayload {
+  provider: LlmProvider;
+  model_name?: string | null;
+  api_key?: string | null;
+  local_host?: string | null;
+  local_port?: number | null;
+  local_interface?: LocalInterface | null;
+}

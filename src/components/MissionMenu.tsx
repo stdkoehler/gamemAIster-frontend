@@ -41,6 +41,7 @@ import { Mission } from "../models/MissionModels";
 import { GameType } from "../models/Types";
 import useNotificationStore from "../stores/notificationStore";
 import useDiceStore from "../stores/diceStore";
+import { LlmSettingsModal } from "./LlmSettingsModal";
 
 /**
  * Enum for managing the state of active modals within the MissionMenu.
@@ -56,6 +57,8 @@ enum ModalNames {
   LOAD = "load",
   /** Indicates that a generic loading modal is active (e.g., during API calls). */
   LOADING = "loading",
+  /** Indicates that the "LLM Settings" modal is active. */
+  LLM_SETTINGS = "llm_settings",
 }
 
 /**
@@ -781,6 +784,14 @@ export function MissionMenu({
   };
 
   /**
+   * Handles the "LLM Settings" menu item click. Closes the menu and opens the LLM Settings modal.
+   */
+  const handleLlmSettingsMenuItem = () => {
+    setAnchorEl(null);
+    handleModalOpen(ModalNames.LLM_SETTINGS);
+  };
+
+  /**
    * Opens a specified modal. If opening the Load Mission modal, it first fetches the list of missions.
    * @param modalName - The name of the modal to open. See {@link ModalNames}.
    */
@@ -966,6 +977,7 @@ export function MissionMenu({
         <MenuItem onClick={handleNewMenuItem}>New Mission</MenuItem>
         <MenuItem onClick={handleSaveMenuItem}>Save Mission</MenuItem>
         <MenuItem onClick={handleLoadMenuItem}>Load Mission</MenuItem>
+        <MenuItem onClick={handleLlmSettingsMenuItem}>LLM Settings</MenuItem>
       </Menu>
 
       {/* Modals render as portals — position in tree doesn't matter */}
@@ -1004,6 +1016,10 @@ export function MissionMenu({
         selectedMission={selectedMission}
         setSelectedMission={setSelectedMission}
         getMissionData={getMissionData}
+      />
+      <LlmSettingsModal
+        open={activeModal === ModalNames.LLM_SETTINGS}
+        onClose={handleModalClose}
       />
     </Box>
   );
