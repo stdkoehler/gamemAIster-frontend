@@ -7,6 +7,8 @@ import elderSignSvg from "../../assets/callofcthulhu/dice/elder_sign.svg?raw";
 import hitSvg from "../../assets/shadowrun/dice/hit.svg?raw";
 import slavicBaneSvg from "../../assets/slavic800ad/dice/bane.svg?raw";
 import slavicSuccessSvg from "../../assets/slavic800ad/dice/success.svg?raw";
+import desolateFrontierBaneSvg from "../../assets/desolate_frontier/dice/bane.svg?raw";
+import desolateFrontierSuccessSvg from "../../assets/desolate_frontier/dice/success.svg?raw";
 
 export type DiceSymbolId =
   | "vtm-ankh"
@@ -20,6 +22,8 @@ export type DiceSymbolId =
   | "slavic-kolovrat"
   | "slavic-bane"
   | "slavic-success"
+  | "df-bane"
+  | "df-success"
   | "coc-eye"
   | "coc-elder-sign";
 
@@ -109,6 +113,9 @@ const DICE_SYMBOLS: Record<DiceSymbolId, DiceSymbolDef> = {
   // Placed by the project owner in src/assets/slavic800ad/dice/.
   "slavic-bane": { svg: slavicBaneSvg },
   "slavic-success": { svg: slavicSuccessSvg },
+  // Placed by the project owner in src/assets/desolate_frontier/dice/.
+  "df-bane": { svg: desolateFrontierBaneSvg },
+  "df-success": { svg: desolateFrontierSuccessSvg },
   // Placed by the project owner in src/assets/callofcthulhu/dice/.
   "coc-elder-sign": { svg: elderSignSvg },
 };

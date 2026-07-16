@@ -41,6 +41,7 @@ import { Mission } from "../models/MissionModels";
 import { GameType } from "../models/Types";
 import useNotificationStore from "../stores/notificationStore";
 import useDiceStore from "../stores/diceStore";
+import { LlmSettingsModal } from "./LlmSettingsModal";
 
 /**
  * Enum for managing the state of active modals within the MissionMenu.
@@ -56,6 +57,8 @@ enum ModalNames {
   LOAD = "load",
   /** Indicates that a generic loading modal is active (e.g., during API calls). */
   LOADING = "loading",
+  /** Indicates that the "LLM Settings" modal is active. */
+  LLM_SETTINGS = "llm_settings",
 }
 
 /**
@@ -173,7 +176,7 @@ const LoadingModal = ({ open }: { open: boolean }) => (
   </Modal>
 );
 
-const gamesWithHeroModeSwitch = [GameType.EXPANSE]; // Add more GameTypes as needed
+const gamesWithHeroModeSwitch = [GameType.EXPANSE, GameType.DESOLATE_FRONTIER]; // Add more GameTypes as needed
 
 const NewMissionModal = ({
   open,
@@ -260,6 +263,7 @@ const NewMissionModal = ({
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
         <MenuItem value={GameType.DRAGONLANCE}>Dragonlance (D&D 5E)</MenuItem>
+        <MenuItem value={GameType.DESOLATE_FRONTIER}>The Desolate Frontier</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
 
@@ -658,6 +662,7 @@ function FilterableLoadMissionModal({
         <MenuItem value={GameType.EXPANSE}>The Expanse</MenuItem>
         <MenuItem value={GameType.SLAVIC}>Baltic Slavic 800 A.D.</MenuItem>
         <MenuItem value={GameType.DRAGONLANCE}>Dragonlance (D&D 5E)</MenuItem>
+        <MenuItem value={GameType.DESOLATE_FRONTIER}>The Desolate Frontier</MenuItem>
         <MenuItem value={GameType.CUSTOM}>Custom</MenuItem>
       </TextField>
       <Autocomplete
@@ -776,6 +781,14 @@ export function MissionMenu({
   const handleLoadMenuItem = () => {
     setAnchorEl(null);
     handleModalOpen(ModalNames.LOAD);
+  };
+
+  /**
+   * Handles the "LLM Settings" menu item click. Closes the menu and opens the LLM Settings modal.
+   */
+  const handleLlmSettingsMenuItem = () => {
+    setAnchorEl(null);
+    handleModalOpen(ModalNames.LLM_SETTINGS);
   };
 
   /**
@@ -964,6 +977,7 @@ export function MissionMenu({
         <MenuItem onClick={handleNewMenuItem}>New Mission</MenuItem>
         <MenuItem onClick={handleSaveMenuItem}>Save Mission</MenuItem>
         <MenuItem onClick={handleLoadMenuItem}>Load Mission</MenuItem>
+        <MenuItem onClick={handleLlmSettingsMenuItem}>LLM Settings</MenuItem>
       </Menu>
 
       {/* Modals render as portals — position in tree doesn't matter */}
@@ -1002,6 +1016,10 @@ export function MissionMenu({
         selectedMission={selectedMission}
         setSelectedMission={setSelectedMission}
         getMissionData={getMissionData}
+      />
+      <LlmSettingsModal
+        open={activeModal === ModalNames.LLM_SETTINGS}
+        onClose={handleModalClose}
       />
     </Box>
   );

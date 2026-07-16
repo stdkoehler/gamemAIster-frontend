@@ -26,7 +26,14 @@
  */
 
 import { CharacterRecord, Interaction, Mission, MissionLoadData } from "../models/MissionModels";
-import { CharacterSheetPayload, MissionPayload, PromptPayload } from "../models/RestInterface";
+import {
+  CharacterSheetPayload,
+  MissionPayload,
+  PromptPayload,
+  LlmSettingsOverviewPayload,
+  SaveLlmSettingsPayload,
+  KnownLocalModel,
+} from "../models/RestInterface";
 import { PlayerInputData } from "../models/PlayerInputData";
 import { MissionLoadPayload } from "../models/RestInterface";
 import { CharacterProps } from "../models/CharacterProps";
@@ -48,6 +55,32 @@ const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
 // Helper Logic   //
 ////////////////////
 
+/** Thrown when the backend reports `error_code: "llm_not_configured"` (HTTP
+ * 428) — the user hasn't picked an LLM provider/model, or a key-based
+ * provider is missing its key. `message` is the backend's own friendly,
+ * user-facing text, ready to show as-is. */
+export class LlmNotConfiguredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LlmNotConfiguredError";
+  }
+}
+
+/** Reads a non-OK response body and, if it carries the backend's
+ * `llm_not_configured` shape, returns its friendly `detail` message so
+ * callers can throw `LlmNotConfiguredError` instead of a generic error. */
+async function readLlmNotConfiguredDetail(res: Response): Promise<string | null> {
+  try {
+    const data = await res.clone().json();
+    if (data?.error_code === "llm_not_configured" && typeof data.detail === "string") {
+      return data.detail;
+    }
+  } catch {
+    // Not JSON, or doesn't match the shape — not this error.
+  }
+  return null;
+}
+
 /**
  * Performs a fetch-based API request with streamlined error reporting and JSON parsing.
  * It's a generic function designed to be used by other specific API call functions.
@@ -63,7 +96,7 @@ const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE !== "false";
  */
 async function apiRequest<T>(
   path: string,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "DELETE",
   body?: any,
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
@@ -89,6 +122,10 @@ async function apiRequest<T>(
     });
 
     if (!res.ok) {
+      const llmNotConfiguredDetail = await readLlmNotConfiguredDetail(res);
+      if (llmNotConfiguredDetail) {
+        throw new LlmNotConfiguredError(llmNotConfiguredDetail);
+      }
       let errorDetail = "";
       try {
         errorDetail = "\n" + (await res.text());
@@ -106,6 +143,9 @@ async function apiRequest<T>(
     const json = (await res.json()) as T;
     return json;
   } catch (err) {
+    if (err instanceof LlmNotConfiguredError) {
+      throw err;
+    }
     if (err instanceof TypeError) {
       // fetch() rejects with a TypeError (e.g. "Failed to fetch") when the
       // network request itself never completes, as opposed to the server
@@ -186,6 +226,10 @@ export async function sendPlayerInputToLlm({
     });
 
     if (!response.ok) {
+      const llmNotConfiguredDetail = await readLlmNotConfiguredDetail(response);
+      if (llmNotConfiguredDetail) {
+        throw new LlmNotConfiguredError(llmNotConfiguredDetail);
+      }
       throw new Error(`Failed to stream LLM: ${response.statusText}`);
     }
 
@@ -234,6 +278,9 @@ export async function sendPlayerInputToLlm({
       llmOutput: "❌ Error receiving LLM response.",
       llmThinking: "",
     });
+    if (err instanceof LlmNotConfiguredError) {
+      throw err;
+    }
     throw new Error(
       `Error streaming LLM output: ${
         err instanceof Error ? err.message : String(err)
@@ -707,6 +754,43 @@ export async function sendTextToSpeechStream(
  * @returns {Promise<string>} - The transcribed text from the backend.
  * @throws {Error} If the request fails or the backend returns an error.
  */
+/**
+ * Fetches all of the current user's saved per-provider LLM settings plus
+ * which provider is active. `active_provider` is `null` when the user has
+ * saved nothing, in which case the backend falls back to its deployment-wide
+ * env-var configuration.
+ */
+export async function getLlmSettings(): Promise<LlmSettingsOverviewPayload> {
+  return await apiRequest<LlmSettingsOverviewPayload>("/settings/llm", "GET");
+}
+
+/**
+ * Saves the current user's LLM provider/model/API key. An omitted or blank
+ * `api_key` keeps whatever key is already stored for the user.
+ */
+export async function saveLlmSettings(
+  payload: SaveLlmSettingsPayload,
+): Promise<void> {
+  await apiRequest<void>("/settings/llm", "POST", payload);
+}
+
+/**
+ * Deletes the current user's stored LLM settings, reverting them to the
+ * backend's deployment-wide env-var configuration. Idempotent.
+ */
+export async function deleteLlmSettings(): Promise<void> {
+  await apiRequest<void>("/settings/llm", "DELETE");
+}
+
+/**
+ * Fetches the backend's known local models — each tagged with which local
+ * client mode (native-completions vs native-tool-calling) it needs, so the
+ * "LLM Settings" modal can offer them as one-click presets.
+ */
+export async function getKnownLocalModels(): Promise<KnownLocalModel[]> {
+  return await apiRequest<KnownLocalModel[]>("/settings/llm/local-models", "GET");
+}
+
 export async function sendSpeechToText(audioBlob: Blob): Promise<string> {
   const formData = new FormData();
   formData.append("file", audioBlob, "audio.webm");

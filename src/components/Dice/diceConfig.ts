@@ -456,6 +456,137 @@ function summarizeSlavic(rolls: RolledDie[]): string {
   return parts.join(" · ");
 }
 
+// ───────────────────────── The Desolate Frontier ─────────────────────────
+// Same Year Zero Engine pool mechanic as Slavic 800 AD (shared Forbidden
+// Lands base ruleset), reskinned with the western success/bane icons.
+const desolateFrontierPoolFace: (value: number) => DieFace = (v) =>
+  v === 1
+    ? { kind: "symbol", id: "df-bane" }
+    : v === 6
+      ? { kind: "symbol", id: "df-success" }
+      : { kind: "empty" };
+
+const desolateFrontierSkillFace: (value: number) => DieFace = (v) =>
+  v === 6 ? { kind: "symbol", id: "df-success" } : { kind: "empty" };
+
+/** How many successes a single face is worth: 1 (bane) is none, 6-7 is one,
+ *  scaling up to 4 at 12 — only reachable on the d8/d10/d12 gear dice,
+ *  since the d6 pools cap at 6 (always worth exactly one success here). */
+function desolateFrontierSuccessCount(value: number): number {
+  if (value >= 12) return 4;
+  if (value >= 10) return 3;
+  if (value >= 8) return 2;
+  if (value >= 6) return 1;
+  return 0;
+}
+
+const desolateFrontierArtifactFace: (value: number) => DieFace = (v) => {
+  const successes = desolateFrontierSuccessCount(v);
+  return successes > 0
+    ? { kind: "symbol", id: "df-success", badge: String(successes) }
+    : { kind: "empty" };
+};
+
+const desolateFrontierDice: DieTypeConfig[] = [
+  {
+    id: "df-base",
+    label: "d6",
+    group: "Base",
+    sides: 6,
+    color: "primary",
+    defaultCount: 2,
+    maxCount: 10,
+    showValueBadge: true,
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
+    roll: rollRange(6),
+    face: desolateFrontierPoolFace,
+  },
+  {
+    id: "df-skill",
+    label: "d6",
+    group: "Skill",
+    sides: 6,
+    color: "info",
+    defaultCount: 1,
+    maxCount: 10,
+    showValueBadge: true,
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
+    roll: rollRange(6),
+    face: desolateFrontierSkillFace,
+  },
+  {
+    id: "df-gear",
+    label: "d6",
+    group: "Gear / Weapon",
+    sides: 6,
+    color: "secondary",
+    defaultCount: 1,
+    maxCount: 10,
+    showValueBadge: true,
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
+    roll: rollRange(6),
+    face: desolateFrontierPoolFace,
+  },
+  {
+    id: "df-d8",
+    label: "d8",
+    group: "Gear / Weapon",
+    sides: 8,
+    color: "secondary",
+    defaultCount: 0,
+    maxCount: 10,
+    showValueBadge: true,
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
+    roll: rollRange(8),
+    face: desolateFrontierArtifactFace,
+  },
+  {
+    id: "df-d10",
+    label: "d10",
+    group: "Gear / Weapon",
+    sides: 10,
+    color: "secondary",
+    defaultCount: 0,
+    maxCount: 10,
+    showValueBadge: true,
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
+    roll: rollRange(10),
+    face: desolateFrontierArtifactFace,
+  },
+  {
+    id: "df-d12",
+    label: "d12",
+    group: "Gear / Weapon",
+    sides: 12,
+    color: "secondary",
+    defaultCount: 0,
+    maxCount: 10,
+    showValueBadge: true,
+    symbolScale: 0.85,
+    valueBadgeScale: 1.3,
+    roll: rollRange(12),
+    face: desolateFrontierArtifactFace,
+  },
+];
+
+function summarizeDesolateFrontier(rolls: RolledDie[]): string {
+  const successes = rolls.reduce(
+    (sum, r) => sum + desolateFrontierSuccessCount(r.value),
+    0,
+  );
+  const banes = rolls.filter(
+    (r) => ["df-base", "df-gear"].includes(r.dieId) && r.value === 1,
+  ).length;
+  const parts = [pluralize(successes, "success", "successes")];
+  if (banes > 0) parts.push(pluralize(banes, "bane"));
+  return parts.join(" · ");
+}
+
 // ───────────────────────── Call of Cthulhu ─────────────────────────
 const cocDice: DieTypeConfig[] = [
   {
@@ -791,6 +922,10 @@ export const GAME_DICE: Record<GameType, GameDiceConfig> = {
     dice: dragonlanceDice,
     sections: dragonlanceSections,
     summarize: summarizeDragonlance,
+  },
+  [GameType.DESOLATE_FRONTIER]: {
+    dice: desolateFrontierDice,
+    summarize: summarizeDesolateFrontier,
   },
   [GameType.CUSTOM]: {
     dice: customDice,

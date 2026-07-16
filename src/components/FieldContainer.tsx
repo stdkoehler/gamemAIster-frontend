@@ -133,6 +133,17 @@ function FieldButtonGroup({
   onSendClick,
   onStopClick,
 }: FieldButtonGroupProps) {
+  // Clicking a toolbar button blurs the still-focused textarea first
+  // (native focus-change-on-mousedown), which fires handleBlur -> commitValue()
+  // before the button's own onClick runs. When the text was actually edited,
+  // that early commit updates the store and triggers History's auto-scroll
+  // mid-click, which can shift the button out from under the cursor between
+  // mousedown and mouseup and swallow the click entirely (edit mode then
+  // never exits). Prevent the mousedown default so the textarea keeps focus
+  // until the click's own onClick handler (which already calls commitValue())
+  // runs, keeping commit+toggle in one uninterrupted event.
+  const preserveFocus = (e: React.MouseEvent) => e.preventDefault();
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
       {(type === FieldContainerType.PLAYER_OLD ||
@@ -140,6 +151,7 @@ function FieldButtonGroup({
         <Button
           color={color}
           disabled={disabled}
+          onMouseDown={preserveFocus}
           onClick={onEditClick}
           size="small"
           sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
@@ -152,6 +164,7 @@ function FieldButtonGroup({
           <Button
             color={color}
             disabled={disabled}
+            onMouseDown={preserveFocus}
             onClick={onStopClick}
             size="small"
             sx={{ ml: 1, mt: 0.5, mb: 0.5 }}
@@ -162,6 +175,7 @@ function FieldButtonGroup({
           <Button
             color={color}
             disabled={disabled}
+            onMouseDown={preserveFocus}
             onClick={onSendClick}
             size="small"
             sx={{ ml: 1, mt: 0.5, mb: 0.5 }}

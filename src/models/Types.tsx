@@ -6,6 +6,7 @@ export enum GameType {
   EXPANSE = "expanse",
   SLAVIC = "slavic",
   DRAGONLANCE = "dragonlance",
+  DESOLATE_FRONTIER = "desolate_frontier",
   CUSTOM = "custom",
 }
 

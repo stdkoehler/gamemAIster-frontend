@@ -19,7 +19,11 @@ import { CharacterManager } from "./components/CharacterManager";
 import { CharacterSheetPopup } from "./components/CharacterSheet";
 import { DiceRollerPopup } from "./components/Dice";
 import { GlobalSnackbar } from "./components/GlobalSnackbar";
-import { getMission, getCharacterSheets } from "./functions/restInterface";
+import {
+  getMission,
+  getCharacterSheets,
+  LlmNotConfiguredError,
+} from "./functions/restInterface";
 import { GameType } from "./models/Types";
 import { GAME_SYSTEMS } from "./gameSystemRegistry";
 
@@ -107,15 +111,23 @@ const App: React.FC = () => {
       oracle: boolean,
     ) => {
       setGameType(selectedGameType);
-      await sendNewMissionGenerate(
-        selectedGameType,
-        background,
-        detailedBackground,
-        nonHeroMode,
-        oracle,
-      );
+      try {
+        await sendNewMissionGenerate(
+          selectedGameType,
+          background,
+          detailedBackground,
+          nonHeroMode,
+          oracle,
+        );
+      } catch (err) {
+        if (err instanceof LlmNotConfiguredError) {
+          showError(err.message);
+        } else {
+          throw err;
+        }
+      }
     },
-    [setGameType, sendNewMissionGenerate],
+    [setGameType, sendNewMissionGenerate, showError],
   );
 
   if (loading) return null;
