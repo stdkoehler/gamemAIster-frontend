@@ -18,6 +18,7 @@ import {
   NumInput,
   TextInput,
   ListEditor,
+  SkillGrid,
   TwoCol,
   EquipmentSuggestField,
 } from "./shared";
@@ -512,45 +513,41 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
           <>
             {/* ── Skills ── */}
             <SheetSection title="Skills">
-              <Box
-                sx={{
-                  maxHeight: 320,
-                  overflowY: "auto",
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto 76px",
-                  gap: 0.5,
-                  alignItems: "center",
-                }}
-              >
-                {Object.entries(SKILL_ABILITY).map(([skill, ability]) => (
-                  <React.Fragment key={skill}>
-                    <Typography variant="body2">
-                      {skill}{" "}
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        sx={{ color: "text.secondary" }}
-                      >
-                        ({ability.slice(0, 3)})
+              <SkillGrid
+                rows={Object.keys(SKILL_ABILITY)}
+                columns="1fr auto 76px"
+                renderRow={(skill) => {
+                  const ability = SKILL_ABILITY[skill];
+                  return (
+                    <>
+                      <Typography variant="body2">
+                        {skill}{" "}
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          sx={{ color: "text.secondary" }}
+                        >
+                          ({ability.slice(0, 3)})
+                        </Typography>
                       </Typography>
-                    </Typography>
-                    <Checkbox
-                      size="small"
-                      checked={!!c.skillProficiencies?.[skill]}
-                      onChange={() => toggleSkillProficiency(skill)}
-                      sx={{ p: 0.25 }}
-                    />
-                    <NumInput
-                      value={c.skills[skill] ?? 0}
-                      onChange={(v) =>
-                        up("skills", { ...c.skills, [skill]: v })
-                      }
-                      min={-10}
-                      max={20}
-                    />
-                  </React.Fragment>
-                ))}
-              </Box>
+                      <Checkbox
+                        size="small"
+                        checked={!!c.skillProficiencies?.[skill]}
+                        onChange={() => toggleSkillProficiency(skill)}
+                        sx={{ p: 0.25 }}
+                      />
+                      <NumInput
+                        value={c.skills[skill] ?? 0}
+                        onChange={(v) =>
+                          up("skills", { ...c.skills, [skill]: v })
+                        }
+                        min={-10}
+                        max={20}
+                      />
+                    </>
+                  );
+                }}
+              />
             </SheetSection>
 
             {/* ── Attacks & Spellcasting ── */}

@@ -573,6 +573,46 @@ export const RecordNumEditor: React.FC<RecordNumEditorProps> = ({
 };
 
 // =====================
+// Scrollable fixed-row skill grid (a long, name-keyed list rendered as a
+// capped-height CSS grid — e.g. a system's full canonical skill list, or
+// Dragonlance's ability-linked skills). Each caller supplies `renderRow` to
+// fill in its own per-row cells (rating input, proficiency checkbox, etc.);
+// this only owns the scroll container and column layout.
+// =====================
+
+interface SkillGridProps {
+  rows: readonly string[];
+  renderRow: (row: string) => React.ReactNode;
+  columns?: string;
+  maxHeight?: number;
+  header?: React.ReactNode;
+}
+
+export const SkillGrid: React.FC<SkillGridProps> = ({
+  rows,
+  renderRow,
+  columns = "1fr 76px",
+  maxHeight = 320,
+  header,
+}) => (
+  <Box
+    sx={{
+      maxHeight,
+      overflowY: "auto",
+      display: "grid",
+      gridTemplateColumns: columns,
+      gap: 0.5,
+      alignItems: "center",
+    }}
+  >
+    {header}
+    {rows.map((row) => (
+      <React.Fragment key={row}>{renderRow(row)}</React.Fragment>
+    ))}
+  </Box>
+);
+
+// =====================
 // Two-column layout helper
 // =====================
 

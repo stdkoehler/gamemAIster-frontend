@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, TextField } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { CthulhuCharacter, CocWeapon } from "../../models/CharacterProps";
 import { EquipmentType } from "../../models/Types";
 import {
   SheetSection, FieldRow, NumInput, TextInput,
-  ListEditor, TwoCol, EquipmentSuggestField,
+  ListEditor, SkillGrid, TwoCol, EquipmentSuggestField,
 } from "./shared";
 
 interface Props {
@@ -14,6 +14,92 @@ interface Props {
 }
 
 const CHARS = ["STR", "CON", "SIZ", "DEX", "APP", "INT", "POW", "EDU"] as const;
+
+// Full CoC 7e Investigator skill list, in rulebook order, with base
+// (untrained) chances. Dodge and Language (Own) are derived from
+// characteristics (DEX/2 and EDU respectively) rather than fixed, so their
+// "base" here is a placeholder overridden per-character in getBase() below.
+const COC_SKILL_BASE: Record<string, number> = {
+  Accounting: 5,
+  Anthropology: 1,
+  Appraise: 5,
+  Archaeology: 1,
+  "Art/Craft": 5,
+  Charm: 15,
+  Climb: 20,
+  "Credit Rating": 0,
+  "Cthulhu Mythos": 0,
+  Disguise: 5,
+  Dodge: 0, // DEX / 2
+  "Drive Auto": 20,
+  "Elec Repair": 10,
+  "Fast Talk": 5,
+  "Fighting (Brawl)": 25,
+  "Firearms (Handgun)": 20,
+  "Firearms (Rifle/Shotgun)": 25,
+  "First Aid": 30,
+  History: 5,
+  Intimidate: 15,
+  Jump: 20,
+  "Language (Own)": 0, // = EDU
+  "Language (Other)": 1,
+  Law: 5,
+  "Library Use": 20,
+  Listen: 20,
+  Locksmith: 1,
+  "Mech Repair": 10,
+  Medicine: 1,
+  "Natural World": 10,
+  Navigate: 10,
+  Occult: 5,
+  "Op. Hv. Machine": 1,
+  Persuade: 10,
+  Pilot: 1,
+  Psychology: 10,
+  Psychoanalysis: 1,
+  Ride: 5,
+  Science: 1,
+  "Sleight of Hand": 10,
+  "Spot Hidden": 25,
+  Stealth: 20,
+  Survival: 10,
+  Swim: 20,
+  Throw: 20,
+  Track: 10,
+};
+
+const COC_SKILLS = Object.keys(COC_SKILL_BASE);
+
+const AddSkillRow: React.FC<{ onAdd: (name: string) => void }> = ({ onAdd }) => {
+  const [name, setName] = useState("");
+  const add = () => {
+    const trimmed = name.trim();
+    if (trimmed) {
+      onAdd(trimmed);
+      setName("");
+    }
+  };
+  return (
+    <Box sx={{ display: "flex", gap: 0.5, mt: 0.5 }}>
+      <TextField
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            add();
+          }
+        }}
+        size="small"
+        placeholder="Add specialization (e.g. Language (Latin))..."
+        sx={{ flex: 1 }}
+      />
+      <IconButton size="small" onClick={add}>
+        <AddIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+};
 
 const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
   const [c, setC] = useState(character);
@@ -62,6 +148,22 @@ const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
     ws[i] = { ...ws[i], ...patch };
     up("weapons", ws);
   };
+
+  // Dodge and Language (Own) are derived from characteristics (DEX/2, EDU)
+  // rather than a flat base chance.
+  const getBase = (skill: string): number => {
+    if (skill === "Dodge") return Math.floor(c.characteristics.DEX / 2);
+    if (skill === "Language (Own)") return c.characteristics.EDU;
+    return COC_SKILL_BASE[skill] ?? 0;
+  };
+
+  // Canonical list first (rulebook order), then any custom/specialized
+  // skills already on the sheet (e.g. "Language (Latin)") that aren't part
+  // of the fixed list, so nothing already tracked disappears.
+  const skillRows = [
+    ...COC_SKILLS,
+    ...Object.keys(c.skills).filter((s) => !(s in COC_SKILL_BASE)),
+  ];
 
   return (
     <Box sx={{ pb: 4 }}>
@@ -238,18 +340,24 @@ const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
           <>
             {/* ── Skills ── */}
             <SheetSection title="Skills (%)">
-              <Box sx={{ maxHeight: 300, overflowY: "auto" }}>
-                {Object.entries(c.skills).map(([skill, pct]) => (
-                  <Box key={skill} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
-                    <Typography variant="body2" sx={{ flex: 1, fontSize: "0.75rem" }}>{skill}</Typography>
+              <SkillGrid
+                rows={skillRows}
+                columns="1fr 64px"
+                maxHeight={360}
+                renderRow={(skill) => (
+                  <>
+                    <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>{skill}</Typography>
                     <NumInput
-                      value={pct}
+                      value={c.skills[skill] ?? getBase(skill)}
                       onChange={(v) => up("skills", { ...c.skills, [skill]: v })}
                       max={99}
                     />
-                  </Box>
-                ))}
-              </Box>
+                  </>
+                )}
+              />
+              <AddSkillRow
+                onAdd={(name) => up("skills", { ...c.skills, [name]: getBase(name) })}
+              />
             </SheetSection>
 
             {/* ── Weapons ── */}
