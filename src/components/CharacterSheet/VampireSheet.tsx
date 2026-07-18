@@ -341,6 +341,28 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
         />
       </SheetSection>
 
+      {/* ── Experience (kept prominent, right below Identity) ── */}
+      <SheetSection title="Experience">
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FieldRow label="Total">
+            <NumInput
+              value={c.experienceTotal ?? 0}
+              onChange={(v) => up("experienceTotal", v)}
+              max={9999}
+              width={80}
+            />
+          </FieldRow>
+          <FieldRow label="Spent">
+            <NumInput
+              value={c.experienceSpent ?? 0}
+              onChange={(v) => up("experienceSpent", v)}
+              max={9999}
+              width={80}
+            />
+          </FieldRow>
+        </Box>
+      </SheetSection>
+
       {/* ── Attributes ── */}
       <SheetSection title="Attributes">
         <Box sx={{ display: "flex", gap: 3 }}>
@@ -583,27 +605,6 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </FieldRow>
             </SheetSection>
 
-            {/* ── Experience ── */}
-            <SheetSection title="Experience">
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <FieldRow label="Total">
-                  <NumInput
-                    value={c.experienceTotal ?? 0}
-                    onChange={(v) => up("experienceTotal", v)}
-                    max={9999}
-                    width={80}
-                  />
-                </FieldRow>
-                <FieldRow label="Spent">
-                  <NumInput
-                    value={c.experienceSpent ?? 0}
-                    onChange={(v) => up("experienceSpent", v)}
-                    max={9999}
-                    width={80}
-                  />
-                </FieldRow>
-              </Box>
-            </SheetSection>
           </>
         }
         right={

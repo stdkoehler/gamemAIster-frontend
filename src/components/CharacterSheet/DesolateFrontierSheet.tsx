@@ -167,23 +167,6 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <FieldRow label="Age" labelMinWidth={labelMinWidth}>
                 <TextInput value={c.age ?? ""} onChange={(v) => up("age", v)} />
               </FieldRow>
-              <FieldRow label="Experience" labelMinWidth={labelMinWidth}>
-                <NumInput
-                  value={c.experience ?? 0}
-                  onChange={(v) => up("experience", v)}
-                  max={9999}
-                  width={80}
-                />
-              </FieldRow>
-              <FieldRow label="Cash ($)" labelMinWidth={labelMinWidth}>
-                <NumInput
-                  value={c.cash ?? 0}
-                  onChange={(v) => up("cash", v)}
-                  max={999999}
-                  float
-                  width={90}
-                />
-              </FieldRow>
             </Box>
           }
           right={
@@ -208,6 +191,29 @@ const DesolateFrontierSheet: React.FC<Props> = ({ character, onUpdate }) => {
             </Box>
           }
         />
+      </SheetSection>
+
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FieldRow label="Experience" labelMinWidth={labelMinWidth}>
+            <NumInput
+              value={c.experience ?? 0}
+              onChange={(v) => up("experience", v)}
+              max={9999}
+              width={80}
+            />
+          </FieldRow>
+          <FieldRow label="Cash ($)" labelMinWidth={labelMinWidth}>
+            <NumInput
+              value={c.cash ?? 0}
+              onChange={(v) => up("cash", v)}
+              max={999999}
+              float
+              width={90}
+            />
+          </FieldRow>
+        </Box>
       </SheetSection>
 
       {/* ── Attributes & Damage Tracks ── */}

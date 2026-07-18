@@ -286,6 +286,28 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
         />
       </SheetSection>
 
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FieldRow label="Gold">
+            <NumInput
+              value={c.gold ?? 0}
+              onChange={(v) => up("gold", v)}
+              max={999999}
+              width={104}
+            />
+          </FieldRow>
+          <FieldRow label="Experience">
+            <NumInput
+              value={c.experience ?? 0}
+              onChange={(v) => up("experience", v)}
+              max={999999}
+              width={104}
+            />
+          </FieldRow>
+        </Box>
+      </SheetSection>
+
       <TwoCol
         left={
           <>

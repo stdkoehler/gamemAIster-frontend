@@ -111,6 +111,17 @@ const ExpanseSheet: React.FC<Props> = ({ character, onUpdate }) => {
         />
       </SheetSection>
 
+      {/* ── Resources (experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <FieldRow label="Experience" labelMinWidth={labelMinWidth}>
+          <NumInput
+            value={c.experience ?? 0}
+            onChange={(v) => up("experience", v)}
+            max={999}
+          />
+        </FieldRow>
+      </SheetSection>
+
       <TwoCol
         left={
           <>

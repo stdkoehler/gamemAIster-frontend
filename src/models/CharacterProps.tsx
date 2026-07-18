@@ -352,6 +352,12 @@ export interface CthulhuCharacter {
   // Skills (name → regular %; Hard = half, Extreme = fifth — derived at use time)
   skills: Record<string, number>;
 
+  // Names of skills currently checked for improvement (CoC 7e: a skill used
+  // successfully during play is checked, then rolled against between
+  // sessions — beat the current value to raise it). Manual player-tracked
+  // field; nothing in this app resolves the roll automatically.
+  skillImprovementChecks?: string[];
+
   // Tracks
   hitPoints: StatTrack;
   sanity: StatTrack;
@@ -476,6 +482,11 @@ export interface SeventhSeaCharacter {
   armor?: ArmorItem;
   gear?: string[];
 
+  // Advancement — GM-awarded Advances spent on advantages; 7th Sea 2e has no
+  // official banked-XP pool, but tracked here as a simple counter for
+  // consistency with this app's other systems.
+  experience?: number;
+
   // Stories & Goals
   stories?: string[];
   goals?: string[];
@@ -540,6 +551,9 @@ export interface ExpanseCharacter {
   // State
   health: StatTrack;
   fortune: number; // Fortune points for player agency
+
+  // Advancement — AGE-system Experience Points, spent on new stunts/talents/abilities
+  experience?: number;
 
   // Active conditions (Injured, Fatigued, Frightened, etc.)
   conditions?: string[];
@@ -647,6 +661,7 @@ export interface SlavicCharacter {
   weapons?: SlavicWeapon[];
   armor?: SlavicArmor;
   gear?: string[];
+  silver?: number; // silver pieces on hand — Forbidden Lands' base currency
 
   // Core Forbidden Lands character traits
   pride?: string; // once per session, re-roll all dice if it applies
@@ -726,6 +741,11 @@ export interface DragonlanceCharacter {
   armorName: string | null;
   shield: boolean;
   gear: string[];
+  gold?: number; // gold pieces on hand
+
+  // Total XP earned toward the next level (D&D 5e default advancement;
+  // tables using milestone leveling can just leave this unset)
+  experience?: number;
 
   spellcasting: {
     ability: string | null;

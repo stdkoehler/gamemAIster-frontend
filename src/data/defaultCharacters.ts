@@ -284,6 +284,7 @@ const DEFAULT_COC: CthulhuCharacter = {
   spendingLevel: "$10/day",
   cash: 85,
   assets: "University salary, small inheritance",
+  skillImprovementChecks: ["Archaeology", "Spot Hidden"],
 };
 
 const DEFAULT_SS: SeventhSeaCharacter = {
@@ -325,6 +326,7 @@ const DEFAULT_SS: SeventhSeaCharacter = {
   reputation: 8,
   corruption: 1,
   wealth: 3,
+  experience: 12,
   languages: ["Montaigne (native)", "Castillian", "Thean"],
   weapons: [
     {
@@ -391,6 +393,7 @@ const DEFAULT_EXPANSE: ExpanseCharacter = {
   toughness: 1,
   health: { current: 50, max: 50 },
   fortune: 3,
+  experience: 8,
   conditions: [],
   weapons: [
     {
@@ -453,6 +456,7 @@ const DEFAULT_SLAVIC: SlavicCharacter = {
   ],
   armor: { name: "Linen Robe", rating: { current: 0, max: 0 } },
   gear: ["Herbalist Pouch", "Carved Runes", "Waterskin", "Tallow Candles"],
+  silver: 18,
   pride: "Never refused to heal a person in need",
   darkSecret:
     "Bargained with a Navian spirit to save his daughter — owes a debt not yet collected",
@@ -545,6 +549,8 @@ const DEFAULT_DRAGONLANCE: DragonlanceCharacter = {
     "Rope, Hempen (50 ft)",
     "Rations (5 days)",
   ],
+  gold: 75,
+  experience: 6500,
   spellcasting: { ability: null, saveDc: null, knownSpells: [] },
   featuresAndTraits: [
     "Second Wind",
@@ -969,6 +975,7 @@ export function createBlankCharacter(
           },
         },
         skills: {},
+        skillImprovementChecks: [],
         hitPoints: { current: 10, max: 10 },
         sanity: { current: 50, max: 99 },
         magicPoints: { current: 10, max: 10 },
@@ -1005,6 +1012,7 @@ export function createBlankCharacter(
         advantages: [],
         wounds: { current: 0, max: 5 },
         heroPoints: 3,
+        experience: 0,
       };
 
     case GameType.EXPANSE:
@@ -1032,6 +1040,7 @@ export function createBlankCharacter(
         defense: 10,
         health: { current: 20, max: 20 },
         fortune: 3,
+        experience: 0,
       };
 
     case GameType.SLAVIC:
@@ -1064,6 +1073,7 @@ export function createBlankCharacter(
           "Animal Handling": 0,
         },
         talents: [],
+        silver: 0,
       };
 
     case GameType.DRAGONLANCE:
@@ -1092,6 +1102,8 @@ export function createBlankCharacter(
         armorName: null,
         shield: false,
         gear: [],
+        gold: 0,
+        experience: 0,
         spellcasting: { ability: null, saveDc: null, knownSpells: [] },
       };
 

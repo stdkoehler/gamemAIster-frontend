@@ -149,13 +149,6 @@ const SeventhSeaSheet: React.FC<Props> = ({ character, onUpdate }) => {
                     max={10}
                   />
                 </FieldRow>
-                <FieldRow label="Wealth">
-                  <DotRating
-                    value={c.wealth ?? 0}
-                    max={5}
-                    onChange={(v) => up("wealth", v)}
-                  />
-                </FieldRow>
               </Box>
             </Box>
           }
@@ -169,6 +162,26 @@ const SeventhSeaSheet: React.FC<Props> = ({ character, onUpdate }) => {
             />
           }
         />
+      </SheetSection>
+
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <FieldRow label="Wealth">
+            <DotRating
+              value={c.wealth ?? 0}
+              max={5}
+              onChange={(v) => up("wealth", v)}
+            />
+          </FieldRow>
+          <FieldRow label="Experience">
+            <NumInput
+              value={c.experience ?? 0}
+              onChange={(v) => up("experience", v)}
+              max={999}
+            />
+          </FieldRow>
+        </Box>
       </SheetSection>
 
       {/* ── Traits ── */}

@@ -96,14 +96,6 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <FieldRow label="Age">
                 <TextInput value={c.age ?? ""} onChange={(v) => up("age", v)} />
               </FieldRow>
-              <FieldRow label="Experience">
-                <NumInput
-                  value={c.experience ?? 0}
-                  onChange={(v) => up("experience", v)}
-                  max={9999}
-                  width={80}
-                />
-              </FieldRow>
             </Box>
           }
           right={
@@ -128,6 +120,28 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
             </Box>
           }
         />
+      </SheetSection>
+
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FieldRow label="Silver">
+            <NumInput
+              value={c.silver ?? 0}
+              onChange={(v) => up("silver", v)}
+              max={99999}
+              width={104}
+            />
+          </FieldRow>
+          <FieldRow label="Experience">
+            <NumInput
+              value={c.experience ?? 0}
+              onChange={(v) => up("experience", v)}
+              max={9999}
+              width={80}
+            />
+          </FieldRow>
+        </Box>
       </SheetSection>
 
       {/* ── Attributes & Damage Tracks ── */}

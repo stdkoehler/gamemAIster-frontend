@@ -102,6 +102,21 @@ const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
         />
       </SheetSection>
 
+      {/* ── Resources (currency & experience-equivalent — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <FieldRow label="Cash">
+          <NumInput value={c.cash ?? 0} onChange={(v) => up("cash", v)} max={999999} width={104} />
+        </FieldRow>
+        <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 1 }}>
+          Improvement Checks (skills used successfully this session — roll to improve between sessions)
+        </Typography>
+        <ListEditor
+          value={c.skillImprovementChecks ?? []}
+          onChange={(v) => up("skillImprovementChecks", v)}
+          rows={2}
+        />
+      </SheetSection>
+
       <TwoCol
         left={
           <>
@@ -186,9 +201,6 @@ const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Equipment ── */}
             <SheetSection title="Equipment">
-              <FieldRow label="Cash">
-                <NumInput value={c.cash ?? 0} onChange={(v) => up("cash", v)} max={999999} width={104} />
-              </FieldRow>
               <FieldRow label="Spending Level">
                 <TextInput value={c.spendingLevel ?? ""} onChange={(v) => up("spendingLevel", v)} />
               </FieldRow>

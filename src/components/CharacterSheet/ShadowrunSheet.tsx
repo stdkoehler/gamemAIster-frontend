@@ -86,6 +86,18 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
         />
       </SheetSection>
 
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <FieldRow label="Nuyen">
+            <NumInput value={c.nuyen} onChange={(v) => up("nuyen", v)} max={9999999} width={104} />
+          </FieldRow>
+          <FieldRow label="Karma">
+            <NumInput value={c.karma ?? 0} onChange={(v) => up("karma", v)} max={999} />
+          </FieldRow>
+        </Box>
+      </SheetSection>
+
       <TwoCol
         left={
           <>
@@ -171,11 +183,8 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </Box>
             </SheetSection>
 
-            {/* ── Resources ── */}
-            <SheetSection title="Resources">
-              <FieldRow label="Nuyen">
-                <NumInput value={c.nuyen} onChange={(v) => up("nuyen", v)} max={9999999} width={104} />
-              </FieldRow>
+            {/* ── Reputation & Armor ── */}
+            <SheetSection title="Reputation & Armor">
               <FieldRow label="Street Cred">
                 <NumInput value={c.streetCred} onChange={(v) => up("streetCred", v)} max={99} />
               </FieldRow>
@@ -184,9 +193,6 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </FieldRow>
               <FieldRow label="Pub. Awareness">
                 <NumInput value={c.publicAwareness} onChange={(v) => up("publicAwareness", v)} max={99} />
-              </FieldRow>
-              <FieldRow label="Karma">
-                <NumInput value={c.karma ?? 0} onChange={(v) => up("karma", v)} max={999} />
               </FieldRow>
               <FieldRow label="Armor">
                 <NumInput value={c.armor} onChange={(v) => up("armor", v)} max={30} />
