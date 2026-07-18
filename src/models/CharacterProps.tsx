@@ -473,6 +473,7 @@ export interface SeventhSeaCharacter {
 
   // Equipment
   weapons?: SeventhSeaWeapon[];
+  armor?: ArmorItem;
   gear?: string[];
 
   // Stories & Goals

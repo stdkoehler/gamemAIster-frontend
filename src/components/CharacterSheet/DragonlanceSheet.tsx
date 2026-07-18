@@ -11,6 +11,7 @@ import {
   DragonlanceCharacter,
   DragonlanceWeapon,
 } from "../../models/CharacterProps";
+import { EquipmentType } from "../../models/Types";
 import {
   SheetSection,
   FieldRow,
@@ -18,6 +19,7 @@ import {
   TextInput,
   ListEditor,
   TwoCol,
+  EquipmentSuggestField,
 } from "./shared";
 
 interface Props {
@@ -531,6 +533,21 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Attacks & Spellcasting ── */}
             <SheetSection title="Attacks">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.WEAPONS}
+                onAdd={(item) =>
+                  up("weapons", [
+                    ...c.weapons,
+                    {
+                      name: item.name,
+                      damage: item.damage ?? "1d4",
+                      damageType: item.type ?? "Bludgeoning",
+                      attackBonus: 0,
+                    },
+                  ])
+                }
+              />
               {c.weapons.map((w, i) => (
                 <Box
                   key={i}
@@ -603,6 +620,12 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Equipment ── */}
             <SheetSection title="Equipment">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.ARMOR}
+                placeholder="Search armor/shields to add..."
+                onAdd={(item) => up("armorName", item.name)}
+              />
               <FieldRow label="Armor">
                 <TextInput
                   value={c.armorName ?? ""}
@@ -622,11 +645,18 @@ const DragonlanceSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <Typography variant="caption" sx={{ color: "text.secondary" }}>
                 Gear
               </Typography>
-              <ListEditor
-                value={c.gear}
-                onChange={(v) => up("gear", v)}
-                rows={3}
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.GEAR}
+                onAdd={(item) => up("gear", [...c.gear, item.name])}
               />
+              <Box sx={{ mt: 0.5 }}>
+                <ListEditor
+                  value={c.gear}
+                  onChange={(v) => up("gear", v)}
+                  rows={3}
+                />
+              </Box>
             </SheetSection>
 
             {/* ── Spellcasting ── */}

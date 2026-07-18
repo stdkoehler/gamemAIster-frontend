@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Box, Typography, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { CthulhuCharacter, CocWeapon } from "../../models/CharacterProps";
+import { EquipmentType } from "../../models/Types";
 import {
   SheetSection, FieldRow, NumInput, TextInput,
-  ListEditor, TwoCol,
+  ListEditor, TwoCol, EquipmentSuggestField,
 } from "./shared";
 
 interface Props {
@@ -209,7 +210,14 @@ const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </FieldRow>
               <Box sx={{ mt: 0.75 }}>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>Gear</Typography>
-                <ListEditor value={c.gear ?? []} onChange={(v) => up("gear", v)} rows={3} />
+                <EquipmentSuggestField
+                  gameType={c.gameType}
+                  equipmentType={EquipmentType.GEAR}
+                  onAdd={(item) => up("gear", [...(c.gear ?? []), item.name])}
+                />
+                <Box sx={{ mt: 0.5 }}>
+                  <ListEditor value={c.gear ?? []} onChange={(v) => up("gear", v)} rows={3} />
+                </Box>
               </Box>
             </SheetSection>
           </>
@@ -234,6 +242,16 @@ const CthulhuSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.WEAPONS}
+                onAdd={(item) =>
+                  up("weapons", [
+                    ...(c.weapons ?? []),
+                    { name: item.name, skill: "", damage: "" },
+                  ])
+                }
+              />
               {(c.weapons ?? []).map((w, i) => (
                 <Box key={i} sx={{ mb: 1, p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
                   <Box sx={{ display: "flex", gap: 0.5, mb: 0.5 }}>

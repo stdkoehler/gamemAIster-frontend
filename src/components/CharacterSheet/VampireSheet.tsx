@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { VampireCharacter, V5Nature } from "../../models/CharacterProps";
+import { EquipmentType } from "../../models/Types";
 import {
   SheetSection,
   FieldRow,
@@ -19,6 +20,8 @@ import {
   ListEditor,
   RecordNumEditor,
   TwoCol,
+  EquipmentSuggestField,
+  parseCatalogNumber,
 } from "./shared";
 
 interface Props {
@@ -641,6 +644,20 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.WEAPONS}
+                onAdd={(item) =>
+                  up("weapons", [
+                    ...(c.weapons ?? []),
+                    {
+                      name: item.name,
+                      damage: parseCatalogNumber(item.damage, 0),
+                      skill: "Melee",
+                    },
+                  ])
+                }
+              />
               {(c.weapons ?? []).map((w, i) => (
                 <Box
                   key={i}
@@ -736,6 +753,18 @@ const VampireSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Armor ── */}
             <SheetSection title="Armor">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.ARMOR}
+                onAdd={(item) =>
+                  up("armor", {
+                    name: item.name,
+                    // Catalog encodes armor as a negative damage reduction
+                    // (e.g. "-2"); the sheet's rating is a positive number.
+                    rating: Math.abs(parseCatalogNumber(item.damage, 0)),
+                  })
+                }
+              />
               <FieldRow label="Name">
                 <TextInput
                   value={c.armor?.name ?? ""}
