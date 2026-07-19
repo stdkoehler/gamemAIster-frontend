@@ -5,6 +5,7 @@ import {
   SeventhSeaCharacter,
   SeventhSeaWeapon,
 } from "../../models/CharacterProps";
+import { EquipmentType } from "../../models/Types";
 import {
   SheetSection,
   FieldRow,
@@ -14,6 +15,8 @@ import {
   ListEditor,
   TwoCol,
   ChipListEditor,
+  EquipmentSuggestField,
+  parseCatalogNumber,
 } from "./shared";
 
 interface Props {
@@ -146,13 +149,6 @@ const SeventhSeaSheet: React.FC<Props> = ({ character, onUpdate }) => {
                     max={10}
                   />
                 </FieldRow>
-                <FieldRow label="Wealth">
-                  <DotRating
-                    value={c.wealth ?? 0}
-                    max={5}
-                    onChange={(v) => up("wealth", v)}
-                  />
-                </FieldRow>
               </Box>
             </Box>
           }
@@ -166,6 +162,26 @@ const SeventhSeaSheet: React.FC<Props> = ({ character, onUpdate }) => {
             />
           }
         />
+      </SheetSection>
+
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 3 }}>
+          <FieldRow label="Wealth">
+            <DotRating
+              value={c.wealth ?? 0}
+              max={5}
+              onChange={(v) => up("wealth", v)}
+            />
+          </FieldRow>
+          <FieldRow label="Experience">
+            <NumInput
+              value={c.experience ?? 0}
+              onChange={(v) => up("experience", v)}
+              max={999}
+            />
+          </FieldRow>
+        </Box>
       </SheetSection>
 
       {/* ── Traits ── */}
@@ -339,6 +355,16 @@ const SeventhSeaSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.WEAPONS}
+                onAdd={(item) =>
+                  up("weapons", [
+                    ...(c.weapons ?? []),
+                    { name: item.name, trait: "Finesse", type: "fencing" },
+                  ])
+                }
+              />
               {(c.weapons ?? []).map((w, i) => (
                 <Box
                   key={i}
@@ -419,13 +445,51 @@ const SeventhSeaSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </IconButton>
             </SheetSection>
 
+            {/* ── Armor ── */}
+            <SheetSection title="Armor">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.ARMOR}
+                onAdd={(item) =>
+                  up("armor", {
+                    name: item.name,
+                    rating: parseCatalogNumber(item.damage, 0),
+                  })
+                }
+              />
+              <FieldRow label="Name">
+                <TextInput
+                  value={c.armor?.name ?? ""}
+                  onChange={(v) =>
+                    up("armor", { ...(c.armor ?? { name: "", rating: 0 }), name: v })
+                  }
+                />
+              </FieldRow>
+              <FieldRow label="Rating">
+                <NumInput
+                  value={c.armor?.rating ?? 0}
+                  onChange={(v) =>
+                    up("armor", { ...(c.armor ?? { name: "", rating: 0 }), rating: v })
+                  }
+                  max={10}
+                />
+              </FieldRow>
+            </SheetSection>
+
             {/* ── Gear ── */}
             <SheetSection title="Gear">
-              <ListEditor
-                value={c.gear ?? []}
-                onChange={(v) => up("gear", v)}
-                rows={3}
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.GEAR}
+                onAdd={(item) => up("gear", [...(c.gear ?? []), item.name])}
               />
+              <Box sx={{ mt: 0.5 }}>
+                <ListEditor
+                  value={c.gear ?? []}
+                  onChange={(v) => up("gear", v)}
+                  rows={3}
+                />
+              </Box>
             </SheetSection>
           </>
         }

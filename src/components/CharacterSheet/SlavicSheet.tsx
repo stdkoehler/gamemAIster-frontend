@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Box, Typography, IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { SlavicCharacter, SlavicWeapon } from "../../models/CharacterProps";
+import { EquipmentItem, EquipmentType } from "../../models/Types";
 import {
   SheetSection,
   FieldRow,
@@ -11,6 +12,8 @@ import {
   ListEditor,
   TwoCol,
   ChipListEditor,
+  EquipmentSuggestField,
+  parseCatalogNumber,
 } from "./shared";
 
 interface Props {
@@ -93,14 +96,6 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
               <FieldRow label="Age">
                 <TextInput value={c.age ?? ""} onChange={(v) => up("age", v)} />
               </FieldRow>
-              <FieldRow label="Experience">
-                <NumInput
-                  value={c.experience ?? 0}
-                  onChange={(v) => up("experience", v)}
-                  max={9999}
-                  width={80}
-                />
-              </FieldRow>
             </Box>
           }
           right={
@@ -125,6 +120,28 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
             </Box>
           }
         />
+      </SheetSection>
+
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FieldRow label="Silver">
+            <NumInput
+              value={c.silver ?? 0}
+              onChange={(v) => up("silver", v)}
+              max={99999}
+              width={104}
+            />
+          </FieldRow>
+          <FieldRow label="Experience">
+            <NumInput
+              value={c.experience ?? 0}
+              onChange={(v) => up("experience", v)}
+              max={9999}
+              width={80}
+            />
+          </FieldRow>
+        </Box>
       </SheetSection>
 
       {/* ── Attributes & Damage Tracks ── */}
@@ -260,6 +277,21 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Weapons ── */}
             <SheetSection title="Weapons">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.WEAPONS}
+                onAdd={(item: EquipmentItem) =>
+                  up("weapons", [
+                    ...(c.weapons ?? []),
+                    {
+                      name: item.name,
+                      grip: "1H",
+                      damage: parseCatalogNumber(item.damage, 1),
+                      range: "Arm's Length",
+                    },
+                  ])
+                }
+              />
               {(c.weapons ?? []).map((w, i) => (
                 <Box
                   key={i}
@@ -340,6 +372,14 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Armor ── */}
             <SheetSection title="Armor">
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.ARMOR}
+                onAdd={(item: EquipmentItem) => {
+                  const rating = parseCatalogNumber(item.damage, 0);
+                  up("armor", { name: item.name, rating: { current: rating, max: rating } });
+                }}
+              />
               <FieldRow label="Name">
                 <TextInput
                   value={c.armor?.name ?? ""}
@@ -380,11 +420,18 @@ const SlavicSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Gear ── */}
             <SheetSection title="Gear">
-              <ListEditor
-                value={c.gear ?? []}
-                onChange={(v) => up("gear", v)}
-                rows={3}
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.GEAR}
+                onAdd={(item) => up("gear", [...(c.gear ?? []), item.name])}
               />
+              <Box sx={{ mt: 0.5 }}>
+                <ListEditor
+                  value={c.gear ?? []}
+                  onChange={(v) => up("gear", v)}
+                  rows={3}
+                />
+              </Box>
             </SheetSection>
 
             {/* ── Relationships ── */}

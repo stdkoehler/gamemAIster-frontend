@@ -5,10 +5,15 @@ import {
   TextField,
   Divider,
   Chip,
+  Autocomplete,
+  CircularProgress,
   useTheme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import IconButton from "@mui/material/IconButton";
+import { AutocompletePaper, autocompleteStyle } from "../../styles/styles";
+import { getEquipmentSuggestions } from "../../functions/restInterface";
+import { EquipmentItem, EquipmentType, GameType } from "../../models/Types";
 
 // =====================
 // Dot Rating (1-N clickable dots)
@@ -339,6 +344,137 @@ export const ChipListEditor: React.FC<ChipListEditorProps> = ({
 };
 
 // =====================
+// Equipment catalog suggestion field (autocomplete backed by the backend's
+// per-system equipment catalog — GET /mission/equipment/{game_type}/{equipment_type})
+// =====================
+
+// Catalog items carry `damage` as a free-text string (armor rating or weapon
+// damage die/bonus, e.g. "2", "+2", "-1"); this app's structured fields are
+// often plain numbers, so parse leniently and fall back to a sane default
+// rather than reject the pick.
+export const parseCatalogNumber = (
+  value: string | number | undefined,
+  fallback: number,
+): number => {
+  if (typeof value === "number") return value;
+  const parsed = parseInt(String(value ?? ""), 10);
+  return isNaN(parsed) ? fallback : parsed;
+};
+
+interface EquipmentSuggestFieldProps {
+  gameType: GameType;
+  equipmentType: EquipmentType;
+  /** Called with the picked catalog item; the caller decides how to fold it
+   * into the sheet (append a name to a string[] list, or build a structured
+   * weapon/armor entry from it). */
+  onAdd: (item: EquipmentItem) => void;
+  placeholder?: string;
+}
+
+export const EquipmentSuggestField: React.FC<EquipmentSuggestFieldProps> = ({
+  gameType,
+  equipmentType,
+  onAdd,
+  placeholder = "Search catalog to add...",
+}) => {
+  const [inputValue, setInputValue] = React.useState("");
+  const [options, setOptions] = React.useState<EquipmentItem[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = React.useRef(0);
+
+  const fetchOptions = React.useCallback(
+    (keywords: string) => {
+      const requestId = ++requestIdRef.current;
+      setLoading(true);
+      getEquipmentSuggestions(gameType, equipmentType, {
+        keywords: keywords.trim() || undefined,
+        limit: 15,
+      })
+        .then((items) => {
+          if (requestId === requestIdRef.current) setOptions(items);
+        })
+        .catch(() => {
+          if (requestId === requestIdRef.current) setOptions([]);
+        })
+        .finally(() => {
+          if (requestId === requestIdRef.current) setLoading(false);
+        });
+    },
+    [gameType, equipmentType],
+  );
+
+  // Debounced re-fetch as the user types. Picking an option resets
+  // `inputValue` back to "" too, but if it was already "" (the user picked
+  // straight from the default list without typing) that's a no-op as far as
+  // this effect's dependency is concerned — it would never re-run and the
+  // list would stay stuck on the `[]` set right after picking. So selection
+  // also calls `fetchOptions` directly below, instead of relying solely on
+  // this effect noticing a change.
+  React.useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchOptions(inputValue), 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [inputValue, fetchOptions]);
+
+  return (
+    <Autocomplete<EquipmentItem>
+      size="small"
+      sx={autocompleteStyle}
+      options={options}
+      loading={loading}
+      filterOptions={(x) => x} // server already filters by keywords
+      inputValue={inputValue}
+      value={null}
+      onInputChange={(_, value) => setInputValue(value)}
+      onChange={(_, item) => {
+        if (item) {
+          onAdd(item);
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          setInputValue("");
+          fetchOptions("");
+        }
+      }}
+      getOptionLabel={(o) => o.name}
+      isOptionEqualToValue={(a, b) => a.name === b.name}
+      slots={{ paper: AutocompletePaper }}
+      renderOption={(props, option) => (
+        <Box component="li" {...props} key={option.name}>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <Typography variant="body2">{option.name}</Typography>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              {[option.category, option.cost ?? option.availability_tn, option.damage]
+                .filter(Boolean)
+                .join(" · ")}
+            </Typography>
+          </Box>
+        </Box>
+      )}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          placeholder={placeholder}
+          variant="outlined"
+          slotProps={{
+            input: {
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {loading ? <CircularProgress color="inherit" size={14} /> : null}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            },
+          }}
+        />
+      )}
+    />
+  );
+};
+
+// =====================
 // Record<string, number> editor (name → value table)
 // =====================
 
@@ -435,6 +571,46 @@ export const RecordNumEditor: React.FC<RecordNumEditorProps> = ({
     </Box>
   );
 };
+
+// =====================
+// Scrollable fixed-row skill grid (a long, name-keyed list rendered as a
+// capped-height CSS grid — e.g. a system's full canonical skill list, or
+// Dragonlance's ability-linked skills). Each caller supplies `renderRow` to
+// fill in its own per-row cells (rating input, proficiency checkbox, etc.);
+// this only owns the scroll container and column layout.
+// =====================
+
+interface SkillGridProps {
+  rows: readonly string[];
+  renderRow: (row: string) => React.ReactNode;
+  columns?: string;
+  maxHeight?: number;
+  header?: React.ReactNode;
+}
+
+export const SkillGrid: React.FC<SkillGridProps> = ({
+  rows,
+  renderRow,
+  columns = "1fr 76px",
+  maxHeight = 320,
+  header,
+}) => (
+  <Box
+    sx={{
+      maxHeight,
+      overflowY: "auto",
+      display: "grid",
+      gridTemplateColumns: columns,
+      gap: 0.5,
+      alignItems: "center",
+    }}
+  >
+    {header}
+    {rows.map((row) => (
+      <React.Fragment key={row}>{renderRow(row)}</React.Fragment>
+    ))}
+  </Box>
+);
 
 // =====================
 // Two-column layout helper

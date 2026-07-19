@@ -608,6 +608,11 @@ const SeventhSeaNpcCard: React.FC<SeventhSeaCharacter & WithUpdate> = (c) => {
           ))}
         </Box>
       )}
+      {c.armor && (
+        <Typography variant="body2">
+          Armor: {c.armor.name} (Rating {c.armor.rating})
+        </Typography>
+      )}
       <Divider sx={{ my: 1 }} />
       <Grid container spacing={2} sx={trackGridStyle}>
         <Grid>

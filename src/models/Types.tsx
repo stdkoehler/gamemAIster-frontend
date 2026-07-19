@@ -10,6 +10,32 @@ export enum GameType {
   CUSTOM = "custom",
 }
 
+// Generic equipment slots a character sheet can request catalog suggestions
+// for; not every GameType supports every slot (see getEquipmentTypes in
+// restInterface.tsx — only Shadowrun currently has CYBERWARE).
+export enum EquipmentType {
+  WEAPONS = "weapons",
+  ARMOR = "armor",
+  CYBERWARE = "cyberware",
+  GEAR = "gear",
+}
+
+// One catalog item as returned by the backend's equipment-suggestion
+// endpoint. Field coverage varies per system/item (e.g. Shadowrun items lack
+// `damage`, Expanse items use `availability_tn` instead of `cost`) — only
+// `name` is guaranteed.
+export interface EquipmentItem {
+  name: string;
+  category?: string;
+  subcategory?: string;
+  cost?: string | number;
+  damage?: string;
+  type?: string;
+  availability?: string;
+  availability_tn?: string | number;
+  notes?: string;
+}
+
 export enum TtsVoice {
   Callum = "Callum",
   CaraGee = "CaraGee",

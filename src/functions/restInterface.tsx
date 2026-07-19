@@ -37,7 +37,7 @@ import {
 import { PlayerInputData } from "../models/PlayerInputData";
 import { MissionLoadPayload } from "../models/RestInterface";
 import { CharacterProps } from "../models/CharacterProps";
-import { GameType } from "../models/Types";
+import { EquipmentItem, EquipmentType, GameType } from "../models/Types";
 import { auth } from "../auth/firebase";
 
 ////////////////////
@@ -513,6 +513,34 @@ export async function getCharacterSheets(
     isActive: s.is_active,
     data: s.content,
   }));
+}
+
+export async function getEquipmentTypes(
+  gameType: GameType,
+): Promise<EquipmentType[]> {
+  return await apiRequest<EquipmentType[]>(
+    `/mission/equipment-types/${gameType}`,
+    "GET",
+  );
+}
+
+/** Filtered catalog items for one equipment slot, for use as character-sheet
+ * autocomplete suggestions. Throws if `equipmentType` isn't offered for this
+ * system (see `getEquipmentTypes`). */
+export async function getEquipmentSuggestions(
+  gameType: GameType,
+  equipmentType: EquipmentType,
+  options?: { keywords?: string; maxCost?: number; limit?: number },
+): Promise<EquipmentItem[]> {
+  const params = new URLSearchParams();
+  if (options?.keywords) params.set("keywords", options.keywords);
+  if (options?.maxCost !== undefined) params.set("max_cost", String(options.maxCost));
+  if (options?.limit !== undefined) params.set("limit", String(options.limit));
+  const query = params.toString();
+  return await apiRequest<EquipmentItem[]>(
+    `/mission/equipment/${gameType}/${equipmentType}${query ? `?${query}` : ""}`,
+    "GET",
+  );
 }
 
 export async function sendTextToSpeech(text: string, voice: string): Promise<Blob> {

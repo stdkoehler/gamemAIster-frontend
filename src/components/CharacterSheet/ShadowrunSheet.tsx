@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Box, Typography, Divider } from "@mui/material";
 import { ShadowrunCharacter } from "../../models/CharacterProps";
+import { EquipmentType } from "../../models/Types";
 import {
   SheetSection, FieldRow, NumInput, TextInput,
-  ListEditor, RecordNumEditor, TwoCol,
+  ListEditor, RecordNumEditor, TwoCol, EquipmentSuggestField,
 } from "./shared";
 
 interface Props {
@@ -83,6 +84,18 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
             />
           }
         />
+      </SheetSection>
+
+      {/* ── Resources (currency & experience — kept prominent, right below Identity) ── */}
+      <SheetSection title="Resources">
+        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+          <FieldRow label="Nuyen">
+            <NumInput value={c.nuyen} onChange={(v) => up("nuyen", v)} max={9999999} width={104} />
+          </FieldRow>
+          <FieldRow label="Karma">
+            <NumInput value={c.karma ?? 0} onChange={(v) => up("karma", v)} max={999} />
+          </FieldRow>
+        </Box>
       </SheetSection>
 
       <TwoCol
@@ -170,11 +183,8 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </Box>
             </SheetSection>
 
-            {/* ── Resources ── */}
-            <SheetSection title="Resources">
-              <FieldRow label="Nuyen">
-                <NumInput value={c.nuyen} onChange={(v) => up("nuyen", v)} max={9999999} width={104} />
-              </FieldRow>
+            {/* ── Reputation & Armor ── */}
+            <SheetSection title="Reputation & Armor">
               <FieldRow label="Street Cred">
                 <NumInput value={c.streetCred} onChange={(v) => up("streetCred", v)} max={99} />
               </FieldRow>
@@ -183,9 +193,6 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
               </FieldRow>
               <FieldRow label="Pub. Awareness">
                 <NumInput value={c.publicAwareness} onChange={(v) => up("publicAwareness", v)} max={99} />
-              </FieldRow>
-              <FieldRow label="Karma">
-                <NumInput value={c.karma ?? 0} onChange={(v) => up("karma", v)} max={999} />
               </FieldRow>
               <FieldRow label="Armor">
                 <NumInput value={c.armor} onChange={(v) => up("armor", v)} max={30} />
@@ -256,11 +263,25 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
 
             {/* ── Gear & Weapons ── */}
             <SheetSection title="Weapons">
-              <ListEditor value={c.weapons} onChange={(v) => up("weapons", v)} rows={3} />
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.WEAPONS}
+                onAdd={(item) => up("weapons", [...c.weapons, item.name])}
+              />
+              <Box sx={{ mt: 0.5 }}>
+                <ListEditor value={c.weapons} onChange={(v) => up("weapons", v)} rows={3} />
+              </Box>
             </SheetSection>
 
             <SheetSection title="Cyberware">
-              <ListEditor value={c.cyberware} onChange={(v) => up("cyberware", v)} rows={3} />
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.CYBERWARE}
+                onAdd={(item) => up("cyberware", [...c.cyberware, item.name])}
+              />
+              <Box sx={{ mt: 0.5 }}>
+                <ListEditor value={c.cyberware} onChange={(v) => up("cyberware", v)} rows={3} />
+              </Box>
             </SheetSection>
 
             {c.bioware !== undefined && (
@@ -270,7 +291,14 @@ const ShadowrunSheet: React.FC<Props> = ({ character, onUpdate }) => {
             )}
 
             <SheetSection title="Gear">
-              <ListEditor value={c.gear} onChange={(v) => up("gear", v)} rows={3} />
+              <EquipmentSuggestField
+                gameType={c.gameType}
+                equipmentType={EquipmentType.GEAR}
+                onAdd={(item) => up("gear", [...c.gear, item.name])}
+              />
+              <Box sx={{ mt: 0.5 }}>
+                <ListEditor value={c.gear} onChange={(v) => up("gear", v)} rows={3} />
+              </Box>
             </SheetSection>
 
             {/* ── Awakened / Technomancer ── */}
